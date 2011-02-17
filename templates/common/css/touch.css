@@ -404,6 +404,7 @@ a.module img {
 
 .focal .nav {
 	margin: 1em -0.5em;
+	border: none;
 }
 
 ul.focal {

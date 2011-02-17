@@ -43,26 +43,28 @@ class TrumbaCalendarDataController extends CalendarDataController
             throw new Exception('Start or end date cannot be blank');
         }
         
-        $diff = $this->endTimestamp() - $this->startTimestamp();
-
-        if ($diff<86400 || $diff == 89999) { // fix for DST
-            if (count($this->trumbaFilters)>0) {
-                $this->setRequiresDateFilter(false);
-                $this->addFilter('startdate', $this->startDate->format('Ymd'));
-                $this->addFilter('days', 1);
-            } else {
-                $this->setRequiresDateFilter(true);
-                $this->addFilter('startdate', $this->startDate->format('Ym').'01');
-                $this->addFilter('months', 1);
-           }
-        } elseif ($diff % 86400 == 0) {
+        // Figure out how many days to search on
+        // use 'z' to avoid DST issues relating to timestamp subtraction
+        $startYear = intval($this->startDate->format('Y'));
+        $startDays = intval($this->startDate->format('z'));
+        $endYear = intval($this->endDate->format('Y'));
+        $endDays = intval($this->endDate->format('z'));
+        if ($endYear > $startYear) {
+            $endDays += ($endYear - $startYear) * 365; // overlaps year boundary
+        }
+        $days = $endDays - $startDays;
+        
+        // TODO: figure out what this was trying to do:
+        //if (count($this->trumbaFilters) > 0) {
             $this->setRequiresDateFilter(false);
             $this->addFilter('startdate', $this->startDate->format('Ymd'));
-            $this->addFilter('days', $diff / 86400);
-        } else {
-            trigger_error("Non day integral duration specified $diff", E_USER_ERROR);
-        }
-        
+            $this->addFilter('days', max($days, 1));
+        /*} else {
+            $this->setRequiresDateFilter(true);
+            $this->addFilter('startdate', $this->startDate->format('Ym').'01');
+            $this->addFilter('months', 1);
+        }*/
+                
         return parent::url();
     }
 
