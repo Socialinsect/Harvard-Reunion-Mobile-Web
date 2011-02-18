@@ -6,3 +6,4 @@ Thumbs.db
 site/*/cache/*
 site/*/logs/*
 *-local.ini
+*.pyc
