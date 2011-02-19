@@ -74,9 +74,8 @@ def parse_doc(infile_name):
 def select_user_cols(col_grp):
     """Basic user information (each row is actually an order, so we can 
     potentially get the same user buying stuff multiple times)"""
-    make_lowercase = MethodTransform(lambda s: s.lower())
-    
     # Grab just the email column and transform it so that it's all lowercase
+    make_lowercase = MethodTransform(lambda s: s.lower())
     email_col_grp = make_lowercase(col_grp.select("email"))
     
     # Append all the other columns we care about to the transformed email column
@@ -113,12 +112,12 @@ def merge_rows(row1, row2):
     new_row = {}
     for key in row1:
         val1, val2 = row1[key], row2[key]
-        if key == "user_id":
-            new_row[key] = val1
-        if key == "class_year":
-            new_row[key] = val2
-        elif (not val1) or (not val2): # if one is blank, take non-blank...
+        if (not val1) or (not val2): # if one is blank, take non-blank...
             new_row[key] = val1 if val1 else val2
+        elif key == "user_id":
+            new_row[key] = val1
+        elif key == "class_year":
+            new_row[key] = val2
         elif val1.isdigit() and val2.isdigit(): # if both are digits, add
             new_row[key] = str(int(val1) + int(val2)) # we only store strings
         else:
