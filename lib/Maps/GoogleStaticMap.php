@@ -97,7 +97,7 @@ class GoogleStaticMap extends StaticMapImageController {
     ////////////// overlays ///////////////
 
     // should expand to support addresses
-    public function addAnnotation($latitude, $longitude, $style=null, $title=null)
+    public function addAnnotation($marker, $style=null, $title=null)
     {
         if ($style === null) {
             $styleArgs = array('color:red');
@@ -115,7 +115,7 @@ class GoogleStaticMap extends StaticMapImageController {
 
         if (!array_key_exists($styleString, $this->markers))
             $this->markers[$styleString] = array();
-        $this->markers[$styleString][] = $latitude . ',' . $longitude;
+        $this->markers[$styleString][] = $marker['lat'] . ',' . $marker['lon'];
     }
 
     public function addPath($points, $style=null)
@@ -326,6 +326,28 @@ class GoogleStaticMap extends StaticMapImageController {
         $query = preg_replace('/%5B\d+%5D/', '', $query);
 
         return $this->baseURL . '?' . $query;
+    }
+
+    public function getJavascriptControlOptions() {
+        $params = array(
+            'mapType' => $this->mapType,
+            'size' => $this->imageWidth .'x'. $this->imageHeight, // "size=512x512"
+            'markers' => $this->getMarkers(),
+            'path' => $this->getPaths(),
+            'style' => $this->getLayerStyles(),
+            'sensor' => ($this->sensor ? 'true' : 'false'),
+            'format' => $this->imageFormat,
+            );
+
+        $query = http_build_query($params);
+        $query = preg_replace('/%5B\d+%5D/', '', $query); // remove brackets
+        $baseURL = $this->baseURL . '?' . $query;
+
+        return json_encode(array(
+            'center' => $this->center,
+            'zoom' => $this->zoomLevel,
+            'baseURL' => $baseURL,
+            ));
     }
 
     public function __construct() {

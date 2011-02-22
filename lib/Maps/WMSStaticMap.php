@@ -41,7 +41,7 @@ class WMSStaticMap extends StaticMapImageController {
         $this->wmsParser = new WMSDataParser();
         $this->wmsParser->parseData($contents);
         $this->enableAllLayers();
-        $this->setMapProjection(GEOGRAPHIC_PROJECTION); // currently defined in MapLayerDataController.php
+        $this->setMapProjection(GEOGRAPHIC_PROJECTION); // currently defined in MapDataController.php
     }
 
     // http://wiki.openstreetmap.org/wiki/MinScaleDenominator
@@ -108,9 +108,8 @@ class WMSStaticMap extends StaticMapImageController {
             'lon' => ($this->bbox['xmin'] + $this->bbox['xmax']) / 2,
             );
     }
-    
-    public function getImageURL()
-    {
+
+    private function getURLParameters() {
         $bboxStr = $this->bbox['xmin'].','.$this->bbox['ymin'].','
                   .$this->bbox['xmax'].','.$this->bbox['ymax'];
 
@@ -150,7 +149,22 @@ class WMSStaticMap extends StaticMapImageController {
             
         if (!isset($params['crs'])) $params['crs'] = $this->defaultProjection;
 
-        return $this->baseURL.'?'.http_build_query($params);
+        return $params;
+    }
+    
+    public function getImageURL()
+    {
+        return $this->baseURL.'?'.http_build_query($this->getURLParameters());
+    }
+
+    public function getJavascriptControlOptions() {
+        $params = $this->getURLParameters();
+        unset($params['bbox']);
+        $baseURL = $this->baseURL.'?'.http_build_query($params);
+        return json_encode(array(
+            'bbox' => $this->bbox,
+            'baseURL' => $baseURL,
+            ));
     }
     
     public function getAvailableLayers() {
