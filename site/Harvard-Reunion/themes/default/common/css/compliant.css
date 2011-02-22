@@ -1,9 +1,12 @@
 /* Overall font and colors */
 
+html {
+	background: #67615d url(/common/images/background-tile.jpg);
+}
+
 body {
-	background-color: #67615d;
-	background-image: url(/common/images/background-tile.jpg), url(/common/images/background-tile2.jpg);
-	background-repeat: repeat, repeat-x;
+	background-image: url(/common/images/background-tile2.jpg);
+	background-repeat: repeat-x;
 	font: 17px/1.33em 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 

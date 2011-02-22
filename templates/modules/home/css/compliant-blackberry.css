@@ -53,11 +53,11 @@ h1 {
 	font-size: 76.47%;
 }
 #download a {
-	color: #333;
+	color: #dcdad9;
 	text-decoration: none;
 }
 #download a:hover {
-	color: #a00;
+	color: #fff;
 }
 #footer {
 	text-align: center;
