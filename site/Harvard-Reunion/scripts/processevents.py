@@ -27,8 +27,7 @@ from itertools import izip
 from datadance import ColumnGroup
 from datadance.transform import MethodTransform
 
-def main():
-    infile_name = sys.argv[1]
+def main(infile_name, outfile_base):
     all_cols = parse_doc(infile_name)
     
     # Extract the cols we care about, sort the event cols by their event ID
@@ -51,26 +50,26 @@ def main():
     # By this point, we've more or less got a clean data file. Now we start to
     # transform it to what we need for our SQL tables. The CSV files are just
     # for debugging purposes.
-    merged.write(infile_name + "-filtered.csv")
+    merged.write(outfile_base + "-filtered.csv")
 
-    dbconn = sqlite3.connect(infile_name + ".db")
+    dbconn = sqlite3.connect(outfile_base + ".db")
 
     # Write our EVENTS table
     events_table = make_events_table(event_cols.column_names)
-    events_table.write(infile_name + "-events.csv")
+    events_table.write(outfile_base + "-events.csv")
     events_table.write_db_table(dbconn, "events", primary_key="event_id")
 
     # Write our USERS table
     users_table = merged.select("user_id", "email", "status", "prefix",
                                 "first_name", "last_name", "suffix", 
                                 "class_year")
-    users_table.write(infile_name + "-users.csv")
+    users_table.write(outfile_base + "-users.csv")
     users_table.write_db_table(dbconn, "users", primary_key="user_id",
                                indexes=["email", "status", "first_name", "last_name"])
 
     # Write our USERS_EVENTS table
     users_events_table = make_users_events_table(merged)
-    users_events_table.write(infile_name + "-users_events.csv")
+    users_events_table.write(outfile_base + "-users_events.csv")
     users_events_table.write_db_table(dbconn, "users_events", 
                                       indexes=["user_id", "event_id", "value"])
 
@@ -171,4 +170,12 @@ def iterate_user_events(user_id_col, event_cols):
 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) != 3:
+        print "Usage: processevents.py [Harris input file] [output file base]\n" \
+              "  Example: processevents.py harris25th.txt 1975_35th\n\n" \
+              "  Will create: 1975_35th.db, 1975_35th-events.csv, etc."
+
+    infile_name = sys.argv[1]
+    outfile_base = sys.argv[2]
+
+    main(infile_name, outfile_base)
