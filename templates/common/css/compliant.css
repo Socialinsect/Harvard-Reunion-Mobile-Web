@@ -403,7 +403,7 @@ a.module img {
 	position: absolute;
 	top: 0px;
 	right: 0px;
-	width: 46px;
+	width: 42px;
 }
 
 #navbar.helpon {
@@ -1332,6 +1332,25 @@ h2.icon {
 	float: left;
 	margin-right: 6px;
 	border: none;
+}
+
+#bookmarkContainer {
+    float: right;
+	margin: -44px 0 0 8px;
+}
+#bookmark {
+    width: 44px;
+    height: 38px;
+    background: url(/common/images/bookmark.png) no-repeat 0 -38px;
+}
+#bookmark.pressed {
+    background-position: 0 1px;
+}
+#bookmark.on {
+    background-position: -44px -38px;
+}
+#bookmark.pressed.on {
+    background-position: -44px 1px;
 }
 
 /* firefox adds these a tags when you edit the dom */

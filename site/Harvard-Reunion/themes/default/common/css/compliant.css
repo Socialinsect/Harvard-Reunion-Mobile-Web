@@ -1,14 +1,14 @@
 /* Overall font and colors */
 
 body {
-	background-color: #dcdddf;
+	background-color: #67615d;
 	font: 17px/1.33em 'Helvetica Neue', Helvetica, Arial, sans-serif;
-	/* background: url(/common/images/background-tile.jpg) top right repeat-x, url(/common/images/background-tile-2.jpg) bottom left repeat; */
+	background: url(/common/images/background-tile.jpg) top left repeat, url(/common/images/background-tile2.jpg) top left repeat-x;
 }
 
 body, th, td, li, option, select, input {
 	/* Primary font */
-	color: #222;
+	color: #333;
 }
 
 .focal, .nav, .results {
@@ -103,12 +103,12 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 
 .breadcrumbs, .breadcrumbs a, .breadcrumbs a:visited {
  	/* All breadcrumb links in nav bar */
-	color: #036;
+	color: #ccc;
 }
 
 .pagetitle {
  	/* Current page title in nav bar */
-	color: #036;
+	color: #ccc;
 }
 
 
