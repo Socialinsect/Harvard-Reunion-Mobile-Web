@@ -18,11 +18,10 @@ import os.path
 import sqlite3
 import string
 import sys
-from itertools import chain, izip
+from itertools import izip
 
-from datadance import hashhelper
-from datadance import ColumnGroup, DataColumn
-from datadance.transform import MethodTransform, Transform
+from datadance import ColumnGroup
+from datadance.transform import MethodTransform
 
 def main():
     infile_name = sys.argv[1]
