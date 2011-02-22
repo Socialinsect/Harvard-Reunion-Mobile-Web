@@ -1,6 +1,6 @@
 {include file="findInclude:common/header.tpl"}
 
-<div class="nonfocal" id="dateselect">
+<div class="nonfocal" id="navbar2">
   <form method="get" action="./">
     <select name="day" onchange="loadDays(this);">
       <option value="all">All Events</option>

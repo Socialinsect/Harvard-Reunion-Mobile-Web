@@ -2,13 +2,13 @@
 
 body {
 	background-color: #67615d;
-	font: 17px/1.33em 'Helvetica Neue', Helvetica, Arial, sans-serif;
 	background: url(/common/images/background-tile.jpg) top left repeat, url(/common/images/background-tile2.jpg) top left repeat-x;
+	font: 17px/1.33em 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 body, th, td, li, option, select, input {
 	/* Primary font */
-	color: #333;
+	color: #dcdad9;
 }
 
 .focal, .nav, .results {
@@ -28,44 +28,44 @@ body, th, td, li, option, select, input {
 }
 
 a, a:visited {
-	color: #036;
+	color: #807c79;
 }
 
 h1 {
-	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-family: Georgia, serif;
 	font-size: 29px;
 	font-weight: normal;
-	color: #fff;
+	color: #f2f1ed;
 }
 
 h2 {
-	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-	font-size: 21px;
+	font-family: Georgia, serif;
+	font-size: 22px;
 	font-weight: normal;
-	color: #036;
+	color: #f2f1ed;
 }
 
 h3 {
 	font-size: 1em;
 	font-weight: bold;
-	color: #036;
+	color: #f2f1ed;
 }
 
 h4 {
 	font-size: 1em;
 	font-weight: normal;
-	color: #333;
+	color: #222;
 }
 
 dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .smallprint, .fineprint, .dek {
 	/* Accent text color for several types of secondary text that appears on white backgrounds, e.g., label in label/value pairs, e.g., People Directory detail screen and for labels in certain calendar listing screens */
 	/* Often the same as the secondary text color defined in the next rule */
-	color: #404649;
+	color: #736f6c;
 }
 
 .foundat, .address, #footer, .copyright, #footerlinks a, #footerlinks a:visited {
 	/* Secondary text color for several types of secondary text that typically appear on the colored background */
-	color: #555;
+	color: #aaa;
 }
 
 
@@ -74,12 +74,12 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 .focal {   
 	/* Focal content div */
 	color: #222;
-	background-color: #fff;
+	background-color: #e2e1dd;
 }
 
 .shaded {
 	/* Shaded subclass of focal content - e.g., background for tabbed focal div */
-	background-color: #edeef0;
+	background-color: #e2e1dd;
 }
 
 
@@ -112,6 +112,22 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 }
 
 
+
+/* Secondary nav bars */
+
+#navbar2, #category-switcher {
+	background: #9c0820 url(/common/images/navback2.png) top left repeat-x;
+  	color: #fff;
+}
+
+#navbar2 select, #category-switcher select {
+	background-color: #a9050f;
+	color: #fff;  
+	border-color: #700d15;
+}
+
+
+
 /* Footer */
 
 #footer {
@@ -124,7 +140,7 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 }
 
 #footerlinks {
-	color: #fff
+	color: #999693;
 }
 
 /* Text input fields, e.g., search fields */
@@ -160,7 +176,7 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 }
 
 .springboard a {	
-	color: #404355;
+	color: #e2e1dd;
 }
 
 .springboard a img {
@@ -187,17 +203,17 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 
 .nav, .results {
 	/* Main navigation lists and search-results lists */
-	background-color: #fff; 	
+	background-color: #e2e1dd; 	
 }
 
 .secondary {
 	/* Secondary navigation or action lists; typically have slightly smaller font size and slightly darker/tinted backgrounds */
 	font-size: 95%;
-	background-color: #edeef0;
+	background-color: #e2e1dd;
 }
 
-.nav, .results, .secondary, .nav a, .nav a:visited, .nav span.nolink, .results a, .results a:visited, .secondary, .secondary a, .secondary a:visited  {
-	color: #333;
+.nav, .results, .secondary, .nav li, .results li, .secondary li, .nav a, .nav a:visited, .nav span.nolink, .results a, .results a:visited, .secondary, .secondary a, .secondary a:visited  {
+	color: #222;
 }
 
 .nav .badge {
@@ -207,13 +223,13 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 }
 
 .announcements {	   
-	background-color: #edeef0;
+	background-color: #e2e1dd;
 }
 
 .announcements li {	
 	font-size: 14px;
 	line-height: 19px;
-	color: #202020;
+	color: #535251;
 }
 
 

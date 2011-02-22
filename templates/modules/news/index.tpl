@@ -24,7 +24,7 @@
               <td class="inputfield"><div id="news-category-select">{$categorySelect}</div></td>
               <td class="togglefield">
                 {block name="categoryButton"}
-                  <input src="/common/images/search_button.png" type="image" class="toggle-search-button"  onclick="return toggleSearch();" />
+                  <input src="/common/images/search_button.png" type="image" class="toggle-search-button"  onclick="return toggleSearch();"  width="35" height="32" />
                 {/block}
               </td>
             </tr>
@@ -47,7 +47,7 @@
                 onKeyPress="return submitenter(this, event);"/>
               </td>
               <td class="togglefield">
-                <input type="button" class="toggle-search-button" onclick="return toggleSearch();" value="Cancel" />
+                <input type="button" class="toggle-search-button textbutton" onclick="return toggleSearch();" value="Cancel" />
               </td>
             </tr>
           </table>
