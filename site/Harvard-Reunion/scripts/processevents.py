@@ -13,16 +13,19 @@ It automatically generates:
 Helpful convention:
   xxx_col = a single Column object
   xxx_cols = a ColumnGroup object (a collection of columns with header names)
+  
+Encoding:
+* The data created is encoded as Latin-1. We change this to UTF-8 when we write
+  out the data file and when we insert values into the database.
 """
 import os.path
 import sqlite3
 import string
 import sys
-from itertools import chain, izip
+from itertools import izip
 
-from datadance import hashhelper
-from datadance import ColumnGroup, DataColumn
-from datadance.transform import MethodTransform, Transform
+from datadance import ColumnGroup
+from datadance.transform import MethodTransform
 
 def main():
     infile_name = sys.argv[1]
@@ -79,7 +82,8 @@ def parse_doc(infile_name):
     with open(infile_name) as infile:
         full_doc = ColumnGroup.from_csv(infile, 
                                         delimiter="\t",
-                                        force_unique_col_names=True)
+                                        force_unique_col_names=True,
+                                        encoding="latin-1")
         return full_doc
 
 def select_user_cols(col_grp):

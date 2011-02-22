@@ -2,7 +2,8 @@
 
 body {
 	background-color: #67615d;
-	background: url(/common/images/background-tile.jpg) top left repeat, url(/common/images/background-tile2.jpg) top left repeat-x;
+	background-image: url(/common/images/background-tile.jpg), url(/common/images/background-tile2.jpg);
+	background-repeat: repeat, repeat-x;
 	font: 17px/1.33em 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
