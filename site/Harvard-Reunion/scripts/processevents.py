@@ -46,29 +46,32 @@ def main():
     merged = active.merge_rows(lambda row: row["email"], merge_func=merge_rows)
 
     # By this point, we've more or less got a clean data file. Now we start to
-    # transform it to what we need for our SQL tables.
+    # transform it to what we need for our SQL tables. The CSV files are just
+    # for debugging purposes.
     merged.write(infile_name + "-filtered.csv")
 
-    #dbconn = sqlite3.connect(infile_name + ".db")
+    dbconn = sqlite3.connect(infile_name + ".db")
 
     # Write our EVENTS table
     events_table = make_events_table(event_cols.column_names)
     events_table.write(infile_name + "-events.csv")
-    #events_table.write_db_table(dbconn, "events")
+    events_table.write_db_table(dbconn, "events", primary_key="event_id")
 
     # Write our USERS table
     users_table = merged.select("user_id", "email", "status", "prefix",
                                 "first_name", "last_name", "suffix", 
                                 "class_year")
     users_table.write(infile_name + "-users.csv")
-    #users_table.write_db_table(dbconn, "users")
+    users_table.write_db_table(dbconn, "users", primary_key="user_id",
+                               indexes=["email", "status", "first_name", "last_name"])
 
     # Write our USERS_EVENTS table
     users_events_table = make_users_events_table(merged)
     users_events_table.write(infile_name + "-users_events.csv")
-    #users_events_table.write_db_table(dbconn, "users_events")
+    users_events_table.write_db_table(dbconn, "users_events", 
+                                      indexes=["user_id", "event_id", "value"])
 
-    #dbconn.close()
+    dbconn.close()
 
 #################### Parse and Extract ####################
 

@@ -331,15 +331,36 @@ class ColumnGroup(object):
         with open(filename, "wb") as outfile:
             self.to_csv(outfile)
 
-    def write_db_table(self, dbconn, table_name, indexes):
-        cur = dbconn.cursor()
-        col_placeholders = ",".join(list("?" * self.num_cols)) # ex: "?,?,?"
-        # print "create table %s(%s)" % (table_name, col_placeholders)
-        cur.execute("create table %s(%s)" % (table_name, col_placeholders),
-                    self.column_names)
-        cur.executemany("insert into %s values (%s)" % (table_name, col_placeholders),
-                        (self.iter_rows()))
-        dbconn.commit()
+    def write_db_table(self, conn, table_name, primary_key=None, indexes=tuple()):
+        def _iter_cols_sql():
+            for col_name in self.column_names:
+                if col_name == primary_key:
+                    yield "%s integer primary key" % col_name
+                else:
+                    yield "%s varchar" % col_name
+
+        cur = conn.cursor()
+
+        # create our table (get rid of the old one if it exists)
+        drop_table_sql = "drop table if exists %s" % table_name
+        create_table_sql = "create table %s(%s)" % \
+                           (table_name, ", ".join(_iter_cols_sql()))
+        cur.execute(drop_table_sql)
+        cur.execute(create_table_sql)
+
+        # Now our indexes...
+        for index_col in indexes:
+            index_name = "%s_%s_idx" % (table_name, index_col)
+            cur.execute("drop index if exists %s" % index_name)
+            cur.execute("create index %s on %s(%s)" % \
+                        (index_name, table_name, index_col))
+
+        # Now add our data
+        col_placeholders = ",".join(list("?" * self.num_cols))
+        insert_sql = "insert into %s values (%s)" % (table_name, col_placeholders)
+        cur.executemany(insert_sql, self.iter_rows())
+
+        conn.commit()
         cur.close()
         
 
