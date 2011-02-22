@@ -10,9 +10,13 @@ body {
 	font: 17px/1.33em 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-body, th, td, li, option, select, input {
+body, th, td, li {
 	/* Primary font */
 	color: #dcdad9;
+}
+
+option, select, input {
+	color: #222;
 }
 
 .focal, .nav, .results {

@@ -19,6 +19,6 @@
 
 .springboard a img, .springboard div.utility a img {
 	/* Size of actual item icon in springboard; for this device branch, this is the same for primary and utility-class springboard items - for best results make actual PNGs match this size */
-	width: 64px;
-	height: 64px;
+	width: 60px;
+	height: 60px;
 }
