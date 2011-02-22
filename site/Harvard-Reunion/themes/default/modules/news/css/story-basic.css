@@ -1,6 +1,7 @@
 .news {
  	/* Background color for news listing */
-   background-color: #fff;
+	background-color: #e2e1dd;
+	color: #222;
 }
 
 .byline {

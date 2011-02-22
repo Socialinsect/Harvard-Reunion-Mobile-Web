@@ -410,6 +410,39 @@ a.module img {
     padding-right: 46px;
 }
 
+
+
+/* Secondary nav bars */
+
+#navbar2 {
+  margin: -11px 0 0 0;
+  padding: 6px 12px;
+}
+
+#category-switcher {
+  padding: 6px 0;
+  height: 36px;
+  margin: -18px 0;
+}
+
+#navbar2 form, #category-switcher form {
+  margin: 0;
+}
+
+#navbar2 select, #category-switcher select, .textbutton {
+  display: block;
+  -webkit-appearance: none;
+  -webkit-border-radius: 4px;
+  padding: .25em .5em;
+  border: 1px outset #666;
+}
+
+.textbutton {
+	margin-left; 4px;
+}
+
+
+
 /* Springboards */
 
 .springboard {
