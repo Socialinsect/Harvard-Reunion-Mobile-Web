@@ -5,7 +5,7 @@
 import csv
 from collections import namedtuple
 from cStringIO import StringIO
-from itertools import count, groupby, izip, tee
+from itertools import count, groupby, imap, izip
 
 from column import DataColumn
 
@@ -161,7 +161,7 @@ class ColumnGroup(object):
         it's a String."""
         if isinstance(index, int):
             return self._columns[index]
-        elif isinstance(index, str):
+        elif isinstance(index, basestring):
             return self._name_to_col[index]
             
     def __iter__(self):
@@ -268,7 +268,7 @@ class ColumnGroup(object):
     
     @classmethod
     def from_csv(cls, csv_input, strip_spaces=True, skip_blank_lines=True,
-                 encoding=None, delimiter=",", force_unique_col_names=False):
+                 encoding="utf-8", delimiter=",", force_unique_col_names=False):
         """
         Both strip_spaces and skip_blank_lines default to True because these
         things often happen in CSV files that are exported from Excel.
@@ -295,7 +295,7 @@ class ColumnGroup(object):
             else:
                 return _pad_row( row )
 
-        if isinstance(csv_input, str):
+        if isinstance(csv_input, basestring):
             csv_stream = StringIO(csv_input)
         else:
             csv_stream = csv_input
@@ -317,7 +317,7 @@ class ColumnGroup(object):
             # whether strip_spaces is True.
             if (not skip_blank_lines) or any(processed_row):
                 for i in range(num_cols):
-                    raw_text_cols[i].append(processed_row[i])
+                    raw_text_cols[i].append(unicode(processed_row[i], encoding))
 
         # Now take the raw data and put it into our DataColumn...
         cols = [ DataColumn(raw_col) for raw_col in raw_text_cols ]
@@ -327,9 +327,9 @@ class ColumnGroup(object):
         #   [ DataColumn(["David", "John"]), DataColumn(["Ormsbee", "Doe"]) ]
         return ColumnGroup(zip(column_headers, cols))
 
-    def write(self, filename):
+    def write(self, filename, show_row_nums=False, encoding="utf-8"):
         with open(filename, "wb") as outfile:
-            self.to_csv(outfile)
+            self.to_csv(outfile, show_row_nums=show_row_nums, encoding=encoding)
 
     def write_db_table(self, conn, table_name, primary_key=None, indexes=tuple()):
         def _iter_cols_sql():
@@ -357,29 +357,37 @@ class ColumnGroup(object):
 
         # Now add our data
         col_placeholders = ",".join(list("?" * self.num_cols))
-        insert_sql = "insert into %s values (%s)" % (table_name, col_placeholders)
+        insert_sql = u"insert into %s values (%s)" % \
+                     (table_name, col_placeholders)
         cur.executemany(insert_sql, self.iter_rows())
 
         conn.commit()
         cur.close()
         
 
-    def to_csv(self, stream=None, show_row_nums=False):
+    def to_csv(self, stream=None, show_row_nums=False, encoding="utf-8"):
         # We have the column data, now we need to write it out as a CSV
         if stream:
             stream_passed_in = True
         else:
             stream_passed_in = False
             stream = StringIO()
-            
+
+        def _encode(s):
+            return s.encode(encoding)
+
         writer = csv.writer(stream) # use csv lib to do our string escaping
 
+        # Convert to bytes (str) for writing...
+        encoded_col_names = map(_encode, self.column_names)
+        encoded_rows = (map(_encode, row) for row in self.iter_rows())
         if show_row_nums:
-            writer.writerow(['rowNum'] + list(self.column_names))
-            writer.writerows(izip(count(1), *self.columns))
+            writer.writerow(['rowNum'] + encoded_col_names)
+            writer.writerows([str(i)] + row 
+                             for i, row in enumerate(encoded_rows, start=1))
         else:
-            writer.writerow(self.column_names)
-            writer.writerows(izip(*self.columns))
+            writer.writerow(encoded_col_names)
+            writer.writerows(encoded_rows)
         
         if not stream_passed_in:
             return stream.getvalue()
