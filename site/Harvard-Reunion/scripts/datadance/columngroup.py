@@ -331,6 +331,18 @@ class ColumnGroup(object):
         with open(filename, "wb") as outfile:
             self.to_csv(outfile)
 
+    def write_db_table(self, dbconn, table_name, indexes):
+        cur = dbconn.cursor()
+        col_placeholders = ",".join(list("?" * self.num_cols)) # ex: "?,?,?"
+        # print "create table %s(%s)" % (table_name, col_placeholders)
+        cur.execute("create table %s(%s)" % (table_name, col_placeholders),
+                    self.column_names)
+        cur.executemany("insert into %s values (%s)" % (table_name, col_placeholders),
+                        (self.iter_rows()))
+        dbconn.commit()
+        cur.close()
+        
+
     def to_csv(self, stream=None, show_row_nums=False):
         # We have the column data, now we need to write it out as a CSV
         if stream:
