@@ -1,4 +1,5 @@
 .dateHeader {
+  font: 94.1%/1.33em Georgia, serif;
   color: white;
   background: #736e6a;
   margin: 0;
@@ -6,23 +7,4 @@
 }
 .dateHeader + .results {
   margin: 0;
-}
-
-#dateselect {
-  margin: -11px 0 0 0;
-  padding: 6px 12px;
-  background: #a50613;
-  color: white;
-}
-#dateselect form {
-  margin: 0;
-}
-#dateselect select {
-  display: block;
-  -webkit-appearance: none;
-  -webkit-border-radius: 4px;
-  background: #a50613;
-  padding: .25em .5em;
-  border: 1px outset #700d15;
-  color: white;  
 }
