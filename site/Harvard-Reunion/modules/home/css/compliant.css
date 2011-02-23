@@ -66,7 +66,7 @@
 
 #social {
   position: relative;
-  padding: 0 4px 0 112px;
+  padding: 0 4px 0 110px;
   height: 94px;
 }
 
@@ -74,18 +74,20 @@
   position: absolute;
   top: 3px;
   left: 7px;
-  width: 116px;
+  width: 117px;
   height: 70px;
 }
 
 #social .links a {
   font-size: 70%;
   line-height: normal;
-  padding: 5px 6px;
+  padding: 4px 6px;
   height: 32px;
   overflow: hidden;
   background: url('/modules/home/images/socialbutton.png') no-repeat;
-  color: white;
+  color: #eee;
+  text-decoration: none;
+  display: block;
 }
 
 #social .links a:first-child {
@@ -94,7 +96,7 @@
 #social .links a .wrapper {
   background: transparent no-repeat left center;
   background-size: 24px;
-  padding-left: 24px;
+  padding-left: 28px;
 }
 #social .links .facebookLink .wrapper {
   background-image: url('/common/images/button-facebook.png');
@@ -118,10 +120,11 @@
 #social .recent .chatbubble {
   color: #333;
   padding: 8px 0 6px 0;
-  margin: 0 14px 0 18px;
+  margin: 0 12px 0 16px;
   height: 81px;
   font-size: 82.3%;
-  line-height: 1.25em;
+  line-height: 1.2em;
+  overflow: hidden;
   background: url('/modules/home/images/chatbubble-mid.png') repeat-x;
 }
 
@@ -129,7 +132,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 14px;
+  width: 12px;
   height: 95px;
   background: url('/modules/home/images/chatbubble-r.png') no-repeat;	
 }
@@ -138,17 +141,15 @@
   position: absolute;
   top: 0;
   left: 10px;
-  width: 18px;
-  height: 95px;
-  background-repeat: no-repeat;
-  background-position: top left;	
+  width: 16px;
+  height: 95px;	
 }
 
 #social .facebook .cbl {
-  background-image: url('/modules/home/images/chatbubble-l1.png');	
+  background: url('/modules/home/images/chatbubble-l1.png') no-repeat;
 }
 #social .twitter .cbl {
-  background-image: url('/modules/home/images/chatbubble-l2.png');	
+  background: url('/modules/home/images/chatbubble-l2.png') no-repeat;
 }
 
 #social .recent .chatbubble .info {
