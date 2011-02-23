@@ -5,14 +5,6 @@
   */
 
 /**
-  */
-require_once realpath(LIB_DIR.'/DateTimeUtils.php');
-
-/**
-  */
-require_once realpath(LIB_DIR.'/ICalendar.php');
-
-/**
   * @package Module
   * @subpackage Schedule
   */
@@ -20,7 +12,7 @@ class SiteScheduleModule extends Module {
   protected $id = 'schedule';
   protected $feeds = null;
   protected $hasFeeds = true;
-  protected $timezone;
+  protected $reunion = null;
   protected $feedFields = array(
     'CACHE_LIFETIME'   => 'Cache lifetime (seconds)', 
     'CONTROLLER_CLASS' => 'Controller Class',
@@ -29,52 +21,6 @@ class SiteScheduleModule extends Module {
     'START_DATE'       => 'Start date (YYYY-MM-DD)',
     'END_DATE'         => 'End date (YYYY-MM-DD)',
   );
-  
-  protected function getFeeds() {
-    if (!isset($this->feeds)) {
-      $this->feeds = $this->loadFeedData();
-    }
-    
-    return $this->feeds;
-  }
-
-  public function getDefaultFeed() {
-    $feeds = $this->getFeeds();
-    if ($indexes = array_keys($feeds)) {
-      return current($indexes);
-    }
-  }
-  
-  protected function getFeedTitle($id) {
-    $feeds = $this->getFeeds();
-    if (isset($feeds[$id])) {
-      return $feeds[$id]['TITLE'];
-    } else {
-      throw new Exception("Error getting calendar title for index $index");
-    }
-  }
-  
-  public function getFeed($id) {
-    $feeds = $this->getFeeds();
-    if (isset($feeds[$id])) {
-      $feedData = $feeds[$id];
-      if (!isset($feedData['CONTROLLER_CLASS'])) {
-        $feedData['CONTROLLER_CLASS'] = 'CalendarDataController';
-      }
-      $controller = CalendarDataController::factory($feedData['CONTROLLER_CLASS'], $feedData);
-      $controller->setDebugMode($this->getSiteVar('DATA_DEBUG'));
-      
-      $start = new DateTime($feedData['START_DATE'].' 00:00:00', $this->timezone);
-      $end   = new DateTime($feedData['END_DATE'].' 00:00:00 +1 day', $this->timezone);
-      
-      $controller->setStartDate($start);
-      $controller->setEndDate($end);
-      
-      return $controller;
-    } else {
-      throw new Exception("Error getting calendar feed for '$id'");
-    }
-  }
   
   private function valueForType($type, $value) {
     $valueForType = $value;
@@ -167,9 +113,8 @@ class SiteScheduleModule extends Module {
     }
   }
   
-  private function detailURL($id, $iCalEvent, $addBreadcrumb=true, $noBreadcrumbs=false) {
+  private function detailURL($iCalEvent, $addBreadcrumb=true, $noBreadcrumbs=false) {
     $args = array(
-      'id'      => $id,
       'eventId' => $iCalEvent->get_uid(),
       'time'    => $iCalEvent->get_start()
     );
@@ -182,8 +127,7 @@ class SiteScheduleModule extends Module {
   }
 
   protected function initialize() {
-    $this->timezone = new DateTimeZone($this->getSiteVar('LOCAL_TIMEZONE'));
-    //$this->schedule = new Schedule();
+    $this->reunion = new Reunion();
   }
 
   protected function initializeForPage() {
@@ -193,8 +137,8 @@ class SiteScheduleModule extends Module {
 
       case 'index':
         $day  = $this->getArg('day', 'all');
-        $id   = $this->getArg('id', $this->getDefaultFeed());
-        $feed = $this->getFeed($id);
+        
+        $feed = $this->reunion->getEventFeed();
         
         $iCalEvents = $feed->items(0);
         
@@ -223,14 +167,13 @@ class SiteScheduleModule extends Module {
             }
 
             $eventDays[$date]['events'][] = array(
-              'url'      => $this->detailURL($id, $iCalEvent),
+              'url'      => $this->detailURL($iCalEvent),
               'title'    => $iCalEvent->get_summary(),
               'subtitle' => $subtitle,
             );
           }
         }
         
-        $this->assign('title',     $this->getFeedTitle($id));
         $this->assign('day',       $day);        
         $this->assign('days',      $days);        
         $this->assign('eventDays', $eventDays);        
@@ -238,9 +181,8 @@ class SiteScheduleModule extends Module {
               
       case 'detail':  
         $fieldConfig = $this->loadWebAppConfigFile('schedule-detail', 'detailFields');
-        $id = $this->getArg('id', $this->getDefaultFeed());
         
-        $feed = $this->getFeed($id);
+        $feed = $this->reunion->getEventFeed();
         
         $time = $this->getArg('time', time());
         $event = $feed->getItem($this->getArg('eventId'), $time);

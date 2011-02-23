@@ -1,32 +1,49 @@
 <?php
 
+/**
+  */
+require_once realpath(LIB_DIR.'/DateTimeUtils.php');
+
+/**
+  */
+require_once realpath(LIB_DIR.'/ICalendar.php');
+
 class Reunion {
   private $timezone = null;
-  private $start = null;
-  private $end = null;
-  private $eventConfigs = array();
+  private $startDate = null;
+  private $endDate = null;
+  private $eventConfig = array();
   private $attendee = null;
 
   function __construct() {
     $this->timezone = new DateTimeZone(
       $GLOBALS['siteConfig']->getVar('LOCAL_TIMEZONE', Config::LOG_ERRORS | Config::EXPAND_VALUE));
   
+    $eventConfig = array();
     $configFile = realpath_exists(SITE_CONFIG_DIR.'/feeds/schedule.ini');
     if ($configFile) {
-      $this->eventConfigs = parse_ini_file($configFile, true);
+      $eventConfigs = parse_ini_file($configFile, true);
     }
-    
+
     $this->attendee = new Attendee();
+    $event = $this->attendee->getGraduationClass();
+
+    if (isset($eventConfigs[$event])) {
+      $this->eventConfig = $eventConfigs[$event];
+      
+      $this->startDate = $this->getDateTimeForDate($this->getConfigValue('START_DATE', ''));
+      $this->endDate   = $this->getDateTimeForDate($this->getConfigValue('END_DATE', ''));
+    }
+  }
+  
+  private function getDateTimeForDate($date) {
+    return new DateTime($date.' 00:00:00', $this->timezone);
   }
   
   private function getConfigValue($key, $default=null) {
-    $event = $this->attendee->getGraduationClass();
-    if (isset($this->eventConfigs[$event], $this->eventConfigs[$event][$key])) {
-      return $this->eventConfigs[$event][$key];
-    }
-    
-    return $default;
+    return isset($this->eventConfig[$key]) ? $this->eventConfig[$key] : $default;
   }
+
   
   public function getAttendee() {
     return $this->attendee;
@@ -43,31 +60,19 @@ class Reunion {
   public function getTwitterHashTag() {
     return $this->getConfigValue('TWITTER_HASHTAG', '0');
   }
-  
-  private function getDateTimeForDate($date) {
-    return new DateTime($date.' 00:00:00', $this->timezone);
-  }
   public function getStartDate() {
-    if (!$this->start) {
-      $this->start = $this->getDateTimeForDate($this->getConfigValue('START_DATE', ''));
-    }
-    return $this->start;
+    return $this->startDate;
   }
   public function getEndDate() {
-    if (!$this->end) {
-      $this->end = $this->getDateTimeForDate($this->getConfigValue('END_DATE', ''));
-    }
-    return $this->end;
+    return $this->endDate;
   }
   
   public function getDateDescription() {
-    $start = $this->getStartDate();
-    $end = $this->getEndDate();
     
-    $startMonth = $start->format('M');
-    $startDay   = $start->format('j');
-    $endMonth   = $end->format('M');
-    $endDay     = $end->format('j');
+    $startMonth = $this->startDate->format('M');
+    $startDay   = $this->startDate->format('j');
+    $endMonth   = $this->endDate->format('M');
+    $endDay     = $this->endDate->format('j');
     
     if ($startMonth == $endMonth) {
       return "$startMonth $startDay-$endDay";
@@ -75,6 +80,20 @@ class Reunion {
       return "$startMonth $startDay-$endMonth $endDay";
     }
   }
+  
+  public function getEventFeed() {
+    $controllerClass = $this->getConfigValue('CONTROLLER_CLASS', 'CalendarDataController');
+    
+    $controller = CalendarDataController::factory($controllerClass, $this->eventConfig);
+    $controller->setDebugMode($GLOBALS['siteConfig']->getVar('DATA_DEBUG', Config::LOG_ERRORS | Config::EXPAND_VALUE));
+
+    $endDate = new DateTime($this->endDate->format('Y-m-d').' 00:00:00 +1 day', $this->timezone);
+    $controller->setStartDate($this->startDate);
+    $controller->setEndDate($endDate);
+    
+    return $controller;
+  }
+
 }
 
 class Attendee {  
