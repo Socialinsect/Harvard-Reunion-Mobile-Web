@@ -66,7 +66,7 @@
 
 #social {
   position: relative;
-  padding: 0 4px 0 110px;
+  padding: 0 4px 0 120px;
   height: 94px;
 }
 
@@ -108,7 +108,6 @@
 
 #social .recent {
   position: relative;
-  padding-left: 10px;
   display: none;
 }
 
@@ -139,7 +138,6 @@
 #social .recent .cbl {
   position: absolute;
   top: 0;
-  left: 10px;
   width: 16px;
   height: 95px;
 }
@@ -153,7 +151,6 @@
 }
 
 #social .recent .chatbubble .info {
-  padding-top: .25em;
   color: #626a70;
-  font-size: 95%;
+  font-size: 85.7%;
 }
