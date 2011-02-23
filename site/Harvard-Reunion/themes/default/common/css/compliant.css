@@ -178,9 +178,9 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 .springboard div {
 	/* Overall size of one cell in the springboard */
 	width: 77px;
-	height: 100px;
+	height: 92px;
 	font-size: 13px;
-	line-height: 14px;
+	line-height: 13px;
 }
 
 .springboard a {	

@@ -4,11 +4,9 @@
       <span class="ribbonYear">10<span class="ribbonYearSup">th</span></span><br/><span class="ribbonDesc">Reunion</span><br/><span class="ribbonDate">May 27-29</span>
     </div>
     <h3>Harvard College Reunion</h3>
-    <h2>John Smith</h2>
-    <p>
-      Class of 2001<br/>
-      <span class="smallprint"><a href="#">Sign out</a> | <a href="/settings/">Settings</a></span>
-    </p>
+    <h2>Jonathan Smith</h2>
+    <p>Class of 2001</p>
+ 	<p><a href="#">Sign out</a> | <a href="/settings/">Settings</a></p>
   </div>
 {/capture}
 

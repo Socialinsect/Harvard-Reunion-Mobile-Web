@@ -1,8 +1,9 @@
 .banner {
-  min-height: 150px;
   position: relative;
+  font-size: 88%;
+  line-height: 1.2em;
 }
-.banner .smallprint,
+.banner p,
 .banner a,
 .banner a:visited {
   text-decoration: none;
@@ -14,9 +15,7 @@
   right: -8px;
   width: 68px;
   height: 80px;
-  padding: 14px 10px 31px 10px;
-  text-align: center;
-  line-height: 1em;
+  padding: 12px 10px 31px 10px;
 }
 
 #ribbon .ribbonYear {
@@ -36,7 +35,7 @@
 
 #social {
   position: relative;
-  margin: 10px;
+  margin: 0 10px;
   padding-left: 100px;
   height: 75px;
 }

@@ -1,10 +1,32 @@
-.banner .smallprint,
+.banner p,
 .banner a,
 .banner a:visited {
-  color: #DCDAD9;
+  color: #dcdad9;
+}
+
+.banner p {
+	margin: 6px 0;
+}
+
+.banner h3 {
+	margin: 8px 0 6px 0;
+	color: #d3dbe0;
+	font-size: 100%;
+}
+
+.banner h2 {
+  font-size: 160%;
+  margin: 6px 0;
+  text-shadow: #444 0 1px 2px;
+}
+
+.springboard {
+	margin: -6px 0;
 }
 
 #ribbon {
+  text-align: center;
+  line-height: 1em;
   background: url('/modules/home/images/ribbon.png') no-repeat;
   font-family: Georgia, serif;
   color: #fff;
