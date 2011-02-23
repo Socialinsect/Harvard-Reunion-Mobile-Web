@@ -1,14 +1,7 @@
-.banner {
-  position: relative;
-  font-size: 88%;
-  line-height: 1.2em;
-}
-
 .banner p,
 .banner a,
 .banner a:visited {
   color: #dcdad9;
-  text-decoration: none;
 }
 
 .banner p {
@@ -32,16 +25,10 @@
 }
 
 #ribbon {
-  position: absolute;
-  top: -12px;
-  right: -8px;
-  width: 68px;
-  height: 80px;
-  padding: 12px 10px 31px 10px;
-  background: url('/modules/home/images/ribbon.png') no-repeat;
   text-align: center;
-  font-family: Georgia, serif;
   line-height: 1em;
+  background: url('/modules/home/images/ribbon.png') no-repeat;
+  font-family: Georgia, serif;
   color: #fff;
   text-shadow: #000 0 1px 2px;
 }
@@ -52,13 +39,10 @@
 
 #ribbon .ribbonYearSup {
 	font-size: 18px;
-	vertical-align: super;
 }
 
 #ribbon .ribbonDesc {
 	font-size: 16px;
-	display: inline-block;
-	padding: 6px 0 0 0;
 }
 
 #ribbon .ribbonDate {
@@ -80,7 +64,6 @@
 }
 
 #social .links a {
-  display: block;
   font-size: 70%;
   line-height: normal;
   padding: 5px 6px;
@@ -136,4 +119,5 @@
 #social .recent .chatbubble .info {
   padding-top: .25em;
   color: #626a70;
+  font-size: 95%;
 }

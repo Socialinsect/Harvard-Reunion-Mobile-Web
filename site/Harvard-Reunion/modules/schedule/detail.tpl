@@ -12,7 +12,7 @@
   
 {if count($sections)}
   {foreach $sections as $fields}
-    {include file="findInclude:common/navlist.tpl" navlistItems=$fields}
+    {include file="findInclude:common/navlist.tpl" navlistItems=$fields accessKey=false}
   {/foreach}
 {/if}
 

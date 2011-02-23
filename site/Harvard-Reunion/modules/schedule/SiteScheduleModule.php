@@ -16,7 +16,7 @@ require_once realpath(LIB_DIR.'/ICalendar.php');
   * @package Module
   * @subpackage Schedule
   */
-class ScheduleModule extends Module {
+class SiteScheduleModule extends Module {
   protected $id = 'schedule';
   protected $feeds = null;
   protected $hasFeeds = true;
@@ -183,6 +183,7 @@ class ScheduleModule extends Module {
 
   protected function initialize() {
     $this->timezone = new DateTimeZone($this->getSiteVar('LOCAL_TIMEZONE'));
+    //$this->schedule = new Schedule();
   }
 
   protected function initializeForPage() {
