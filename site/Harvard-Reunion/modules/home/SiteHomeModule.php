@@ -36,7 +36,7 @@ class SiteHomeModule extends HomeModule {
         );      
         
         $facebookGroup = array(
-          'name' => 'Harvard-Radcliff \'01',
+          'name' => 'Harvard-Radcliffe \'01',
           'url'  => '',
         );
         $twitterTag = array(
