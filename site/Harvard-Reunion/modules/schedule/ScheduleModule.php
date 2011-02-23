@@ -183,6 +183,7 @@ class ScheduleModule extends Module {
 
   protected function initialize() {
     $this->timezone = new DateTimeZone($this->getSiteVar('LOCAL_TIMEZONE'));
+    $this->schedule = new Schedule();
   }
 
   protected function initializeForPage() {
