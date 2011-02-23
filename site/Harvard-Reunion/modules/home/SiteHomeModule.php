@@ -56,7 +56,7 @@ class SiteHomeModule extends HomeModule {
           'type'    => 'twitter',
           'message' => 'big group going 2 John Harvard\'s in the Garage, everyone welcome',
           'author'  => 'Katarina Ragulin',
-          'age'     => '12 mins',
+          'age'     => '12 min',
         );
         
         $this->assign('userInfo',    $userInfo);

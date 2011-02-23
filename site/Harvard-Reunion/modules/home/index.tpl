@@ -29,7 +29,7 @@
     <div class="cbl"></div>
     <div class="chatbubble">
       {$socialInfo['recent']['message']}
-      <div class="info smallprint">{$socialInfo['recent']['author']} - {$socialInfo['recent']['age']} ago</div>
+      <div class="info smallprint">{$socialInfo['recent']['author']}, {$socialInfo['recent']['age']} ago</div>
     </div>
     <div class="cbr"></div>
   </div>
