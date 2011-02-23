@@ -1,12 +1,34 @@
 .banner {
-  min-height: 150px;
   position: relative;
+  font-size: 88%;
+  line-height: 1.2em;
 }
-.banner .smallprint,
+
+.banner p,
 .banner a,
 .banner a:visited {
-  color: #DCDAD9;
+  color: #dcdad9;
   text-decoration: none;
+}
+
+.banner p {
+	margin: 6px 0;
+}
+
+.banner h3 {
+	margin: 8px 0 6px 0;
+	color: #d3dbe0;
+	font-size: 100%;
+}
+
+.banner h2 {
+  font-size: 160%;
+  margin: 6px 0;
+  text-shadow: #444 0 1px 2px;
+}
+
+.springboard {
+	margin: -6px 0;
 }
 
 #ribbon {
@@ -15,7 +37,7 @@
   right: -8px;
   width: 68px;
   height: 80px;
-  padding: 14px 10px 31px 10px;
+  padding: 12px 10px 31px 10px;
   background: url('/modules/home/images/ribbon.png') no-repeat;
   text-align: center;
   font-family: Georgia, serif;
@@ -45,7 +67,7 @@
 
 #social {
   position: relative;
-  margin: 10px;
+  margin: 0 10px;
   padding-left: 100px;
   height: 75px;
 }
@@ -57,6 +79,7 @@
   width: 98px;
   height: 70px;
 }
+
 #social .links a {
   display: block;
   font-size: 70%;
