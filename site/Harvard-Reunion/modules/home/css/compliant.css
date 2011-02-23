@@ -123,6 +123,7 @@
   height: 81px;
   font-size: 82.3%;
   line-height: 1.2em;
+  overflow: hidden;
   background: url('/modules/home/images/chatbubble-mid.png') repeat-x;
 }
 
@@ -139,15 +140,14 @@
   position: absolute;
   top: 0;
   width: 16px;
-  height: 95px;
+  height: 95px;	
 }
 
 #social .facebook .cbl {
-	background: url('/modules/home/images/chatbubble-l1.png') no-repeat;	
+  background: url('/modules/home/images/chatbubble-l1.png') no-repeat;
 }
-
 #social .twitter .cbl {
-	background: url('/modules/home/images/chatbubble-l2.png') no-repeat;	
+  background: url('/modules/home/images/chatbubble-l2.png') no-repeat;
 }
 
 #social .recent .chatbubble .info {
