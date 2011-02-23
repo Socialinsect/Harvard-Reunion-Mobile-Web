@@ -6,7 +6,24 @@
 .banner p,
 .banner a,
 .banner a:visited {
+  color: #dcdad9;
   text-decoration: none;
+}
+
+.banner p {
+	margin: 6px 0;
+}
+
+.banner h3 {
+	margin: 8px 0 6px 0;
+	color: #d3dbe0;
+	font-size: 100%;
+}
+
+.banner h2 {
+  font-size: 160%;
+  margin: 6px 0;
+  text-shadow: #444 0 1px 2px;
 }
 
 #ribbon {
@@ -16,21 +33,35 @@
   width: 68px;
   height: 80px;
   padding: 12px 10px 31px 10px;
+  text-align: center;
+  line-height: 1em;
+  background: url('/modules/home/images/ribbon.png') no-repeat;
+  font-family: Georgia, serif;
+  color: #fff;
+  text-shadow: #000 0 1px 2px;
 }
 
 #ribbon .ribbonYear {
+  font-size: 38px;
 }
 
 #ribbon .ribbonYearSup {
+	font-size: 18px;
 	vertical-align: super;
 }
 
 #ribbon .ribbonDesc {
 	display: inline-block;
 	padding: 6px 0 0 0;
+	font-size: 16px;
 }
 
 #ribbon .ribbonDate {
+	font-size: 13px;
+}
+
+.springboard {
+	margin: -6px 0;
 }
 
 #social {
@@ -49,16 +80,30 @@
 }
 #social .links a {
   display: block;
-  padding: 5px 5px 5px 30px;
+  padding: 5px 5px 5px 0;
   height: 28px;
   overflow: hidden;
+  font-size: 70%;
+  line-height: normal;
+  border: solid 1px black;
+  -webkit-border-radius: 6px;
+  color: white;
+  background: transparent no-repeat 3px center;
+  background-size: 24px;
 }
 #social .links a:first-child {
   margin-bottom: 5px;
 }
-#social .links .facebookLink {
+#social .links a .wrapper {
+  background: transparent no-repeat 3px center;
+  background-size: 24px;
+  padding-left: 30px;
 }
-#social .links .twitterLink {
+#social .links .facebookLink .wrapper {
+  background-image: url('/common/images/button-facebook.png');
+}
+#social .links .twitterLink .wrapper {
+  background-image: url('/common/images/button-twitter.png');
   line-height: 28px;
 }
 
@@ -74,6 +119,11 @@
 #social .recent .chatbubble {
   padding: 5px 8px;
   height: 74px;
+  background-color: #BBB;
+  color: #333;
+  -webkit-border-radius: 8px;
+  border: solid 1px black;
+  font-size: 95%;
 }
 #social .recent .chatarrow {
   position: absolute;

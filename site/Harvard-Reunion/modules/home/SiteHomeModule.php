@@ -30,7 +30,7 @@ class SiteHomeModule extends HomeModule {
         $attendee = 'John Smith';
 
         $reunionInfo = array(
-          'year'  => '10th',
+          'year'  => '10',
           'dates' => 'May 27-29',
           'class' => '2001',
         );      

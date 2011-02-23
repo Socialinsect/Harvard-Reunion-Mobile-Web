@@ -1,13 +1,13 @@
 {capture name="banner" assign="banner"}
   <div class="banner nonfocal">
     <div id="ribbon">
-      <span class="ribbonYear">{$reunionInfo['year']}</span><br/>
-      Reunion<br/>
-      <span class="ribbonDate">{$reunionInfo['dates']}</span>
+      <span class="ribbonYear">{$reunionInfo['year']}<span class="ribbonYearSup">th</span></span>
+      <br/><span class="ribbonDesc">Reunion</span>
+      <br/><span class="ribbonDate">{$reunionInfo['dates']}</span>
     </div>
     <h3>Harvard College Reunion</h3>
     <h2>{$attendee}</h2>
-    <p>Class of 2001</p>
+    <p>Class of {$reunionInfo['year']}</p>
     <p><a href="#">Sign out</a> | <a href="/settings/">Settings</a></p>
   </div>
 {/capture}
@@ -18,8 +18,12 @@
 
 <div id="social">
   <div class="links">
-    <a class="facebookLink" href="{$facebookGroup['url']}"><div class="wrapper">{$facebookGroup['name']}</div></a>
-    <a class="twitterLink" href="{$twitterTag['url']}"><div class="wrapper">{$twitterTag['name']}</div></a>
+    <a class="facebookLink" href="{$facebookGroup['url']}">
+      <div class="wrapper">{$facebookGroup['name']}</div>
+    </a>
+    <a class="twitterLink" href="{$twitterTag['url']}">
+      <div class="wrapper">{$twitterTag['name']}</div>
+    </a>
   </div>
   <div class="recent twitter">
     <div class="chatbubble">
