@@ -12,22 +12,35 @@
 #ribbon {
   position: absolute;
   top: -12px;
-  right: 12px;
-  width: 80px;
-  height: 100px;
-  background: red;
-  padding: 20px 10px 30px 10px;
+  right: -8px;
+  width: 68px;
+  height: 80px;
+  padding: 14px 10px 31px 10px;
+  background: url('/modules/home/images/ribbon.png') no-repeat;
   text-align: center;
-  font-size: 110%;
-  font-family: serif;
+  font-family: Georgia, serif;
+  line-height: 1em;
+  color: #fff;
+  text-shadow: #000 0 1px 2px;
 }
 
 #ribbon .ribbonYear {
-  font-size: 200%;
+  font-size: 38px;
+}
+
+#ribbon .ribbonYearSup {
+	font-size: 18px;
+	vertical-align: super;
+}
+
+#ribbon .ribbonDesc {
+	font-size: 16px;
+	display: inline-block;
+	padding: 6px 0 0 0;
 }
 
 #ribbon .ribbonDate {
-  font-size: 85%;
+	font-size: 13px;
 }
 
 #social {

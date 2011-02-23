@@ -1,9 +1,7 @@
 {capture name="banner" assign="banner"}
   <div class="banner nonfocal">
     <div id="ribbon">
-      <span class="ribbonYear">10th</span><br/>
-      Reunion<br/>
-      <span class="ribbonDate">May 27-29</span>
+      <span class="ribbonYear">10<span class="ribbonYearSup">th</span></span><br/><span class="ribbonDesc">Reunion</span><br/><span class="ribbonDate">May 27-29</span>
     </div>
     <h3>Harvard College Reunion</h3>
     <h2>John Smith</h2>
