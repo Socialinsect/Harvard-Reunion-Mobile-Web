@@ -1,6 +1,8 @@
 var loadedImages = {};
 var centerZoomBased;
 var staticMapOptions;
+var mapWidth;
+var mapHeight;
 
 function hideMapTabChildren() {
     var mapTab = document.getElementById("mapTab");
@@ -17,6 +19,21 @@ function hideMapTabChildren() {
             mapTab.removeChild(node);
             break;
         }
+    }
+}
+
+function loadImage(imageURL,imageID) {
+    if (!loadedImages[imageID]) {
+        // Loads an image from the given URL into the image with the specified ID
+        var img = document.getElementById(imageID);
+        if (img) {
+            if (imageURL != "") {
+                img.src = imageURL;
+            } else {
+                img.src = "/common/images/blank.png";
+            }
+        }
+        loadedImages[imageID] = true;
     }
 }
 
@@ -38,12 +55,12 @@ function addStaticMapControls() {
         initBBox = staticMapOptions['bbox'];
     }
     
-    var mapImage = document.getElementById("mapimage");
+    var mapImage = document.getElementById("staticmapimage");
 
     var zoomIn = document.getElementById("zoomin");
     zoomIn.onclick = function() {
         if (centerZoomBased) {
-            staticMapOptions['zoom'] = staticMapOptions['zoom'] + 1;
+            staticMapOptions['zoom'] = parseInt(staticMapOptions['zoom']) + 1;
         } else {
             var bbox = staticMapOptions['bbox'];
             var dLat = bbox['ymax'] - bbox['ymin'];
@@ -60,7 +77,7 @@ function addStaticMapControls() {
     var zoomOut = document.getElementById("zoomout");
     zoomOut.onclick = function() {
         if (centerZoomBased) {
-            staticMapOptions['zoom'] = staticMapOptions['zoom'] - 1;
+            staticMapOptions['zoom'] = parseInt(staticMapOptions['zoom']) - 1;
         } else {
             var bbox = staticMapOptions['bbox'];
             var dLat = bbox['ymax'] - bbox['ymin'];
@@ -88,85 +105,97 @@ function addStaticMapControls() {
 
 function constructMapURL() {
     var baseURL = staticMapOptions['baseURL'];
+    var dimensionFunction = eval(staticMapOptions['dimensionFunction']);
+    var dimensionString = dimensionFunction(mapWidth, mapHeight);
+    
     if (centerZoomBased) {
         var centerCoord = staticMapOptions['center']['lat'] + "," + staticMapOptions['center']['lon'];
-        return baseURL + "&center=" + centerCoord + "&zoom=" +  staticMapOptions['zoom']
+        return baseURL + "&center=" + centerCoord + "&zoom=" + staticMapOptions['zoom'] + dimensionString;
     } else { // bbox-based maps
         var bbox = staticMapOptions['bbox'];
-        var bboxStr = bbox['xmin'] + "," + bbox['ymin'] + "," + bbox['xmax'] + "," + bbox['ymax'];
+        var bboxStr = bbox['xmin'] + "," + bbox['ymin'] + "," + bbox['xmax'] + "," + bbox['ymax'] + dimensionString;
         return baseURL + "&bbox=" + bboxStr;
     }
 }
 
-function loadImage(imageURL,imageID) {
-  if (!loadedImages[imageID]) {
-    // Loads an image from the given URL into the image with the specified ID
-    var img = document.getElementById(imageID);
-    if(img) {
-      if(imageURL != "") {
-        img.src = imageURL;
-      } else {
-        img.src = "/common/images/blank.png";
-      }
+function updateMapDimensions() {
+    
+    if (!centerZoomBased) {
+        // if width and height proprotions changed, we need to update the bbox
+        var oldHeight = mapHeight;
+        var oldWidth = mapWidth;
     }
-    loadedImages[imageID] = true;
-  }
+    
+    if (window.innerHeight !== undefined) {
+        mapHeight = window.innerHeight;
+    } else {
+        mapHeight = document.documentElement.clientHeight; // ie7
+    }
+
+    if (window.innerWidth !== undefined) {
+        mapWidth = window.innerWidth;
+    } else {
+        mapWidth = document.documentElement.clientWidth; // ie7
+    }
+
+    if (!centerZoomBased) {
+        // if width and height changed, we need to update the bbox
+        if (oldWidth != mapWidth || oldHeight != mapHeight) {
+            var bbox = staticMapOptions['bbox'];
+            var bboxWidth = bbox['xmax'] - bbox['xmin'];
+            var bboxHeight = bbox['ymax'] - bbox['ymin'];
+
+            var newBBoxWidth = bboxWidth * mapWidth / oldWidth;
+            var newBBoxHeight = bboxHeight * mapHeight / oldHeight;
+            
+            var dWidth = (newBBoxWidth - bboxWidth) / 2;
+            var dHeight = (newBBoxHeight - bboxHeight) / 2;
+            
+            bbox['xmax'] += dWidth;
+            bbox['xmin'] -= dWidth;
+            bbox['ymax'] += dHeight;
+            bbox['ymin'] -= dHeight;
+            
+            staticMapOptions['bbox'] = bbox;
+        }
+    }
+    
+    document.getElementById("staticmapimage").src = constructMapURL();
+}
+
+// north and east are sign arguments, e.g.:
+// northeast is (1, 1)
+// northwest is (1, -1)
+// south is (-1, 0)
+function scroll(north, east) {
+
+    if (centerZoomBased) {
+        var zoom = staticMapOptions['zoom'];
+        var lat = staticMapOptions['center']['lat'];
+        var lon = staticMapOptions['center']['lon'];
+        var degreesCovered = 360 / Math.pow(2, parseInt(zoom) + 1);
+
+        lat = parseFloat(lat) + degreesCovered * north;
+        lon = parseFloat(lon) + degreesCovered * east;
+
+        // round to 4 decimal places (roughly 10 meters)
+        staticMapOptions['center']['lat'] = Math.round(lat * 10000) / 10000;
+        staticMapOptions['center']['lon'] = Math.round(lon * 10000) / 10000;
+
+    } else {
+        var bbox = staticMapOptions['bbox'];
+        var dLat = (bbox['ymax'] - bbox['ymin']) / 2;
+        var dLon = (bbox['xmax'] - bbox['xmin']) / 2;
+        bbox['ymax'] = bbox['ymax'] + dLat * north;
+        bbox['ymin'] = bbox['ymin'] + dLat * north;
+        bbox['xmax'] = bbox['xmax'] + dLon * east;
+        bbox['xmin'] = bbox['xmin'] + dLon * east;
+        staticMapOptions['bbox'] = bbox;
+    }
+    document.getElementById("staticmapimage").src = constructMapURL();
 }
 
 /*
-function rotateMap() {
-// Load a rotated map image
-	var objMap = document.getElementById("mapimage");
-	var objContainer = document.getElementById("container");
-	var objScrollers = document.getElementById("mapscrollers");
-	if(objMap) {
-		show("loadingimage");
-		mapW = window.innerWidth;
-		mapH = window.innerHeight;
-		var bboxW = mapBoxE - mapBoxW;
-		var bboxH = mapBoxN - mapBoxS;
-		if (mapH / mapW != bboxH / bboxW) { // need taller image
-			var newBBoxH = mapH * bboxW / mapW;
-			mapBoxN = mapBoxN + (newBBoxH - bboxH) / 2;
-			mapBoxS = mapBoxS - (newBBoxH - bboxH) / 2;
-		}
-
-		loadImage(getMapURL(mapBaseURL),'mapimage'); 
-	}
-	if(objContainer) {
-		objContainer.style.width=mapW+"px";
-		objContainer.style.height=mapH+"px";
-		objMap.style.width=mapW+"px";
-		objMap.style.height=mapH+"px";
-	}
-	if(objScrollers) {
-		switch(window.orientation)
-		{
-			case 0:
-			case 180:
-				objScrollers.style.height=(mapH-42)+"px";
-			break;
-	
-			case -90:
-			case 90:
-				objScrollers.style.height=mapH+"px";
-			break;
-	
-		}
-	}
-}
-
-function rotateMapAlternate() {
-// Load a rotated map image - needs work to get innerWidth and innerHeight working correctly -- will be required once firmware 2.0 is released enabling full-screen chromeless browsing
-	var objMap = document.getElementById("mapimage");
-	if(objMap) {
-		show("loadingimage");
-		mapW = window.innerWidth;
-		mapH = window.innerHeight;
-		loadImage(getMapURL(mapBaseURL),'mapimage'); 
-	}
-}
-
 function disable(strID) {
 // Visually dims and disables the anchor whose id is strID
 	var objA = document.getElementById(strID);
