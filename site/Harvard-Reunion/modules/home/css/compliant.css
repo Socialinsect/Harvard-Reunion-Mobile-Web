@@ -140,7 +140,15 @@
   left: 10px;
   width: 18px;
   height: 95px;
-  background: url('/modules/home/images/chatbubble-l1.png') no-repeat;	
+  background-repeat: no-repeat;
+  background-position: top left;	
+}
+
+#social .facebook .cbl {
+  background-image: url('/modules/home/images/chatbubble-l1.png');	
+}
+#social .twitter .cbl {
+  background-image: url('/modules/home/images/chatbubble-l2.png');	
 }
 
 #social .recent .chatbubble .info {
