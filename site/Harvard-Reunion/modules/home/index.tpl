@@ -7,7 +7,7 @@
     </div>
     <h3>Harvard College Reunion</h3>
     <h2>{$attendee}</h2>
-    <p>Class of {$reunionInfo['year']}</p>
+    <p>Class of {$reunionInfo['class']}</p>
     <p><a href="#">Sign out</a> | <a href="/settings/">Settings</a></p>
   </div>
 {/capture}
@@ -29,7 +29,7 @@
 	  <div class="cbl"></div>
     <div class="chatbubble">
       {$recentPost['message']}
-      <div class="info smallprint">{$recentPost['author']} - {$recentPost['time']}</div>
+      <div class="info smallprint">{$recentPost['author']} - {$recentPost['age']} ago</div>
     </div>
 	  <div class="cbr"></div>
   </div>

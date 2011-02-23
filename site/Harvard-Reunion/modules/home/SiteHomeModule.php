@@ -47,7 +47,7 @@ class SiteHomeModule extends HomeModule {
         $recentPost = array(
           'message' => 'big group going 2 John Harvard\'s in the Garage, everyone welcome',
           'author'  => 'Katarina Ragulin',
-          'delta'   => '12 mins ago',
+          'age'     => '12 mins',
         );
         
         $this->assign('reunionInfo',   $reunionInfo);
