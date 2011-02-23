@@ -20,11 +20,12 @@
     <a class="twitterLink"><div class="wrapper">#hr10th</div></a>
   </div>
   <div class="recent twitter">
+	<div class="cbl"></div>
     <div class="chatbubble">
       big group going 2 John Harvard's in the Garage, everyone welcome
       <div class="info smallprint">Katarina Ragulin - 12 mins ago</div>
     </div>
-    <div class="chatarrow">&lt;</div>
+	<div class="cbr"></div>
   </div>
 </div>
 

@@ -67,16 +67,15 @@
 
 #social {
   position: relative;
-  margin: 0 10px;
-  padding-left: 100px;
-  height: 75px;
+  padding: 0 4px 0 112px;
+  height: 94px;
 }
 
 #social .links {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 98px;
+  top: 3px;
+  left: 7px;
+  width: 116px;
   height: 70px;
 }
 
@@ -84,24 +83,15 @@
   display: block;
   font-size: 70%;
   line-height: normal;
-  padding: 5px 5px 5px 30px;
-  height: 28px;
+  padding: 5px 6px;
+  height: 32px;
   overflow: hidden;
-  border: solid 1px black;
-  -webkit-border-radius: 6px;
+  background: url('/modules/home/images/socialbutton.png') no-repeat;
   color: white;
-  background: transparent no-repeat 3px center;
-  background-size: 24px;
 }
+
 #social .links a:first-child {
   margin-bottom: 5px;
-}
-#social .links .facebookLink {
-  background-image: url('/common/images/button-facebook.png');
-}
-#social .links .twitterLink {
-  background-image: url('/common/images/button-twitter.png');
-  line-height: 28px;
 }
 
 #social .recent {
@@ -109,30 +99,41 @@
   padding-left: 10px;
   display: none;
 }
+
 #social .facebook,
 #social .twitter {
   display: block;
 }
+
 #social .recent .chatbubble {
-  background-color: #BBB;
   color: #333;
-  -webkit-border-radius: 8px;
-  border: solid 1px black;
-  padding: 5px 8px;
-  height: 74px;
-  font-size: 95%;
+  padding: 8px 0 6px 0;
+  margin: 0 14px 0 18px;
+  height: 81px;
+  font-size: 82.3%;
+  line-height: 1.25em;
+  background: url('/modules/home/images/chatbubble-mid.png') repeat-x;
 }
-#social .recent .chatarrow {
+
+#social .recent .cbr {
   position: absolute;
-  left: 0;
+  top: 0;
+  right: 0;
+  width: 14px;
+  height: 95px;
+  background: url('/modules/home/images/chatbubble-r.png') no-repeat;	
 }
-#social .facebook .chatarrow {
-  top: 12px;
-}
-#social .twitter .chatarrow {
-  bottom: 12px;
+
+#social .recent .cbl {
+  position: absolute;
+  top: 0;
+  left: 10px;
+  width: 18px;
+  height: 95px;
+  background: url('/modules/home/images/chatbubble-l1.png') no-repeat;	
 }
 
 #social .recent .chatbubble .info {
   padding-top: .25em;
+  color: #626a70;
 }
