@@ -32,7 +32,7 @@ option, select, input {
 
 .nav li, .results li, .secondary li, ul.focal li  {
 	/* Border color for list items */
-	border-color: #ccc;
+	border-color: #aaa;
 }
 
 a, a:visited {

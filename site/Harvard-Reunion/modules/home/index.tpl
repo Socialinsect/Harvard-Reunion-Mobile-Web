@@ -26,11 +26,12 @@
     </a>
   </div>
   <div class="recent twitter">
+	  <div class="cbl"></div>
     <div class="chatbubble">
       {$recentPost['message']}
       <div class="info smallprint">{$recentPost['author']} - {$recentPost['time']}</div>
     </div>
-    <div class="chatarrow">&lt;</div>
+	  <div class="cbr"></div>
   </div>
 </div>
 
