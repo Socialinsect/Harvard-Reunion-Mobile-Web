@@ -7,10 +7,8 @@
     </div>
     <h3>Harvard College Reunion</h3>
     <h2>{$attendee}</h2>
-    <p>
-      Class of 2001<br/>
-      <span class="smallprint"><a href="#">Sign out</a> | <a href="/settings/">Settings</a></span>
-    </p>
+    <p>Class of 2001</p>
+    <p><a href="#">Sign out</a> | <a href="/settings/">Settings</a></p>
   </div>
 {/capture}
 
