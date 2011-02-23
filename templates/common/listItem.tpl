@@ -9,7 +9,7 @@
 {/if}
 {block name="itemLink"}
   {if $item['url']}
-    <a href="{$item['url']}" class="{$item['class']|default:''}"{if $linkTarget || $item['linkTarget']} target="{if $item['linkTarget']}{$item['linkTarget']}{else}{$linkTarget}{/if}"{/if}>
+    <a href="{$item['url']}" class="bookmarked{$item['class']|default:''}"{if $linkTarget || $item['linkTarget']} target="{if $item['linkTarget']}{$item['linkTarget']}{else}{$linkTarget}{/if}"{/if}>
   {/if}
     {if $item['img']}
       <img src="{$item['img']}" alt="{$item['title']}"{if $item['imgWidth']}

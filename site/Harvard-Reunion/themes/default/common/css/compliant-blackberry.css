@@ -38,3 +38,9 @@
 	margin-right: -2px;
 }
 
+
+
+a.bookmarked {
+	padding-left: 25px;
+	background: url(/common/images/ribbon-listitem.png) no-repeat 5px;
+}

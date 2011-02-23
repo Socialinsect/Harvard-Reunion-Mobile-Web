@@ -240,9 +240,9 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 	color: #535251;
 }
 
-li.bookmarked {
-	padding-left: 30px;
-	background: url(/common/images/ribbon-listitem.png) no-repeat 10px 14px;
+a.bookmarked {
+	padding-left: 25px;
+	background: url(/common/images/ribbon-listitem.png) no-repeat 5px, url(/common/images/action-arrow.png) no-repeat right;
 }
 
 
