@@ -32,8 +32,87 @@ class MapModule extends Module {
             && $this->platform != 'blackberry'
             && $this->platform != 'bbplus';
     }
+
+    protected function staticMapImageDimensions() {
+        switch ($this->pagetype) {
+            case 'tablet':
+                $imageWidth = 600; $imageHeight = 350;
+                break;
+            case 'compliant':
+                if ($GLOBALS['deviceClassifier']->getPlatform() == 'bbplus') {
+                    $imageWidth = 410; $imageHeight = 260;
+                } else {
+                    $imageWidth = 290; $imageHeight = 290;
+                }
+                break;
+            case 'touch':
+            case 'basic':
+                $imageWidth = 200; $imageHeight = 200;
+                break;
+        }
+        return array($imageWidth, $imageHeight);
+    }
     
-    private function initializeMap(MapDataController $dataController, MapFeature $feature) {
+    protected function dynamicMapImageDimensions() {
+        $imageWidth = '98%';
+        switch ($this->pagetype) {
+            case 'tablet':
+                $imageHeight = 350;
+                break;
+            case 'compliant':
+            default:
+                if ($this->platform == 'bbplus') {
+                    $imageHeight = 260;
+                } else {
+                    $imageHeight = 290;
+                }
+                break;
+        }
+        return array($imageWidth, $imageHeight);
+    }
+    
+    protected function fullscreenMapImageDimensions() {
+        $imageWidth = '100%';
+        $imageHeight = '100%';
+        return array($imageWidth, $imageHeight);
+    }
+
+    protected function initializeMapElements($mapElement, $imgController, $imageWidth, $imageHeight) {
+        $imgController->setImageWidth($imageWidth);
+        $imgController->setImageHeight($imageHeight);
+            
+        if ($imgController->isStatic()) {
+            $this->assign('imageUrl', $imgController->getImageURL());
+
+            $this->assign('scrollNorth', $this->detailUrlForPan('n', $imgController));
+            $this->assign('scrollEast', $this->detailUrlForPan('e', $imgController));
+            $this->assign('scrollSouth', $this->detailUrlForPan('s', $imgController));
+            $this->assign('scrollWest', $this->detailUrlForPan('w', $imgController));
+
+            $this->assign('zoomInUrl', $this->detailUrlForZoom('in', $imgController));
+            $this->assign('zoomOutUrl', $this->detailUrlForZoom('out', $imgController));
+
+            if ($this->pagetype == 'compliant') {
+                $this->addOnLoad("\n"
+                    ."mapWidth = $imageWidth;\n"
+                    ."mapHeight = $imageHeight;\n"
+                    ."staticMapOptions = "
+                    .$imgController->getJavascriptControlOptions().";\n"
+                    .'addStaticMapControls();');
+            }
+
+        } else {
+            $imgController->setImageWidth($imageWidth);
+            $imgController->setMapElement($mapElement);
+            foreach ($imgController->getIncludeScripts() as $includeScript) {
+                $this->addExternalJavascript($includeScript);
+            }
+            $this->addInlineJavascript($imgController->getHeaderScript());
+            $this->addInlineJavascriptFooter($imgController->getFooterScript());
+        }
+    }
+    
+    private function initializeMap(MapDataController $dataController, MapFeature $feature, $fullscreen=FALSE) {
         
         $style = $feature->getStyle();
         $geometry = $feature->getGeometry();
@@ -53,99 +132,72 @@ class MapModule extends Module {
             $zoomLevel = $dataController->getDefaultZoomLevel();
         }
 
-        // image size
-        switch ($this->pagetype) {
-            case 'tablet':
-                $imageWidth = 600; $imageHeight = 350;
-                break;
-            case 'compliant':
-                if ($GLOBALS['deviceClassifier']->getPlatform() == 'bbplus') {
-                    $imageWidth = 410; $imageHeight = 260;
-                } else {
-                    $imageWidth = 290; $imageHeight = 290;
-                }
-                break;
-            case 'touch':
-            case 'basic':
-                $imageWidth = 200; $imageHeight = 200;
-                break;
-        }
-        $this->assign('imageHeight', $imageHeight);
-        $this->assign('imageWidth',  $imageWidth);
-
-        $imgControllers = array();
-        $imgControllers[] = $dataController->getStaticMapController();
         if ($this->pageSupportsDynamicMap() && $dataController->supportsDynamicMap()) {
-            $imgControllers[] = $dataController->getDynamicMapController();
+            $imgController = $dataController->getDynamicMapController();
+        } else {
+            $imgController = $dataController->getStaticMapController();
         }
 
-        foreach ($imgControllers as $imgController) {
+        if ($imgController->supportsProjections()) {
+            $imgController->setDataProjection($dataController->getProjection());
+        }
+        
+        $imgController->setCenter($center);
+        $imgController->setZoomLevel($zoomLevel);
 
-            if ($imgController->supportsProjections()) {
-                $imgController->setDataProjection($dataController->getProjection());
-            }
-            
-            $imgController->setCenter($center);
-            $imgController->setZoomLevel($zoomLevel);
-
-            switch ($geometry->getType()) {
-                case MapGeometry::POINT:
-                    if ($imgController->canAddAnnotations()) {
-                        $imgController->addAnnotation($geometry->getCenterCoordinate(), $style, $feature->getTitle());
-                    }
-                    break;
-                case MapGeometry::POLYLINE:
-                    if ($imgController->canAddPaths()) {
-                        $imgController->addPath($geometry->getPoints(), $style);
-                    }
-                    break;
-                case MapGeometry::POLYGON:
-                    if ($imgController->canAddPolygons()) {
-                        $imgController->addPolygon($geometry->getRings(), $style);
-                    }
-                    break;
-                default:
-                    break;
-            }
-
-            $imgController->setImageHeight($imageHeight);
-
-            if ($imgController->isStatic()) {
-                $imgController->setImageWidth($imageWidth);
-
-                $this->assign('imageUrl', $imgController->getImageURL());
-
-                $this->assign('scrollNorth', $this->detailUrlForPan('n', $imgController));
-                $this->assign('scrollEast', $this->detailUrlForPan('e', $imgController));
-                $this->assign('scrollSouth', $this->detailUrlForPan('s', $imgController));
-                $this->assign('scrollWest', $this->detailUrlForPan('w', $imgController));
-
-                $this->assign('zoomInUrl', $this->detailUrlForZoom('in', $imgController));
-                $this->assign('zoomOutUrl', $this->detailUrlForZoom('out', $imgController));
-
-                if ($this->pagetype == 'compliant') {
-                    $this->addOnLoad(
-                        "\nstaticMapOptions = "
-                        .$imgController->getJavascriptControlOptions()
-                        .";\n    addStaticMapControls();");
+        switch ($geometry->getType()) {
+            case MapGeometry::POINT:
+                if ($imgController->canAddAnnotations()) {
+                    $imgController->addAnnotation($geometry->getCenterCoordinate(), $style, $feature->getTitle());
                 }
+                break;
+            case MapGeometry::POLYLINE:
+                if ($imgController->canAddPaths()) {
+                    $imgController->addPath($geometry->getPoints(), $style);
+                }
+                break;
+            case MapGeometry::POLYGON:
+                if ($imgController->canAddPolygons()) {
+                    $imgController->addPolygon($geometry->getRings(), $style);
+                }
+                break;
+            default:
+                break;
+        }
+
+        if (!$fullscreen) {
+            $fullscreenURL = $this->buildBreadcrumbURL('fullscreen', $this->args, false);
+            $this->assign('fullscreenURL', $fullscreenURL);
+            $this->addInternalCSS('/modules/map/css/detail.css');
+        
+            if ($imgController->isStatic()) {
+                list($imageWidth, $imageHeight) = $this->staticMapImageDimensions();
 
             } else {
-                $imgController->setImageWidth('98%');
-                $imgController->setMapElement('mapimage');
-                foreach($imgController->getIncludeScripts() as $includeScript) {
-                    $this->addExternalJavascript($includeScript);
-                }
-                $this->addInlineJavascript($imgController->getHeaderScript());
-                $this->addInlineJavascriptFooter($imgController->getFooterScript());
+                list($imageWidth, $imageHeight) = $this->dynamicMapImageDimensions();
+                $this->addInlineJavascriptFooter("\n hideMapTabChildren();\n");
             }
-        }
-    }
+            
+        } else {
+            if ($imgController->isStatic()) {
+                list($imageWidth, $imageHeight) = $this->staticMapImageDimensions();
 
-    // TODO finish this
-    private function initializeFullscreenMap() {
-        $featureIndex = $this->args['featureindex'];
+            } else {
+                list($imageWidth, $imageHeight) = $this->fullscreenMapImageDimensions();
+                $this->addInlineJavascriptFooter("\n hide('loadingimage');\n");
+            }
+            $this->addInternalCSS('/modules/map/css/fullscreen.css');
+        }
+        
+        $this->assign('isStatic', $imgController->isStatic());
+        $this->initializeMapElements('mapimage', $imgController, $imageWidth, $imageHeight);
+
+        // call the function that updates the image size        
+        if ($fullscreen && $imgController->isStatic())
+            $this->addOnLoad("\n    updateMapDimensions();\n");
     }
+    
+    // url builders
   
     private function categoryURL($category=NULL, $subCategory=NULL, $addBreadcrumb=true) {
         return $this->buildBreadcrumbURL('category', array(
@@ -299,8 +351,15 @@ class MapModule extends Module {
         return $this->buildBreadcrumbURL($this->page, $args, false);
     }
 
-    private function detailURLFOrBookmark($aBookmark) {
-        // TODO implement
+    private function detailURLForBookmark($aBookmark) {
+        parse_str($aBookmark, $params);
+        if (isset($params['featureindex'])) {
+            return $this->buildBreadcrumbURL('detail', $params, true);
+        } else if (isset($params['campus'])) {
+            return $this->campusURL($params['campus']);
+        } else {
+            return '#';
+        }
     }
 
     protected function getBookmarks() {
@@ -337,6 +396,26 @@ class MapModule extends Module {
     protected function hasBookmark($aBookmark) {
         return in_array($aBookmark, $this->getBookmarks());
     }
+    
+    protected function getTitleForBookmark($aBookmark) {
+        if (!$this->feeds)
+            $this->feeds = $this->loadFeedData();
+
+        parse_str($aBookmark, $params);
+        if (isset($params['featureindex'])) {
+            $index = $params['featureindex'];
+            $dataController = $this->getDataController($params['category']);
+            $subCategory = isset($params['subcategory']) ? $params['subcategory'] : null;
+            $feature = $dataController->getFeature($index, $subCategory);
+            return array($feature->getTitle(), $dataController->getTitle());
+        
+        } else if (isset($params['campus'])) {
+            $campus = $GLOBALS['siteConfig']->getSection('campus-'.$params['campus']);
+            return array($campus['title']);
+        } else {
+            return array($aBookmark);
+        }
+    }
 
     protected function initializeForPage() {
         switch ($this->page) {
@@ -367,9 +446,12 @@ class MapModule extends Module {
                 $bookmarks = array();
                 foreach ($this->getBookmarks() as $aBookmark) {
                     if ($aBookmark) { // prevent counting empty string
+                        $titles = $this->getTitleForBookmark($aBookmark);
+                        $subtitle = count($titles) > 1 ? $titles[1] : null;
                         $bookmarks[] = array(
-                            'title' => $aBookmark,
-                            'url' => '#',
+                            'title' => $titles[0],
+                            'subtitle' => $subtitle,
+                            'url' => $this->detailURLForBookmark($aBookmark),
                             );
                     }
                 }
@@ -390,8 +472,7 @@ class MapModule extends Module {
                 $this->assignCategoriesForCampus($id);
                 $this->assign('browseHint', "Browse {$title} by:");
 
-                // TODO this will be problematic if any places have an id of _campus_$id
-                $cookieID = '_campus_'.$id;
+                $cookieID = http_build_query(array('campus' => $index));
 
                 $this->generateBookmarkOptions($cookieID);
                 break;
@@ -466,7 +547,7 @@ class MapModule extends Module {
                             $url = $this->detailURL($listItem->getIndex(), $category, $subCategory);
                         } else {
                             // for folder objects, getIndex returns the subcategory ID
-                            $url = $this->categoryURL($category, $listItem->getIndex());
+                            $url = $this->categoryURL($category, $listItem->getIndex(), false); // don't add breadcrumb
                         }
                         $places[] = array(
                             'title'    => $listItem->getTitle(),
@@ -501,6 +582,15 @@ class MapModule extends Module {
                     $dataController = $this->getDataController($this->args['category']);
                     $subCategory = isset($this->args['subcategory']) ? $this->args['subcategory'] : null;
                     $feature = $dataController->getFeature($index, $subCategory);
+                    
+                    $cookieParams = array(
+                        'category' => $this->args['category'],
+                        'subcategory' => $subCategory,
+                        'featureindex' => $index,
+                        );
+                    $cookieID = http_build_query($cookieParams);
+                    $this->generateBookmarkOptions($cookieID);
+                    
                 } else { // this is a campus
                     $index = $this->args['campus'];
                     $campus = $GLOBALS['siteConfig']->getSection('campus-'.$index);
@@ -515,6 +605,7 @@ class MapModule extends Module {
                     $feature->setDescription($campus['description']);
                     $feature->setIndex($index);
                 }
+                
                 $this->initializeMap($dataController, $feature);
         
                 $this->assign('name', $feature->getTitle());
@@ -550,7 +641,15 @@ class MapModule extends Module {
                 break;
             
             case 'fullscreen':
-                $this->initializeFullscreenMap();
+                if (!$this->feeds)
+                    $this->feeds = $this->loadFeedData();
+                
+                $index = $this->args['featureindex'];
+                $dataController = $this->getDataController($this->args['category']);
+                $subCategory = isset($this->args['subcategory']) ? $this->args['subcategory'] : null;
+                $feature = $dataController->getFeature($index, $subCategory);
+
+                $this->initializeMap($dataController, $feature, true);
                 break;
         }
     }

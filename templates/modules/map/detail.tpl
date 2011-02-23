@@ -3,11 +3,16 @@
 {$tabBodies = array()}
 
 {capture name="mapPane" assign="mapPane"}
+  {block name="mapImage"}
   <p class="image">
     <a name="map"> </a>
-    <img id="mapimage" src="{$imageUrl}" width="{$imageWidth}" height="{$imageHeight}" alt="Map" />
+    {if $isStatic}
+      {include file="findInclude:modules/map/mapscrollers.tpl"}
+    {/if}
+    <img id="staticmapimage" onload="hide('loadingimage')" src="{$imageUrl}" width="{$imageWidth}" height="{$imageHeight}" alt="Map" />
   </p>
   <div id="mapimage" style="display:none"></div>
+  {/block}
   {if $hasMap}
     {include file="findInclude:modules/map/mapcontrols.tpl"}
   {/if}
@@ -39,6 +44,7 @@
     <div class="focal shaded">
         <h2>{$name}</h2>
         <p class="address">{$address|replace:' ':'&shy; '}</p>
+        {include file="findInclude:common/bookmark.tpl" name=$cookieName item=$bookmarkItem exdate=$expireDate}
         <a name="scrolldown"></a>
     {include file="findInclude:common/tabs.tpl" tabBodies=$tabBodies}
   </div>

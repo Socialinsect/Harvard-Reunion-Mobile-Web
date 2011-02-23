@@ -27,11 +27,20 @@ h2 {
 	overflow: hidden;
 }
 
-#mapimage {
-	width: 292px;
-	height: 292px;
-	border: 1px solid #999;
-	background-color: #fff;
+.fullmap {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: 0;
+}
+
+.tabbody #mapimage {
+    width: 292px;
+    height: 292px;
+    border: 1px solid #999;
+    background-color: #fff;
 }
 
 #mapscrollers {
@@ -269,10 +278,6 @@ h2 {
 	margin: 0 0 0 -4px;
 }
 
-
-
-
-
 /* Fullscreen in portrait (tall) orientation */
 
 body.portrait {
@@ -501,4 +506,6 @@ body.landscape #options .check {
 	width: 20px;
 	height: 20px;
 }
+
+
 
