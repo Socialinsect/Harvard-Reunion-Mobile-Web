@@ -9,7 +9,7 @@
   * @subpackage Schedule
   */
   
-define('SCHEDULE_BOOKMARKS_COOKIE_PREFIX', 'ScheduleBookmarks');
+define('SCHEDULE_BOOKMARKS_COOKIE_PREFIX', 'ScheduleBookmarks_');
 define('SCHEDULE_BOOKMARKS_COOKIE_DURATION', 160 * 24 * 60 * 60);
 
 class SiteScheduleModule extends Module {
@@ -239,13 +239,6 @@ class SiteScheduleModule extends Module {
         
         $this->checkToggleBookmark($scheduleId, $eventId);
         
-        $itemInfo = array(
-          'bookmarked'     => $this->isBookmarked($scheduleId, $eventId),
-          'eventId'        => $eventId,
-          'cookie'         => $this->getCookieNameForEvent($scheduleId),
-          'cookieDuration' => SCHEDULE_BOOKMARKS_COOKIE_DURATION,
-        );
-        
         $feed = $this->schedule->getEventFeed();       
         $event = $feed->getItem($eventId, $start);
         if (!$event) {
@@ -309,9 +302,17 @@ class SiteScheduleModule extends Module {
           
           $sections[$info['section']][] = $field;
         }
+        
+        $cookieName = $this->getCookieNameForEvent($scheduleId);
+        $this->addInlineJavascript(
+          "var COOKIE_PATH = '".COOKIE_PATH."';".
+          "var COOKIE_DURATION = '".SCHEDULE_BOOKMARKS_COOKIE_DURATION."';");
+        $this->addOnLoad("setBookmarkStates('$cookieName', '$eventId');");
 
-        $this->assign('itemInfo', $itemInfo);
-        $this->assign('sections', $sections);
+        $this->assign('eventId',    $eventId);
+        $this->assign('bookmarked', $this->isBookmarked($scheduleId, $eventId));
+        $this->assign('cookieName', $this->getCookieNameForEvent($scheduleId));
+        $this->assign('sections',   $sections);
         //error_log(print_r($sections, true));
         break;
     }

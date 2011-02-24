@@ -4,7 +4,7 @@
 {$titleField = array_shift($firstSection)}
 
 <div class="nonfocal">
-  <a id="bookmark" class="{if $itemInfo['bookmarked']}bookmarked{/if}" onclick="toggleBookmark(this, '{$itemInfo['eventID']}', '{$itemInfo['cookie']}', '{$itemInfo['cookieDuration']}')"></a>
+  <a id="bookmark" class="{if $bookmarked}on{/if}" onclick="toggleBookmark('{$cookieName}', '{$eventId}', COOKIE_DURATION, COOKIE_PATH)"></a>
   <h2>{include file="findInclude:common/listItem.tpl" item=$titleField}</h2>
   {foreach $firstSection as $field}
     {include file="findInclude:common/listItem.tpl" item=$field}
