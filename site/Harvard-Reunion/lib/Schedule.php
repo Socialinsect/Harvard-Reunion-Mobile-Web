@@ -8,28 +8,29 @@ require_once realpath(LIB_DIR.'/DateTimeUtils.php');
   */
 require_once realpath(LIB_DIR.'/ICalendar.php');
 
-class Reunion {
-  private $timezone = null;
+class Schedule {
+  private $scheduleId = '';
+  private $scheduleConfig = array();
   private $startDate = null;
   private $endDate = null;
-  private $eventConfig = array();
   private $attendee = null;
+  private $timezone = null;
 
   function __construct() {
     $this->timezone = new DateTimeZone(
       $GLOBALS['siteConfig']->getVar('LOCAL_TIMEZONE', Config::LOG_ERRORS | Config::EXPAND_VALUE));
   
-    $eventConfig = array();
+    $scheduleConfigs = array();
     $configFile = realpath_exists(SITE_CONFIG_DIR.'/feeds/schedule.ini');
     if ($configFile) {
-      $eventConfigs = parse_ini_file($configFile, true);
+      $scheduleConfigs = parse_ini_file($configFile, true);
     }
 
     $this->attendee = new Attendee();
-    $event = $this->attendee->getGraduationClass();
-
-    if (isset($eventConfigs[$event])) {
-      $this->eventConfig = $eventConfigs[$event];
+    $this->scheduleId = $this->attendee->getGraduationClass();
+    
+    if (isset($scheduleConfigs[$this->scheduleId])) {
+      $this->scheduleConfig = $scheduleConfigs[$this->scheduleId];
       
       $this->startDate = $this->getDateTimeForDate($this->getConfigValue('START_DATE', ''));
       $this->endDate   = $this->getDateTimeForDate($this->getConfigValue('END_DATE', ''));
@@ -41,15 +42,18 @@ class Reunion {
   }
   
   private function getConfigValue($key, $default=null) {
-    return isset($this->eventConfig[$key]) ? $this->eventConfig[$key] : $default;
+    return isset($this->scheduleConfig[$key]) ? $this->scheduleConfig[$key] : $default;
   }
 
+  public function getScheduleId() {
+    return $this->scheduleId;
+  }
   
   public function getAttendee() {
     return $this->attendee;
   }
   
-  public function getNumber() {
+  public function getReunionNumber() {
     return $this->getConfigValue('REUNION_NUMBER', '0');
   }
   
@@ -84,7 +88,7 @@ class Reunion {
   public function getEventFeed() {
     $controllerClass = $this->getConfigValue('CONTROLLER_CLASS', 'CalendarDataController');
     
-    $controller = CalendarDataController::factory($controllerClass, $this->eventConfig);
+    $controller = CalendarDataController::factory($controllerClass, $this->scheduleConfig);
     $controller->setDebugMode($GLOBALS['siteConfig']->getVar('DATA_DEBUG', Config::LOG_ERRORS | Config::EXPAND_VALUE));
 
     $endDate = new DateTime($this->endDate->format('Y-m-d').' 00:00:00 +1 day', $this->timezone);

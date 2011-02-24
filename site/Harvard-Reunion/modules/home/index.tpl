@@ -1,9 +1,9 @@
 {capture name="banner" assign="banner"}
   <div class="banner nonfocal">
     <div id="ribbon">
-      <span class="ribbonYear">{$reunionInfo['year']}<span class="ribbonYearSup">th</span></span>
+      <span class="ribbonYear">{$scheduleInfo['year']}<span class="ribbonYearSup">th</span></span>
       <br/><span class="ribbonDesc">Reunion</span>
-      <br/><span class="ribbonDate">{$reunionInfo['dates']}</span>
+      <br/><span class="ribbonDate">{$scheduleInfo['dates']}</span>
     </div>
     <h3>Harvard College Reunion</h3>
     <h2>{$userInfo['fullname']}</h2>

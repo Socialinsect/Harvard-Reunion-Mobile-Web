@@ -8,19 +8,63 @@
   * @package Module
   * @subpackage Schedule
   */
+  
+define('SCHEDULE_BOOKMARKS_COOKIE_PREFIX', 'ScheduleBookmarks');
+define('SCHEDULE_BOOKMARKS_COOKIE_DURATION', 160 * 24 * 60 * 60);
+
 class SiteScheduleModule extends Module {
   protected $id = 'schedule';
   protected $feeds = null;
-  protected $hasFeeds = true;
-  protected $reunion = null;
-  protected $feedFields = array(
-    'CACHE_LIFETIME'   => 'Cache lifetime (seconds)', 
-    'CONTROLLER_CLASS' => 'Controller Class',
-    'PARSER_CLASS'     => 'Parser Class',
-    'EVENT_CLASS'      => 'Event Class',
-    'START_DATE'       => 'Start date (YYYY-MM-DD)',
-    'END_DATE'         => 'End date (YYYY-MM-DD)',
-  );
+  protected $schedule = null;
+  protected $bookmarks = array();
+
+  private function getCookieNameForEvent($event) {
+    return SCHEDULE_BOOKMARKS_COOKIE_PREFIX.$event;
+  }
+
+  private function getBookmarks($scheduleId) {
+    $cookieName = $this->getCookieNameForEvent($scheduleId);
+    
+    if (!isset($this->bookmarks[$cookieName])) {
+      if (isset($_COOKIE[$cookieName])) {
+        $this->bookmarks[$cookieName] = array_unique(explode(',', $_COOKIE[$cookieName]));
+      } else {
+        $this->bookmarks[$cookieName] = array();
+      }
+    }
+    
+    return $this->bookmarks[$cookieName];
+  }
+  
+  private function setBookmarks($scheduleId, $bookmarks) {
+    $cookieName = $this->getCookieNameForEvent($scheduleId);
+    
+    setcookie($cookieName, implode(',', array_unique($bookmarks)), 
+      time() + SCHEDULE_BOOKMARKS_COOKIE_DURATION, COOKIE_PATH);
+
+    $this->bookmarks[$cookieName] = $bookmarks;
+  }
+
+  private function isBookmarked($scheduleId, $eventId) {
+    return in_array($eventId, $this->getBookmarks($scheduleId));
+  }
+  
+  private function checkToggleBookmark($scheduleId, $eventId) {
+    if ($this->getArg('toggleBookmark')) {
+      $bookmarks = array_fill_keys($this->getBookmarks($scheduleId), true);
+    
+      if (isset($bookmarks[$eventId])) {
+        unset($bookmarks[$eventId]);
+      } else {
+        $bookmarks[$eventId] = true;
+      }
+      $this->setBookmarks($scheduleId, array_keys($bookmarks));
+        
+      $args = $this->args;
+      unset($args['toggleBookmark']);
+      $this->redirectTo($this->page, $args);
+    }
+  }
   
   private function valueForType($type, $value) {
     $valueForType = $value;
@@ -113,10 +157,11 @@ class SiteScheduleModule extends Module {
     }
   }
   
-  private function detailURL($iCalEvent, $addBreadcrumb=true, $noBreadcrumbs=false) {
+  private function detailURL($scheduleId, $iCalEvent, $addBreadcrumb=true, $noBreadcrumbs=false) {
     $args = array(
-      'eventId' => $iCalEvent->get_uid(),
-      'time'    => $iCalEvent->get_start()
+      'scheduleId' => $scheduleId,
+      'eventId'    => $iCalEvent->get_uid(),
+      'start'      => $iCalEvent->get_start()
     );
   
     if ($noBreadcrumbs) {
@@ -127,7 +172,7 @@ class SiteScheduleModule extends Module {
   }
 
   protected function initialize() {
-    $this->reunion = new Reunion();
+    $this->schedule = new Schedule();
   }
 
   protected function initializeForPage() {
@@ -137,8 +182,9 @@ class SiteScheduleModule extends Module {
 
       case 'index':
         $day  = $this->getArg('day', 'all');
+        $scheduleId = $this->getArg('scheduleId', $this->schedule->getScheduleId());
         
-        $feed = $this->reunion->getEventFeed();
+        $feed = $this->schedule->getEventFeed();
         
         $iCalEvents = $feed->items(0);
         
@@ -165,12 +211,19 @@ class SiteScheduleModule extends Module {
             if ($briefLocation = $iCalEvent->get_location()) {
               $subtitle .= " | $briefLocation";
             }
+            
+            $bookmarked = true;
 
-            $eventDays[$date]['events'][] = array(
-              'url'      => $this->detailURL($iCalEvent),
+            $event = array(
+              'url'      => $this->detailURL($scheduleId, $iCalEvent),
               'title'    => $iCalEvent->get_summary(),
               'subtitle' => $subtitle,
             );
+            if ($this->isBookmarked($scheduleId, $iCalEvent->get_uid())) {
+              $event['class'] = 'bookmarked';
+            }            
+            
+            $eventDays[$date]['events'][] = $event;
           }
         }
         
@@ -179,19 +232,29 @@ class SiteScheduleModule extends Module {
         $this->assign('eventDays', $eventDays);        
         break;
               
-      case 'detail':  
-        $fieldConfig = $this->loadWebAppConfigFile('schedule-detail', 'detailFields');
+      case 'detail':
+        $scheduleId = $this->getArg('scheduleId', $this->schedule->getScheduleId());
+        $eventId    = $this->getArg('eventId');
+        $start      = $this->getArg('start', time());
         
-        $feed = $this->reunion->getEventFeed();
+        $this->checkToggleBookmark($scheduleId, $eventId);
         
-        $time = $this->getArg('time', time());
-        $event = $feed->getItem($this->getArg('eventId'), $time);
+        $itemInfo = array(
+          'bookmarked'     => $this->isBookmarked($scheduleId, $eventId),
+          'eventId'        => $eventId,
+          'cookie'         => $this->getCookieNameForEvent($scheduleId),
+          'cookieDuration' => SCHEDULE_BOOKMARKS_COOKIE_DURATION,
+        );
+        
+        $feed = $this->schedule->getEventFeed();       
+        $event = $feed->getItem($eventId, $start);
         if (!$event) {
           throw new Exception("Event not found");
         }
         //error_log(print_r($event, true));
         
         // build the list of attributes
+        $fieldConfig = $this->loadWebAppConfigFile('schedule-detail', 'detailFields');
         $allKeys = array_keys($fieldConfig);
         $sections = array();
         foreach ($fieldConfig as $key => $info) {
@@ -245,8 +308,9 @@ class SiteScheduleModule extends Module {
           }
           
           $sections[$info['section']][] = $field;
-        }        
+        }
 
+        $this->assign('itemInfo', $itemInfo);
         $this->assign('sections', $sections);
         //error_log(print_r($sections, true));
         break;

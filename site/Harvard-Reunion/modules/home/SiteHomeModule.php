@@ -9,6 +9,8 @@
   * @subpackage Home
   */
 class SiteHomeModule extends HomeModule {
+  private $schedule = null;
+
   static public function loadReunionConfig() {
     $data = array();
     
@@ -21,11 +23,11 @@ class SiteHomeModule extends HomeModule {
   }
 
   protected function initialize() {
-    $this->reunion = new Reunion();
+    $this->schedule = new Schedule();
   }
 
   protected function initializeForPage() {
-    $user = $this->reunion->getAttendee();    
+    $user = $this->schedule->getAttendee();    
   
     switch ($this->page) {
       case 'index':
@@ -35,18 +37,18 @@ class SiteHomeModule extends HomeModule {
           'class' => $user->getGraduationClass(),
         );
 
-        $reunionInfo = array(
-          'year'  => $this->reunion->getNumber(),
-          'dates' => $this->reunion->getDateDescription(),
+        $scheduleInfo = array(
+          'year'  => $this->schedule->getReunionNumber(),
+          'dates' => $this->schedule->getDateDescription(),
         );
         
         $socialInfo = array(
           'facebook' => array(
-            'name' => $this->reunion->getFacebookGroup(),
+            'name' => $this->schedule->getFacebookGroup(),
             'url'  => '',
           ),
           'twitter' => array(
-            'name' => $this->reunion->getTwitterHashTag(),
+            'name' => $this->schedule->getTwitterHashTag(),
             'url'  => '',
           ),
           'recent' => null,
@@ -59,9 +61,9 @@ class SiteHomeModule extends HomeModule {
           'age'     => '12 min',
         );
         
-        $this->assign('userInfo',    $userInfo);
-        $this->assign('reunionInfo', $reunionInfo);
-        $this->assign('socialInfo',  $socialInfo);
+        $this->assign('userInfo',     $userInfo);
+        $this->assign('scheduleInfo', $scheduleInfo);
+        $this->assign('socialInfo',   $socialInfo);
         break;
         
      case 'search':
