@@ -12,7 +12,7 @@
 define('SCHEDULE_BOOKMARKS_COOKIE_PREFIX', 'ScheduleBookmarks_');
 define('SCHEDULE_BOOKMARKS_COOKIE_DURATION', 160 * 24 * 60 * 60);
 
-class SiteScheduleModule extends Module {
+class SiteScheduleWebModule extends WebModule {
   protected $id = 'schedule';
   protected $feeds = null;
   protected $schedule = null;

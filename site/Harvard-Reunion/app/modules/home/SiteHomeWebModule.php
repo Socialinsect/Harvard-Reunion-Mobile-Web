@@ -8,7 +8,7 @@
   * @package Module
   * @subpackage Home
   */
-class SiteHomeModule extends HomeModule {
+class SiteHomeWebModule extends HomeWebModule {
   private $schedule = null;
 
   static public function loadReunionConfig() {
