@@ -208,15 +208,14 @@ that are specific to that module. For more detailed information on module design
 The naming conventions are very important (especially for case sensitive file systems):
 
 * The folder **must** be lower case and be the same as the url of the module (/about, /home, /links)
-* The folder **must** contain a PHP file named *LocationModulenameModule.php*. If the module is located
-  in the *site* folder then it should be called *SiteModulenameModule.php*. If the module is located
-  in the *theme* folder then it should be called *ThemeModulenameModule.php*. Included modules are
-  called *ModulenameModule.php*.
-* The first (and ONLY) letter of the module **must** be capitalized and followed by Module.php. 
+* The folder **must** contain a PHP file named *ModulenameWebModule.php*. If the module is located
+  in the *site* folder then it should be called *SiteModulenameWebModule.php*. Included modules are
+  called *ModulenameWebModule.php*.
+* The first (and ONLY) letter of the module **must** be capitalized and followed by WebModule.php. 
   
-  * **AboutModule.php** (NOT aboutmodule.php or Aboutmodule.php)
-  * **FullwebModule.php** (NOT FullWebModule.php or Fullwebmodule.php)
-  * **SiteNewsModule.php** (NOT siteNewsModule.php or Sitenewsmodule.php)
+  * **AboutWebModule.php** (NOT aboutwebmodule.php or AboutWebmodule.php)
+  * **FullwebWebModule.php** (NOT FullWebModule.php or FullwebWebmodule.php)
+  * **SiteNewsWebModule.php** (NOT siteNewsWebModule.php or Sitenewswebmodule.php)
   
 * There should be a .tpl for each *page* of the module. At minimum there should be an *index.tpl* which 
   represents the default page (unless the module alters that behavior). Each page should be in all lower case
@@ -224,7 +223,7 @@ The naming conventions are very important (especially for case sensitive file sy
 * You may choose to place additional css style sheets in a folder named *css*
 * You may choose to place additional javascript scripts in a folder named *javascript*
 
-It is possible to override an included module's behavior by creating another module in the *sites*
+It is possible to override an included module's behavior by creating another module in the *site*
 folder. For more information, please see :doc:`moduleextend`
 
 .. _site-folder:
@@ -263,9 +262,13 @@ Each site folder contains the following directories:
   files cannot be safely deleted. Examples would include data that is not able to be generated from 
   a web service, SQLite databases, or flat authentication files
 * *logs* - Log files
-* *modules* - Site specific modules. To promote ease when updating the framework to new versions,
-  it is usually best if you keep site specific modules in this folder rather than in the *app/modules*
-  folder. If you wish to include your work in the project, please see :doc:`github`. Also see :doc:`moduleextend`.
+* *app* - Site specific templates and modules. Inside this folder you will find 2 folders
+
+  * *common* - Site specific common templates and css
+  * *modules* - Site specific modules. To promote ease when updating the framework to new versions, it 
+    is usually best if you keep site specific modules in this folder rather than in the root *app/modules*
+    folder. If you wish to include your work in the project, please see :doc:`github`. Also see :doc:`moduleextend`.
+
 * *themes* - Contains the themes available for this site. Each theme folder contains a *common* and *modules*
   folder that contains the CSS and image assets for the site. See :doc:`template` for more information.
 
