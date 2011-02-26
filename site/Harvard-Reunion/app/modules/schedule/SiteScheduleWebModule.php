@@ -258,12 +258,27 @@ class SiteScheduleWebModule extends WebModule {
           $value = $event->get_attribute($key);
           if (empty($value)) { continue; }
 
+          if (isset($info['conditionalField'], $info['conditionalValue'])) {
+            $condKey = $info['conditionalField'];
+            $condValue = $event->get_attribute($condKey);
+            
+            if ($condValue != $info['conditionalValue']) {
+              continue;
+            }
+          }
+
           if (isset($info['label'])) {
-            $field['label'] = $info['label'];
+            $field['title'] = $info['label'];
           }
           
           if (isset($info['class'])) {
             $field['class'] = $info['class'];
+          }
+          
+          
+          $title = '';
+          if (isset($info['prefix'])) {
+            $title .= $info['prefix'];
           }
           
           if (is_array($value)) {		
@@ -285,15 +300,33 @@ class SiteScheduleWebModule extends WebModule {
               
               $fieldValues[] = $fieldValue;
             }
-            $field['title'] = implode(', ', $fieldValues);
+            $title .= implode(', ', $fieldValues);
           
           } else {
             if (isset($info['type'])) {
-              $field['title'] = $this->valueForType($info['type'], $value);
-              $field['url']   = $this->urlForType($info['type'], $value);
+              $title .= $this->valueForType($info['type'], $value);
+              $field['url'] = $this->urlForType($info['type'], $value);
             } else {
-              $field['title'] = nl2br($value);
+              $title .= nl2br($value);
             }
+          }
+          
+          if (isset($info['suffix'])) {
+            $title .= $info['suffix'];
+          }
+          
+          if (isset($field['title'])) {
+            $field['subtitle'] = $title;
+          } else {
+            $field['title'] = $title;
+          }
+          
+          if (!isset($field['subtitle']) && isset($info['subtitle'])) {
+            $field['subtitle'] = $info['subtitle'];
+          }
+          
+          if (!isset($field['url']) && isset($info['url'])) {
+            $field['url'] = $info['url'];
           }
           
           if (!isset($sections[$info['section']])) {
