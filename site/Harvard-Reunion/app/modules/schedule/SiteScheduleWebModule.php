@@ -75,20 +75,30 @@ class SiteScheduleWebModule extends WebModule {
           $valueForType = strval($value);
         } else {
           $valueForType = date("D M j", $value->get_start());
-          if ($value->get_end() && $value->get_end()!=$value->get_start()) {
-            if (date('Ymd', $value->get_start()) != date('Ymd', $value->get_end())) {
-              $valueForType .= date(' g:i', $value->get_start());
-              if (date('a', $value->get_start()) != date('a', $value->get_end())) {
-                $valueForType .= date(' a', $value->get_start());
-              }
-        
-              $valueForType .= date(" - D M j g:i a", $value->get_end());
+          if ($value->get_end() && $value->get_end() != $value->get_start()) {
+            $sameDay = date('Ymd', $value->get_start()) == date('Ymd', $value->get_end());
+            $sameAMPM = date('a', $value->get_start()) == date('a', $value->get_end());
+          
+            if ($sameDay) {
+              $valueForType .= '<br/>';
+            }
+          
+            $valueForType .= date(' g:i', $value->get_start());
+            if (!$sameAMPM) {
+              $valueForType .= date(' a', $value->get_start());
+            }
+
+            if (!$sameDay) {
+              $valueForType .= date(" - D M j ", $value->get_end());
+            } else if ($sameAMPM) {
+              $valueForType .= '-';
             } else {
-              $valueForType .= "<br/>" . date('g:i', $value->get_start()) . date("-g:i a", $value->get_end());
+              $valueForType .= ' - ';
             }
           } else {
-            $valueForType .= "<br/>" . date('g:i a', $value->get_start());
+            $valueForType .= "<br/>";
           }
+          $valueForType .= date("g:i a", $value->get_end());
         }
         
         break;
@@ -147,11 +157,15 @@ class SiteScheduleWebModule extends WebModule {
 
   private function timeText($iCalEvent, $timeOnly=false) {
     if ($timeOnly) {
-      if ($iCalEvent->get_end() - $iCalEvent->get_start() == -1) {
-        return date('g:ia', $iCalEvent->get_start());
-      } else {
-        return date('g:ia', $iCalEvent->get_start()).' - '.date('g:ia', $iCalEvent->get_end());
+      $sameAMPM = date('a', $iCalEvent->get_start()) == date('a', $iCalEvent->get_end());
+    
+      $timeString = date(' g:i', $iCalEvent->get_start());
+      if (!$sameAMPM) {
+        $timeString .= date(' a', $iCalEvent->get_start());
       }
+      $timeString .= ($sameAMPM ? '-' : ' - ').date("g:i a", $iCalEvent->get_end());
+      
+      return $timeString;
     } else {
       return strval($iCalEvent->get_range());
     }
@@ -308,6 +322,12 @@ class SiteScheduleWebModule extends WebModule {
             $title .= $info['suffix'];
           }
           
+          if (isset($info['multipleLocationsField'])) {
+            if (strtolower($event->get_attribute($info['multipleLocationsField'])) == 'yes') {
+              $title .= ' (multiple locations)';
+            }
+          }
+          
           if (isset($field['title'])) {
             $field['subtitle'] = $title;
           } else {
@@ -320,6 +340,34 @@ class SiteScheduleWebModule extends WebModule {
           
           if (!isset($field['url']) && isset($info['url'])) {
             $field['url'] = $info['url'];
+          }
+          
+          if (isset($info['trumbaWebLinkField']) || isset($info['buildingIDField'])) {
+            $validQuery = false;
+            $args = array(
+              'event' => $event->get_attribute('summary'),
+              'when' => $this->valueForType('datetime', $event->get_attribute('datetime')),
+            );
+            
+            if (isset($info['trumbaWebLinkField'])) {
+              // parse the doohickey
+              $weblink = $event->get_attribute($info['trumbaWebLinkField']);
+              $parts = explode(',', $weblink);
+              if (count($parts) == 2) {
+                $args['lat'] = $parts[0];
+                $args['lon'] = $parts[1];
+                $validQuery = true;
+              }
+            }
+            
+            if (isset($info['buildingIDField'])) {
+              $args['building'] = $event->get_attribute($info['buildingIDField']);
+              $validQuery = true;
+            }
+            
+            if ($validQuery) {
+              $field['url'] = $this->buildBreadcrumbURLForModule('map', 'detail', $args);
+            }
           }
           
           if (!isset($sections[$info['section']])) {

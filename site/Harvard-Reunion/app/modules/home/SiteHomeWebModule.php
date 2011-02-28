@@ -44,12 +44,14 @@ class SiteHomeWebModule extends HomeWebModule {
         
         $socialInfo = array(
           'facebook' => array(
-            'name' => $this->schedule->getFacebookGroup(),
-            'url'  => '',
+            'name' => $this->schedule->getFacebookGroupName(),
+            'url'  => 'http://m.facebook.com/home.php?sk=group_'.
+                        $this->schedule->getFacebookGroupId(),
           ),
           'twitter' => array(
             'name' => $this->schedule->getTwitterHashTag(),
-            'url'  => '',
+            'url'  => 'http://mobile.twitter.com/searches?q='.
+                        urlencode($this->schedule->getTwitterHashTag()),
           ),
           'recent' => null,
         );

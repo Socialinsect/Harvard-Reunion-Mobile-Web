@@ -25,3 +25,12 @@
 #bookmark.on {
 	background-position: 0 -38px;
 }
+
+.nav .smallprint a {
+  display: inline;
+  background: none;
+  padding: 0;
+  margin: 0;
+  text-decoration: underline;
+  color: inherit;
+}

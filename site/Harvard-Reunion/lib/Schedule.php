@@ -57,12 +57,15 @@ class Schedule {
     return $this->getConfigValue('REUNION_NUMBER', '0');
   }
   
-  public function getFacebookGroup() {
-    return $this->getConfigValue('FACEBOOK_GROUP', '0');
+  public function getFacebookGroupName() {
+    return $this->getConfigValue('FACEBOOK_GROUP_NAME', '');
+  }
+  public function getFacebookGroupId() {
+    return $this->getConfigValue('FACEBOOK_GROUP_ID', '');
   }
   
   public function getTwitterHashTag() {
-    return $this->getConfigValue('TWITTER_HASHTAG', '0');
+    return $this->getConfigValue('TWITTER_HASHTAG', '');
   }
   public function getStartDate() {
     return $this->startDate;
