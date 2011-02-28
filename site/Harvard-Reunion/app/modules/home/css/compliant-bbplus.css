@@ -1,0 +1,17 @@
+#social {
+  top: 0.5em;
+  margin-bottom: 2em;
+}
+
+#ribbon {
+  top: -12px;
+  right: -4px;
+  width: 80px;
+  padding-top: 16px;
+  line-height: 1.2em;
+}
+
+#ribbon .ribbonYearSup {
+	font-size: 60%;
+	vertical-align: baseline;
+}
