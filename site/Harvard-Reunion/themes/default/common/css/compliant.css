@@ -76,8 +76,9 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 	color: #aaa;
 }
 
-.nonfocal .legend.nonfocal {
-  color: white;
+.nonfocal .legend.nonfocal,
+.nonfocal .smallprint {
+  color: #dcdad9;
 }
 
 /* Major content blocks */

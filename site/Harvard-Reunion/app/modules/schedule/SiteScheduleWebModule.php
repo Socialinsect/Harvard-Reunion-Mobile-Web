@@ -207,17 +207,10 @@ class SiteScheduleWebModule extends WebModule {
           }
           
           if ($showThisDate) {
-            $subtitle = $this->timeText($iCalEvent, true);
-            if ($briefLocation = $iCalEvent->get_location()) {
-              $subtitle .= " | $briefLocation";
-            }
-            
-            $bookmarked = true;
-
             $event = array(
               'url'      => $this->detailURL($scheduleId, $iCalEvent),
               'title'    => $iCalEvent->get_summary(),
-              'subtitle' => $subtitle,
+              'subtitle' => $this->timeText($iCalEvent, true),
             );
             if ($this->isBookmarked($scheduleId, $iCalEvent->get_uid())) {
               $event['class'] = 'bookmarked';

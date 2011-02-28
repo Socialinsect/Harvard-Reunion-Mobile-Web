@@ -7,7 +7,9 @@
   <a id="bookmark" class="{if $bookmarked}on{/if}" onclick="toggleBookmark('{$cookieName}', '{$eventId}', COOKIE_DURATION, COOKIE_PATH)"></a>
   <h2>{include file="findInclude:common/listItem.tpl" item=$titleField}</h2>
   {foreach $firstSection as $field}
-    {include file="findInclude:common/listItem.tpl" item=$field}
+    <p{if $field['class']} class="{$field['class']}"{/if}>
+      {include file="findInclude:common/listItem.tpl" item=$field}
+    </p>
   {/foreach}
 </div>
   
