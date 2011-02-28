@@ -11,6 +11,10 @@
   line-height: 1.2em;
 }
 
+.banner {
+  padding-right: 92px;
+}
+
 #ribbon .ribbonYearSup {
 	font-size: 60%;
 	vertical-align: baseline;
