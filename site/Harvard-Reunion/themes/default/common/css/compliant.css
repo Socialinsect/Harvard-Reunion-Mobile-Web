@@ -310,6 +310,30 @@ a.bookmarked {
 
 
 
+/* Bookmarks */
+
+#bookmark {
+	position: relative;
+	top: -12px;
+	right: 0;
+	border: none;
+    width: 46px;
+    height: 95px;
+    background: url(/common/images/bookmark-ribbon.png) 0 0 no-repeat;
+}
+#bookmark.pressed {
+    background-position: 0 0;
+}
+#bookmark.on {
+    background-position: -100px 0;
+}
+#bookmark.pressed.on {
+    background-position: -100px 0;
+}
+
+
+
+
 /* Data charts */
 
 .rowbar {
