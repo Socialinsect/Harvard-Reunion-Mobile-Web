@@ -7,8 +7,9 @@
 .springboard div, .springboard div.utility {
 	/* Overall size of one cell in the springboard; for this device branch, this is the same for primary and utility-class springboard items */
 	font-size: 100%;
-	width: 5.1em;
-	height: 6.7em;
+	line-height: 1.1em;
+	width: 82px;
+	height: 92px;
 }
 
 .springboard div a, .springboard div.utility a {	
