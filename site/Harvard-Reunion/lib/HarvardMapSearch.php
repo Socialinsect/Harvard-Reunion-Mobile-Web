@@ -18,6 +18,11 @@ class HarvardMapSearch extends MapSearch {
         }
         parent::setFeedData($feeds);
     }
+    
+    public function searchByProximity($center, $tolerance=1000, $maxItems=0) {
+        $searchController = $this->getLayerForSearchResult();
+        return $searchController->searchByProximity($center, $tolerance, $maxItems);
+    }
 
     public function searchCampusMap($query) {
 
@@ -61,10 +66,16 @@ class HarvardMapSearch extends MapSearch {
         // instead of dictionaries containing MapFeature objects
         return $aResult->getTitle();
     }
+    
+    public function getSubtitleForSearchResult($aResult) {
+        return $aResult->getSubtitle();
+    }
 
     public function getLayerForSearchResult($featureID=null) {
         if ($this->searchController == null) {
-            $this->searchController = MapDataController::factory($this->searchFeedData);
+            $this->searchController = MapDataController::factory(
+                $this->searchFeedData['CONTROLLER_CLASS'],
+                $this->searchFeedData);
             $this->searchController->setDebugMode($GLOBALS['siteConfig']->getVar('DATA_DEBUG'));
         }
     	return $this->searchController;
