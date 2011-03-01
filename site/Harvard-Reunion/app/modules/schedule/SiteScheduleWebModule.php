@@ -345,8 +345,8 @@ class SiteScheduleWebModule extends WebModule {
           if (isset($info['trumbaWebLinkField']) || isset($info['buildingIDField'])) {
             $validQuery = false;
             $args = array(
-              'event' => $event->get_attribute('summary'),
-              'when' => $this->valueForType('datetime', $event->get_attribute('datetime')),
+              'title' => $event->get_attribute('summary'),
+              'subtitle' => $this->valueForType('datetime', $event->get_attribute('datetime')),
             );
             
             if (isset($info['trumbaWebLinkField'])) {
@@ -366,7 +366,7 @@ class SiteScheduleWebModule extends WebModule {
             }
             
             if ($validQuery) {
-              $field['url'] = $this->buildBreadcrumbURLForModule('map', 'detail', $args);
+              $field['url'] = $this->buildURLForModule('map', 'detail', $args);
             }
           }
           

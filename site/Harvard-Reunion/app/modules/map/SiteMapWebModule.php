@@ -10,15 +10,21 @@
   */
 class SiteMapWebModule extends MapWebModule {
   protected function initializeForPage() {
-    $event = $this->getArg('event', false);
-    if ($this->page == 'detail' && $event) {
-      // muck with arguments to make the right thing happen
+    $buildingId = $this->getArg('building', false);
+    if ($this->page == 'detail' && $buildingId) {
+      // Figure out the full Harvard campus category
+      if (!$this->feeds) {
+        $this->feeds = $this->loadFeedData();
+      }
+      foreach ($this->feeds as $id => $feed) {
+        if ($feed['TITLE'] == 'Search Results') {
+          $this->args['category'] = $id;
+          $this->args['featureindex'] = $buildingId;
+          break;
+        }
+      }
     }
     
     parent::initializeForPage();
-    
-    if ($this->page == 'detail' && $event) {
-      // set template variables
-    }
   }
 }
