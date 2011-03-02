@@ -318,10 +318,14 @@ a.bookmarked {
   height: 95px;
   position: absolute;
   float: none;
-	top: 12px;
-	right: 12px;  
+	top: -12px;
+	right: 0px;  
 	margin: 0;
 	z-index: 2000;
+}
+
+.focal #bookmarkContainer {
+  right: 12px;
 }
 
 #bookmark {
@@ -338,6 +342,10 @@ a.bookmarked {
 }
 #bookmark.pressed.on {
     background-position: -100px 0;
+}
+
+.nonfocal {
+  position: relative;
 }
 
 /* Data charts */

@@ -336,7 +336,7 @@ class SiteScheduleWebModule extends WebModule {
             $validQuery = false;
             $args = array(
               'title' => $event->get_attribute('summary'),
-              'address' => $this->valueForType('datetime', $event->get_attribute('datetime'))."<br/>{$title}",
+              'address' => str_replace('<br/>', ', ', $this->valueForType('datetime', $event->get_attribute('datetime')))."<br/>{$title}",
             );
             
             if (isset($info['trumbaWebLinkField'])) {
