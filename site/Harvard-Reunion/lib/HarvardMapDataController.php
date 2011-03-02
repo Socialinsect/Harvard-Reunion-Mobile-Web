@@ -33,7 +33,6 @@ class HarvardMapDataController extends ArcGISDataController
                 // returned as column ids or aliases
                 $theItem->setTitleField("Building Name");
             }
-
         } else {
             $items = $this->items();
             if (isset($items[$name])) {
@@ -61,7 +60,7 @@ class HarvardMapDataController extends ArcGISDataController
         return $theItem;
     }
     
-    private static function getSupplementaryFeatureData($bldgId, $searchField, $queryBase) {
+    private static function getSupplementaryFeatureData($bldgId, $searchField, $queryBase, $layerId=0) {
         // TODO don't use a shared cache file if queryBase isn't the default
         $featureCache = new DiskCache($GLOBALS['siteConfig']->getVar('ARCGIS_FEATURE_CACHE'), 86400*7, true);
         if (!$featureCache->isFresh($bldgId)) {
@@ -70,7 +69,7 @@ class HarvardMapDataController extends ArcGISDataController
                 'searchFields'   => $searchField,
                 'contains'       => 'false',
                 'sr'             => '',
-                'layers'         => 0,
+                'layers'         => $layerId,
                 'returnGeometry' => 'true',
                 'f'              => 'json',
                 ));
@@ -116,7 +115,7 @@ class HarvardMapDataController extends ArcGISDataController
                 break;
             }
         }
-        return self::getSupplementaryFeatureData($bldgId, $searchField, $queryBase);
+        return self::getSupplementaryFeatureData($bldgId, $searchField, $queryBase, $this->parser->getSelectedLayerId());
     }
     
     public static function getBldgDataByNumber($bldgId) {
