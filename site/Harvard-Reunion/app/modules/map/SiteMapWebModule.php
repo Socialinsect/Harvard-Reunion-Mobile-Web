@@ -26,5 +26,9 @@ class SiteMapWebModule extends MapWebModule {
     }
     
     parent::initializeForPage();
+    
+    if ($this->page == 'detail' && !$this->getArg('featureindex', false)) {
+      $this->assign('canBookmark', false);
+    }
   }
 }

@@ -81,9 +81,11 @@ class SiteScheduleWebModule extends WebModule {
           
             if ($sameDay) {
               $valueForType .= '<br/>';
+            } else {
+              $valueForType .= ' ';
             }
           
-            $valueForType .= date(' g:i', $value->get_start());
+            $valueForType .= date('g:i', $value->get_start());
             if (!$sameAMPM) {
               $valueForType .= date(' a', $value->get_start());
             }
@@ -322,31 +324,19 @@ class SiteScheduleWebModule extends WebModule {
             $title .= $info['suffix'];
           }
           
+          $hasMultipleLocations = false;
           if (isset($info['multipleLocationsField'])) {
-            if (strtolower($event->get_attribute($info['multipleLocationsField'])) == 'yes') {
-              $title .= ' (multiple locations)';
-            }
-          }
+            $hasMultipleLocations = $event->get_attribute($info['multipleLocationsField']) == 'yes';
+          } 
           
-          if (isset($field['title'])) {
-            $field['subtitle'] = $title;
-          } else {
-            $field['title'] = $title;
-          }
+          if ($hasMultipleLocations) {
+            $title .= ' (multiple locations)';
           
-          if (!isset($field['subtitle']) && isset($info['subtitle'])) {
-            $field['subtitle'] = $info['subtitle'];
-          }
-          
-          if (!isset($field['url']) && isset($info['url'])) {
-            $field['url'] = $info['url'];
-          }
-          
-          if (isset($info['trumbaWebLinkField']) || isset($info['buildingIDField'])) {
+          } else if (isset($info['trumbaWebLinkField']) || isset($info['buildingIDField'])) {
             $validQuery = false;
             $args = array(
               'title' => $event->get_attribute('summary'),
-              'subtitle' => $this->valueForType('datetime', $event->get_attribute('datetime')),
+              'address' => $this->valueForType('datetime', $event->get_attribute('datetime'))."<br/>{$title}",
             );
             
             if (isset($info['trumbaWebLinkField'])) {
@@ -369,7 +359,21 @@ class SiteScheduleWebModule extends WebModule {
               $field['url'] = $this->buildURLForModule('map', 'detail', $args);
             }
           }
+                    
+          if (isset($field['title'])) {
+            $field['subtitle'] = $title;
+          } else {
+            $field['title'] = $title;
+          }
           
+          if (!isset($field['subtitle']) && isset($info['subtitle'])) {
+            $field['subtitle'] = $info['subtitle'];
+          }
+          
+          if (!isset($field['url']) && isset($info['url'])) {
+            $field['url'] = $info['url'];
+          }
+
           if (!isset($sections[$info['section']])) {
             $sections[$info['section']] = array();
           }

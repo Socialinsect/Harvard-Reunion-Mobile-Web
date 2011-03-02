@@ -313,14 +313,22 @@ a.bookmarked {
 
 /* Bookmarks */
 
+#bookmarkContainer {
+  width: 46px;
+  height: 95px;
+  position: absolute;
+  float: none;
+	top: 12px;
+	right: 12px;  
+	margin: 0;
+	z-index: 2000;
+}
+
 #bookmark {
-	position: relative;
-	top: -12px;
-	right: 0;
+  width: 46px;
+  height: 95px;
 	border: none;
-    width: 46px;
-    height: 95px;
-    background: url(/common/images/bookmark-ribbon.png) 0 0 no-repeat;
+  background: url(/common/images/bookmark-ribbon.png) 0 0 no-repeat;
 }
 #bookmark.pressed {
     background-position: 0 0;
@@ -331,9 +339,6 @@ a.bookmarked {
 #bookmark.pressed.on {
     background-position: -100px 0;
 }
-
-
-
 
 /* Data charts */
 

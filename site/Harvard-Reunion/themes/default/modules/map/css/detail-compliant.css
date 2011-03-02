@@ -1,3 +1,4 @@
-#tabs {
-  margin-top: 24px;
+.address + #tabbodies,
+#bookmarkContainer + #tabbodies {
+  margin-top: 12px;
 }
