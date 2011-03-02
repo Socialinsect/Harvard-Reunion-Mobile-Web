@@ -74,33 +74,35 @@ class SiteScheduleWebModule extends WebModule {
         if ($value instanceOf DayRange) {
           $valueForType = strval($value);
         } else {
-          $valueForType = date("D M j", $value->get_start());
+          $valueForType = date("D M j, ", $value->get_start());
           if ($value->get_end() && $value->get_end() != $value->get_start()) {
-            $sameDay = date('Ymd', $value->get_start()) == date('Ymd', $value->get_end());
-            $sameAMPM = date('a', $value->get_start()) == date('a', $value->get_end());
-          
-            if ($sameDay) {
-              $valueForType .= '<br/>';
-            } else {
-              $valueForType .= ' ';
+            $startDate = intval(date('Ymd', $value->get_start()));
+            $endDate = intval(date('Ymd', $value->get_end()));
+            
+            $sameDay = $startDate == $endDate;
+            if (!$sameDay) {
+              $endIsMidnight = intval(date('His', $value->get_end())) == 0;
+              if ($endIsMidnight && ($endDate - $startDate == 1)) {
+                $sameDay = true;
+              }
             }
+            
+            $sameAMPM = date('a', $value->get_start()) == date('a', $value->get_end());
           
             $valueForType .= date('g:i', $value->get_start());
             if (!$sameAMPM) {
-              $valueForType .= date(' a', $value->get_start());
+              $valueForType .= date('a', $value->get_start());
             }
 
             if (!$sameDay) {
-              $valueForType .= date(" - D M j ", $value->get_end());
+              $valueForType .= date(" - D M j, ", $value->get_end());
             } else if ($sameAMPM) {
               $valueForType .= '-';
             } else {
               $valueForType .= ' - ';
             }
-          } else {
-            $valueForType .= "<br/>";
           }
-          $valueForType .= date("g:i a", $value->get_end());
+          $valueForType .= date("g:ia", $value->get_end());
         }
         
         break;
@@ -163,9 +165,9 @@ class SiteScheduleWebModule extends WebModule {
     
       $timeString = date(' g:i', $iCalEvent->get_start());
       if (!$sameAMPM) {
-        $timeString .= date(' a', $iCalEvent->get_start());
+        $timeString .= date('a', $iCalEvent->get_start());
       }
-      $timeString .= ($sameAMPM ? '-' : ' - ').date("g:i a", $iCalEvent->get_end());
+      $timeString .= ($sameAMPM ? '-' : ' - ').date("g:ia", $iCalEvent->get_end());
       
       return $timeString;
     } else {
@@ -336,7 +338,7 @@ class SiteScheduleWebModule extends WebModule {
             $validQuery = false;
             $args = array(
               'title' => $event->get_attribute('summary'),
-              'address' => str_replace('<br/>', ', ', $this->valueForType('datetime', $event->get_attribute('datetime')))."<br/>{$title}",
+              'address' => str_replace('<br/>', ' ', $this->valueForType('datetime', $event->get_attribute('datetime')))."<br/>{$title}",
             );
             
             if (isset($info['trumbaWebLinkField'])) {
