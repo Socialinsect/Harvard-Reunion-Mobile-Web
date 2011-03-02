@@ -2,3 +2,8 @@
 #bookmarkContainer + #tabbodies {
   margin-top: 12px;
 }
+
+.focal > h2,
+.focal .address {
+  padding-right: 46px;
+}
