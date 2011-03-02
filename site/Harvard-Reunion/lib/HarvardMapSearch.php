@@ -18,6 +18,12 @@ class HarvardMapSearch extends MapSearch {
         }
         parent::setFeedData($feeds);
     }
+    
+    public function searchByProximity($center, $tolerance=1000, $maxItems=0) {
+        $searchController = $this->getLayerForSearchResult();
+        $searchController->addFilter('outFields', 'Building_HU.BL_ID'); // see comment in getURLArgs...
+        return $searchController->searchByProximity($center, $tolerance, $maxItems);
+    }
 
     public function searchCampusMap($query) {
 
@@ -50,8 +56,16 @@ class HarvardMapSearch extends MapSearch {
     }
     
     public function getURLArgsForSearchResult($aResult) {
+        $featureIndex = null;
+        // sad list of possible fields i got from examining ArcGISLayer::parseData output.
+        // don't know if there is a less manual way to get id field
+        foreach (array('Building Number', 'Building_HU.BL_ID') as $idField) {
+            if ($featureIndex = $aResult->getField($idField)) {
+                break;
+            }
+        }
         return array(
-            'featureindex' => $aResult->getField('Building Number'),
+            'featureindex' => $featureIndex,
             'category' => $this->controllerLayerID,
             );
     }
@@ -61,10 +75,16 @@ class HarvardMapSearch extends MapSearch {
         // instead of dictionaries containing MapFeature objects
         return $aResult->getTitle();
     }
+    
+    public function getSubtitleForSearchResult($aResult) {
+        return $aResult->getSubtitle();
+    }
 
     public function getLayerForSearchResult($featureID=null) {
         if ($this->searchController == null) {
-            $this->searchController = MapDataController::factory($this->searchFeedData);
+            $this->searchController = MapDataController::factory(
+                $this->searchFeedData['CONTROLLER_CLASS'],
+                $this->searchFeedData);
             $this->searchController->setDebugMode($GLOBALS['siteConfig']->getVar('DATA_DEBUG'));
         }
     	return $this->searchController;
