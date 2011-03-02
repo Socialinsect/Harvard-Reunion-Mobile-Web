@@ -193,7 +193,9 @@ class SiteScheduleWebModule extends WebModule {
     $this->schedule = new Schedule();
   }
 
-  protected function initializeForPage() {
+  protected function initializeForPage() {    
+    $this->addOnLoad('setTimeout(function () { window.scrollTo(0, 1); }, 1000);');
+
     switch ($this->page) {
       case 'help':
         break;
