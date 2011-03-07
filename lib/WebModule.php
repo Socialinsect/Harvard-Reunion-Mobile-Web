@@ -188,9 +188,9 @@ abstract class WebModule extends Module {
   private function getMinifyUrls($pageOnly=false) {
     $page = preg_replace('/[\s-]+/', '+', $this->page);
     $minKey = "{$this->id}-{$page}-{$this->pagetype}-{$this->platform}-".md5(SITE_DIR);
-    $minDebug = $this->getSiteVar('MINIFY_DEBUG') ? '&debug=1' : '';
+    $minDebug = $this->getSiteVar('MINIFY_DEBUG') ? '&amp;debug=1' : '';
     
-    $addArgString = $pageOnly ? '&pageOnly=true' : '';
+    $addArgString = $pageOnly ? '&amp;pageOnly=true' : '';
     
     return array(
       'css' => "/min/g=css-$minKey$minDebug$addArgString",
@@ -307,10 +307,10 @@ abstract class WebModule extends Module {
   //
   // Configuration
   //
-  protected function getSiteVar($var, $opts=Config::LOG_ERRORS)
+  protected function getSiteVar($var, $default=null, $opts=Config::LOG_ERRORS)
   {
-    
-      return $GLOBALS['siteConfig']->getVar($var, $opts | Config::EXPAND_VALUE);
+      $value = $GLOBALS['siteConfig']->getVar($var, $opts | Config::EXPAND_VALUE);
+      return is_null($value) ? $default :$value;
   }
 
   protected function getSiteSection($var, $opts=Config::LOG_ERRORS)
@@ -529,6 +529,7 @@ abstract class WebModule extends Module {
         }
         
         if ($this->getSiteVar('AUTHENTICATION_ENABLED')) {
+            includePackage('Authentication');
             $user = $this->getUser();
             $session = $this->getSession();
             $protected = self::argVal($moduleData, 'protected', false);
@@ -601,7 +602,8 @@ abstract class WebModule extends Module {
   public function getSession()
   {
     if (!$this->session) {
-        $this->session = new Session();
+        $args = $this->getSiteSection('authentication');
+        $this->session = new Session($args);
     }
     
     return $this->session;
@@ -866,10 +868,13 @@ abstract class WebModule extends Module {
     return $moduleData;
   }
   
-  public function getAccessControlLists()
-  {
+  public function getAccessControlLists() {
     $acls = array();
-    $aclStrings = $this->getModuleVar('acl', array(), Config::SUPRESS_ERRORS);
+
+    $aclStrings = array_merge(
+        $this->getSiteVar('acl', array(), Config::SUPRESS_ERRORS),
+        $this->getModuleVar('acl', array(), Config::SUPRESS_ERRORS)
+    );
     foreach ($aclStrings as $aclString) {
         if ($acl = AccessControlList::createFromString($aclString)) {
             $acls[] = $acl;
@@ -949,7 +954,7 @@ abstract class WebModule extends Module {
     }
   }
   protected function addJQuery() {
-    $this->addExternalJavascript(URL_BASE . 'common/javascript/jquery.js');
+    $this->addInternalJavascript('/common/javascript/jquery.js');
   }
   
   //
@@ -1217,6 +1222,7 @@ abstract class WebModule extends Module {
     $this->assign('moduleName',   $this->moduleName);
     $this->assign('page',         $this->page);
     $this->assign('isModuleHome', $this->page == 'index');
+    $this->assign('request_uri' , $_SERVER['REQUEST_URI']);
     
     // Font size for template
     $this->assign('fontsizes',    $this->fontsizes);
@@ -1228,7 +1234,7 @@ abstract class WebModule extends Module {
     $this->assign('minify', $this->getMinifyUrls());
     
     // Google Analytics. This probably needs to be moved
-    if ($gaID = $this->getSiteVar('GOOGLE_ANALYTICS_ID', Config::SUPRESS_ERRORS)) {
+    if ($gaID = $this->getSiteVar('GOOGLE_ANALYTICS_ID', null, Config::SUPRESS_ERRORS)) {
         $this->assign('GOOGLE_ANALYTICS_ID', $gaID);
         $this->assign('gaImageURL', $this->googleAnalyticsGetImageUrl($gaID));
     }
@@ -1288,9 +1294,6 @@ abstract class WebModule extends Module {
     $accessKeyStart = count($this->breadcrumbs);
     if ($this->id != 'home') {
       $accessKeyStart++;  // Home link
-      if ($this->page != 'index') {
-        $accessKeyStart++;  // Module home link
-      }
     }
     $this->assign('accessKeyStart', $accessKeyStart);
 
@@ -1301,7 +1304,7 @@ abstract class WebModule extends Module {
         $this->assign('session_user', $user);
 
         if ($this->isLoggedIn()) {
-            $this->assign('session_max_idle', intval($this->getSiteVar('AUTHENTICATION_IDLE_TIMEOUT', Config::SUPRESS_ERRORS)));
+            $this->assign('session_max_idle', intval($this->getSiteVar('AUTHENTICATION_IDLE_TIMEOUT', 0, Config::SUPRESS_ERRORS)));
         }
         
         if ($authority = $user->getAuthenticationAuthority()) {

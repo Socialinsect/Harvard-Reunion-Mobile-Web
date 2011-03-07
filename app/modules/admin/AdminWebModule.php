@@ -137,15 +137,16 @@ class AdminWebModule extends WebModule {
                         }
 
                         $moduleData['feeds'] = $module->loadFeedData();
+                        if (!$moduleData['feeds']) {
+                            $moduleData['feeds'] = array();
+                        }
                         $this->assign('feedURL', $this->buildBreadcrumbURL('module', array(
                                 'moduleID'=>$moduleID,
                                 'section'=>$section),false
                             ));
                         $this->assign('feedFields', $module->getFeedFields());
-                    }
-                
-                    if (!isset($moduleData[$section])) {
-                        $section = null;
+                    } elseif (!isset($moduleData[$section])) {
+                        $this->redirectTo('module', array('moduleID'=>$moduleID), false);
                     }
                 }
 
@@ -407,6 +408,40 @@ class AdminWebModule extends WebModule {
                 
                 break;
 
+            case 'sessions';
+                $session = $this->getSession();
+                
+                if ($this->getArg('deleteSession')) {
+                    $sessionID = key($this->getArg('deleteSession'));
+                    // you can't delete your own session
+                    if ($sessionID != $session->getSessionID()) {
+                        $session->deleteSession($sessionID);
+                    }
+                }
+                
+                $activeSessions = $session->getActiveSessions();
+                $sessions = array();
+
+                foreach ($activeSessions as $sessionID=>$sessionData) {
+                    $sessionItem = array(
+                        'label'=>$sessionData['userID'] . " (" . $sessionData['auth'] . ")",
+                        'subtitle'=>'Last Access: ' . date('m/d/y H:i:s', $sessionData['ping'])
+                    );
+                    
+                    // you can't delete your own session
+                    if ($sessionID != $session->getSessionID()) {
+                        $sessionItem['name'] ='deleteSession[' . $sessionID . ']';
+                        $sessionItem['type'] ='submit';
+                        $sessionItem['confirm'] = true;
+                        $sessionItem['value'] = 'Delete';
+                    }
+
+                    $sessions[] = $sessionItem;
+                }
+                
+                $this->assign('sessions', $sessions);
+                break;
+
             case 'index':
                 $adminList = array();
                 $adminList[] = array(
@@ -424,6 +459,13 @@ class AdminWebModule extends WebModule {
                     'url'=>$this->buildBreadcrumbURL('strings', array()),
                     'subtitle'=>'Update textual strings used throughout the site'
                 );
+                if ($this->getSiteVar('AUTHENTICATION_ENABLED')) {
+                    $adminList[] = array(
+                        'title'=>'User Sessions',
+                        'url'=>$this->buildBreadcrumbURL('sessions', array()),
+                        'subtitle'=>'View and manage active user sessions'
+                    );
+                }
                 $this->assign('adminList', $adminList);
                 break;
   

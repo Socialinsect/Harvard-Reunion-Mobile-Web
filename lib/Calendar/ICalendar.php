@@ -7,11 +7,6 @@
  */
 
 /**
-  * 
-  */
-require_once realpath(LIB_DIR.'/DateTimeUtils.php');
-
-/**
  * ICalendar
  * @package Exceptions
  */
@@ -289,15 +284,15 @@ class ICalEvent extends ICalObject {
   }
 
   public function overlaps(TimeRange $range) {
-    return $this->compare_ranges($range, 'overlaps');
+    return $this->range->overlaps($range);
   }
 
   public function contains(TimeRange $range) {
-    return $this->compare_ranges($range, 'contains');
+    return $this->range->contains($range);
   }
 
   public function contained_by(TimeRange $range) {
-    return $this->compare_ranges($range, 'contained_by');
+    return $this->range->contained_by($range);
   }
   
   public function get_attribute($attr) {

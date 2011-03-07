@@ -3,26 +3,6 @@
  * @package Authentication
  */
 
-/** defined constants returned by authentication actions **/
-
-/** Authentication was successful */
-define('AUTH_OK', 1); 
-
-/** Authentication failed (invalid credentials) */
-define('AUTH_FAILED', -1); // 
-
-/** Authentication failed (user was not found) */
-define('AUTH_USER_NOT_FOUND', -2); 
-
-/** Authentication failed (User is inactive/disabled) */
-define('AUTH_USER_DISABLED', -3);
-
-/** Unknown server or i/o error */
-define('AUTH_ERROR', -4); // 
-
-require_once(LIB_DIR . "/User.php");
-require_once(LIB_DIR . "/UserGroup.php");
-
 /**
  * An abstract class that all authorities must inherit from. 
  * @package Authentication
@@ -279,7 +259,7 @@ abstract class AuthenticationAuthority
     public static function getInstalledAuthentiationAuthorities()
     {
         $dirs = array(
-            LIB_DIR, SITE_DIR . '/lib'
+            LIB_DIR . '/Authentication', SITE_DIR . '/lib/Authentication'
         );
         
         $authorities = array();
@@ -351,15 +331,15 @@ abstract class AuthenticationAuthority
      * @param Module $module 
      * @see AuthenticationAuthority::reset()
      * 
-     * Subclasses should not need to override this, but instead provide additional behavior in reset()
      */
-    public function login($login, $password, Module $module)
+    public function login($login, $password, Module $module, $options)
     {
         $result = $this->auth($login, $password, $user);
         
         if ($result == AUTH_OK) {
             $session = $module->getSession();
-            $session->login($user);
+            $remainLoggedIn = isset($options['remainLoggedIn']) ? $options['remainLoggedIn'] : false;
+            $session->login($user, $remainLoggedIn);
         }
         
         return $result;

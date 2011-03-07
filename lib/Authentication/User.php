@@ -130,24 +130,15 @@ abstract class User
     {
         return $group->userIsMember($this);
     }
-}
+    
+    public function getUserHash() {
+        return md5(SITE_KEY . $this->getAuthenticationAuthorityIndex() . $this->getUserID());
+    }
+    
+    public function getSessionData() {
+        return array();
+    }
 
-/**
- * Basic user class
- * @package Authentication
- */
-class BasicUser extends User
-{
-}
-
-/**
- * Anonymous User
- * @package Authentication
- */
-class AnonymousUser extends User
-{
-    public function __construct()
-    {
+    public function setSessionData($data) {
     }
 }
-
