@@ -3,11 +3,6 @@
   * @package Module
   * @subpackage Schedule
   */
-
-/**
-  * @package Module
-  * @subpackage Schedule
-  */
   
 define('SCHEDULE_BOOKMARKS_COOKIE_PREFIX', 'ScheduleBookmarks_');
 define('SCHEDULE_BOOKMARKS_COOKIE_DURATION', 160 * 24 * 60 * 60);
@@ -194,8 +189,6 @@ class SiteScheduleWebModule extends WebModule {
   }
 
   protected function initializeForPage() {    
-    $this->addOnLoad('setTimeout(function () { window.scrollTo(0, 1); }, 1000);');
-
     switch ($this->page) {
       case 'help':
         break;

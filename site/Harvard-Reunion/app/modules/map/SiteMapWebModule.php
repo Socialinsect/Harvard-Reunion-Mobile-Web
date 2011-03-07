@@ -61,7 +61,5 @@ class SiteMapWebModule extends MapWebModule {
     if ($this->page == 'detail' && !isset($this->args['featureindex'])) {
       $this->assign('canBookmark', false);
     }
-    
-    $this->addOnLoad('setTimeout(function () { window.scrollTo(0, 1); }, 1000);');
   }
 }

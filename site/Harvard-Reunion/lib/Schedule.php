@@ -2,11 +2,11 @@
 
 /**
   */
-require_once realpath(LIB_DIR.'/DateTimeUtils.php');
+includePackage('Calendar');
 
 /**
   */
-require_once realpath(LIB_DIR.'/ICalendar.php');
+require_once realpath(SITE_LIB_DIR.'/facebook-php-sdk/src/facebook.php');
 
 class Schedule {
   private $scheduleId = '';
@@ -15,6 +15,7 @@ class Schedule {
   private $endDate = null;
   private $attendee = null;
   private $timezone = null;
+  private $facebook = null;
 
   function __construct() {
     $this->timezone = new DateTimeZone(
@@ -35,6 +36,17 @@ class Schedule {
       $this->startDate = $this->getDateTimeForDate($this->getConfigValue('START_DATE', ''));
       $this->endDate   = $this->getDateTimeForDate($this->getConfigValue('END_DATE', ''));
     }
+
+    // Initialize the facebook application instance
+    // Currently set to a test account
+      Facebook::$CURL_OPTS[CURLOPT_SSL_VERIFYPEER] = false;
+      Facebook::$CURL_OPTS[CURLOPT_SSL_VERIFYHOST] = 2;
+      
+      $this->facebook = new Facebook(array(
+      'appId' => '193872970635695',
+      'secret' => '05a64a59e4ee8db3acae85673fb91795',
+      'cookie' => true,
+    ));
   }
   
   private function getDateTimeForDate($date) {
@@ -100,6 +112,16 @@ class Schedule {
     
     return $controller;
   }
+  
+  public function getFacebookSession() {
+    return $this->facebook->getSession();
+  }
+  
+  public function getFacebookGroup() {
+    $json = $this->facebook->api($this->getFacebookGroupId());
+    error_log(print_r($json, true));
+
+  }
 
 }
 
@@ -111,4 +133,5 @@ class Attendee {
   public function getFullName() {
     return 'John Smith';
   }
+  
 }
