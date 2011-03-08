@@ -3,6 +3,9 @@
   * @package Module
   * @subpackage Schedule
   */
+/**
+  */
+includePackage('Authentication');
   
 class SitePhotosWebModule extends WebModule {
   protected $id = 'photos';
@@ -12,13 +15,23 @@ class SitePhotosWebModule extends WebModule {
     $this->schedule = new Schedule();
   }
 
-  protected function initializeForPage() {    
+  protected function initializeForPage() {
+    $session = $this->getUser()->getSessionData();
+    
+    $facebook = new FacebookGroup($this->schedule->getFacebookGroupId(), $session['fb_access_token']);
+    
     switch ($this->page) {
       case 'help':
         break;
 
       case 'index':
-        $this->schedule->getFacebookGroup();
+        
+
+        $this->assign('user',      $facebook->getFacebookUser());
+        $this->assign('logoutURL', $facebook->getLogoutUrl("/{$this->id}/"));
+
+        $this->assign('title',     $facebook->getFacebookGroupFullName());
+        $this->assign('photos',    $facebook->getFacebookGroupPhotos());
         break;
               
       case 'detail':
