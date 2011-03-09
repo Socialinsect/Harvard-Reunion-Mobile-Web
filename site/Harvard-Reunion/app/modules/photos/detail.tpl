@@ -11,7 +11,9 @@
   </div>
 </div>
 
-<img class="largePhoto" src="{$photo['img']}" />
+<div class="photo">
+  <img src="{$photo['img']}" />
+</div>
 
 {if count($photo['comments'])}
   {foreach $photo['comments'] as $i => $comment}
