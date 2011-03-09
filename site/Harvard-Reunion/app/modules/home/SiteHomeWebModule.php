@@ -22,11 +22,8 @@ class SiteHomeWebModule extends HomeWebModule {
     return $data;
   }
 
-  protected function initialize() {
-    $this->schedule = new Schedule();
-  }
-
   protected function initializeForPage() {
+    $this->schedule = new Schedule();
     $user = $this->schedule->getAttendee();    
   
     switch ($this->page) {

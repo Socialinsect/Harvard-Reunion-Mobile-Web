@@ -1,0 +1,36 @@
+.nonfocal a,
+.nonfocal a:visited {
+  color: #DCDAD9;
+}
+
+.results li.photo {
+  overflow: hidden;
+}
+
+.results img.thumbnail {
+  float: left;
+  margin: -12px 12px -12px -12px;
+}
+
+div.author {
+  font-weight: bold;
+}
+
+div.message {
+}
+
+div.when {
+  padding-top: .25em;
+}
+
+.largePhoto {
+  max-width: 100%;
+}
+
+.results a.author {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  background: none;
+  text-decoration: underline;
+}
