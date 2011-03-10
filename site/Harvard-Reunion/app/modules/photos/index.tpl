@@ -12,9 +12,7 @@
     <div class="photo">
       <a href="{$photo['url']}">
         <div class="wrapper">
-          <div class="wrapper2">
-            <img class="thumbnail" src="{$photo['thumbnail']}" />
-          </div>
+          <img class="thumbnail" src="{$photo['thumbnail']}" />
         </div>
         <div class="when">{$photo['when']['delta']}</div>
       </a>

@@ -12,9 +12,7 @@
     <div class="video">
       <a href="{$video['url']}">
         <div class="wrapper">
-          <div class="wrapper2">
-            <img class="thumbnail" src="{$video['thumbnail']}" />
-          </div>
+          <img class="thumbnail" src="{$video['thumbnail']}" />
         </div>
         <div class="when">{$video['when']['delta']}</div>
       </a>

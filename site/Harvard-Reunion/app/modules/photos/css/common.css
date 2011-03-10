@@ -26,20 +26,11 @@
 .photos .wrapper {
   float: none;
   height: 100px;
-  overflow: hidden;
-  line-height: normal;
-  text-align: center;
-  position: relative;
-  vertical-align: middle;
-}
-.photos .wrapper .wrapper2 {
-  width: 100%;
-  /*position: absolute;
-  bottom: 0;*/
-  height: 100px;
   line-height: 100px;
+  overflow: hidden;
+  text-align: center;
 }
-.photos .photo .wrapper .wrapper2 img {
+.photos .photo .wrapper img {
   height: auto;
   width: auto;
   max-width: 100%;
