@@ -4,31 +4,26 @@ class FacebookGroup {
   private $accessToken = null;
   private $groupId = null;
   private $CURL_OPTS = array(
-    CURLOPT_CONNECTTIMEOUT => 10,
+    CURLOPT_CONNECTTIMEOUT => 20,
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_TIMEOUT        => 60,
+    CURLOPT_TIMEOUT        => 90,
     CURLOPT_USERAGENT      => 'facebook-php-2.0',
     CURLOPT_SSL_VERIFYPEER => false,
     CURLOPT_SSL_VERIFYHOST => 2,
   );
-  const GRAPH_API_URL = "https://graph.facebook.com/";
-  const LOGOUT_URL = "https://www.facebook.com/logout.php";
+  private $apiToURL = array(
+    'graph' => "https://graph.facebook.com/",
+  );
   const AUTHOR_URL = "http://m.facebook.com/profile.php?id=";
-
+  
+  protected $cache;
+  protected $cacheLifetime = 900;
+  
   function __construct($groupId, $accessToken) {
     $this->accessToken = $accessToken;
     $this->groupId = $groupId;
   }
   
-  public function getUser() {
-    $result = $this->graphQuery('me');
-    if ($result && isset($result['name'])) {
-      return $result['name'];
-    }
-    
-    return null;
-  }
-
   public function getGroupFullName() {
     $json = $this->graphQuery($this->groupId);
     if ($json) {
@@ -41,28 +36,16 @@ class FacebookGroup {
     $result = $this->getGroupPosts($this->groupId);
 
     $photos = array();
-    foreach ($result['data'] as $i => $post) {
-      if ($post['type'] == 'photo') {
-        
-        $photos[] = $this->formatPost($post);
+    if (isset($result['data'])) {
+      foreach ($result['data'] as $i => $post) {
+        if ($post['type'] == 'photo') {
+          
+          $photos[] = $this->formatPost($post);
+        }
       }
     }
     
     return $photos;
-  }
-  
-  public function getGroupVideos() {
-    $result = $this->getGroupPosts($this->groupId);
-
-    $videos = array();
-    foreach ($result['data'] as $i => $post) {
-      if ($post['type'] == 'video') {
-        
-        $videos[] = $this->formatPost($post);
-      }
-    }
-    
-    return $videos;
   }
   
   public function getPhotoPostDetails($postId) {
@@ -83,8 +66,41 @@ class FacebookGroup {
     return $photoDetails;
   }
   
+  public function getGroupVideos() {
+    $result = $this->getGroupPosts($this->groupId);
+
+    $videos = array();
+    foreach ($result['data'] as $i => $post) {
+      if ($post['type'] == 'video') {
+
+        $videos[] = $this->formatPost($post);
+      }
+    }
+    
+    return $videos;
+  }
+  
+  public function getVideoPostDetails($postId) {
+    $post = $this->graphQuery($postId);
+    //error_log(print_r($post, true));
+    $videoDetails = $this->formatPost($post);
+    
+    if (isset($post['source'])) {
+      $videoDetails['embed'] = $post['source'];
+    }
+
+    if (isset($post['source'])) {
+      $video = $this->graphQuery($post['object_id']);
+      //error_log(print_r($video, true));
+    }
+    
+    $videoDetails['comments'] = $this->getPostComments($postId);
+    
+    return $videoDetails;
+  }
+  
   private function getPostComments($postId) {
-    $result = $this->graphQuery($postId.'/comments');
+    $result = $this->graphQuery($postId.'/comments', array('limit' => 100));
     
     $comments = array();
     foreach ($result['data'] as $comment) {
@@ -107,9 +123,7 @@ class FacebookGroup {
   }
 
   private function getGroupPosts() {
-    $json = $this->graphQuery($this->groupId.'/feed');
-    
-    return $json;
+    return $this->graphQuery($this->groupId.'/feed', array('limit' => 50));
   }
   
   private function formatPost($post) {
@@ -144,9 +158,7 @@ class FacebookGroup {
   }
   
   private function graphQuery($path, $params=array()) {
-    $params['method'] = 'GET';
-  
-    $result = json_decode($this->query(self::GRAPH_API_URL.$path, $params), true);
+    $result = json_decode($this->query('graph', $path, $params), true);
 
     if (isset($result['error'])) {
       error_log("Got Facebook graph API error: ".print_r($result['error'], true));
@@ -156,49 +168,66 @@ class FacebookGroup {
     return $result;
   }
 
-  private function query($url, $params=array(), $uploadingFile=false) {
-    // add access token
-    $params['access_token'] = $this->accessToken;
-
+  private function query($type, $path, $getParams=array(), $postParams=array()) {
+    if (!isset($this->apiToURL[$type])) { return null; }
+    
     // json_encode all params values that are not strings
-    foreach ($params as $key => $value) {
+    foreach ($getParams as $key => $value) {
       if (!is_string($value)) {
-        $params[$key] = json_encode($value);
+        $getParams[$key] = json_encode($value);
+      }
+    }    
+    foreach ($postParams as $key => $value) {
+      if (!is_string($value)) {
+        $postParams[$key] = json_encode($value);
+      }
+    }    
+    
+    $cacheParams = http_build_query($getParams, null, '&');
+    $cacheName = "{$type}_$path".($cacheParams ? '?' : '').$cacheParams;
+    
+    if (!$this->cache) {
+      $this->cache = new DiskCache(CACHE_DIR."/Facebook", $this->cacheLifetime, TRUE);
+      $this->cache->setSuffix('.json');
+      $this->cache->preserveFormat();
+    }
+    
+    if (!count($postParams) && $this->cache->isFresh($cacheName)) {
+      $result = $this->cache->read($cacheName);
+      
+    } else {
+      // add access token to params
+      $getParams['access_token'] = $this->accessToken;
+
+      $getParamString = http_build_query($getParams, null, '&');
+      $url = $this->apiToURL[$type].$path.($getParamString ? '?' : '').$getParamString;
+
+      error_log("Requesting $url");
+      
+      $opts = $this->CURL_OPTS;
+      if ($postParams) {
+        error_log("With post parameters ".print_r($postParams, true));
+        $opts[CURLOPT_POST] = 1;
+        $opts[CURLOPT_POSTFIELDS] = $postParams;
+      }
+      $opts[CURLOPT_URL] = $url;
+      $opts[CURLOPT_HTTPHEADER] = array('Expect:'); // disable 'Expect: 100-continue' behavior
+      
+      $ch = curl_init();
+      curl_setopt_array($ch, $opts);
+      $result = curl_exec($ch);
+      curl_close($ch);
+      
+      if ($result !== false && $result !== 'false') {
+        $this->cache->write($result, $cacheName);
+        
+      } else if (!count($postParams) && $result === false) {
+        error_log("Request failed, reading expired cache");
+        $result = $this->cache->read($cacheName);
       }
     }
-
-    $opts = $this->CURL_OPTS;
-    if ($uploadingFile) {
-      $opts[CURLOPT_POSTFIELDS] = $params;
-    } else {
-      $opts[CURLOPT_POSTFIELDS] = http_build_query($params, null, '&');
-    }
-    $opts[CURLOPT_URL] = $url;
-    
-    error_log("$url?".http_build_query($params, null, '&'));
-
-    // disable the 'Expect: 100-continue' behaviour. This causes CURL to wait
-    // for 2 seconds if the server does not support this header.
-    $opts[CURLOPT_HTTPHEADER] = array('Expect:');
-
-    $ch = curl_init();
-    curl_setopt_array($ch, $opts);
-    $result = curl_exec($ch);
-    curl_close($ch);
     
     return $result;
-  }
-  
-  
-  public function getLogoutUrl($redirectToURL) {
-    if (strpos($redirectToURL, 'http') === FALSE) {
-      $redirectToURL = FULL_URL_PREFIX . ltrim($redirectToURL, '/');
-    }
-    
-    return self::LOGOUT_URL.'?'.http_build_query(array(
-      'next'         => $redirectToURL,
-      'access_token' => $this->accessToken,
-    ));
   }
 
   public static function relativeTime($time=null, $limit=86400, $format='g:i A M jS') {

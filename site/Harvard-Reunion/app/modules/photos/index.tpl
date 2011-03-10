@@ -3,8 +3,7 @@
 <div class="nonfocal">
   <h2>{$title}</h2>
   <div class="smallprint">
-    Logged into Facebook as {$user}<br/>
-    <a href="{$logoutURL}">Sign in as another user</a>
+    Signed in as {$user} (<a href="{$logoutURL}">change</a>)
   </div>
 </div>
 

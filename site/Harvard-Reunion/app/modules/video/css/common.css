@@ -3,7 +3,7 @@
   color: #DCDAD9;
 }
 
-.results li.photo a {
+.results li.video a {
   overflow: hidden;
   margin: -10px;
   -webkit-border-radius: 0px;
@@ -25,10 +25,10 @@ div.when {
   padding-top: .25em;
 }
 
-div.photo {
+div.video {
   text-align: center;
 }
-div.photo img {
+div.video * {
   max-width: 100%;
 }
 

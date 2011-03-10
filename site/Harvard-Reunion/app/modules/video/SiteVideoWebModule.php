@@ -7,8 +7,8 @@
   */
 includePackage('Authentication');
   
-class SitePhotosWebModule extends WebModule {
-  protected $id = 'photos';
+class SiteVideoWebModule extends WebModule {
+  protected $id = 'video';
   protected $schedule = null;
 
   protected function initializeForPage() {
@@ -23,10 +23,10 @@ class SitePhotosWebModule extends WebModule {
         break;
 
       case 'index':
-        $photos = $facebook->getGroupPhotos();
-        foreach ($photos as $i => $photo) {
-          $photos[$i]['url'] = $this->buildBreadcrumbURL('detail', array( 
-            'id' => $photo['id'],
+        $videos = $facebook->getGroupVideos();
+        foreach ($videos as $i => $video) {
+          $videos[$i]['url'] = $this->buildBreadcrumbURL('detail', array( 
+            'id' => $video['id'],
           ));
         }
 
@@ -36,11 +36,11 @@ class SitePhotosWebModule extends WebModule {
         )));
 
         $this->assign('title',     $facebook->getGroupFullName());
-        $this->assign('photos',    $photos);
+        $this->assign('videos',    $videos);
         break;
               
       case 'detail':
-        $this->assign('photo', $facebook->getPhotoPostDetails($this->getArg('id')));
+        $this->assign('video', $facebook->getVideoPostDetails($this->getArg('id')));
         break;
     }
   }
