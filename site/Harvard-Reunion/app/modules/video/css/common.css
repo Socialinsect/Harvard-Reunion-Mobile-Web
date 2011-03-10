@@ -3,15 +3,45 @@
   color: #DCDAD9;
 }
 
-.results li.video a {
+.videos {
+  padding: 6px;
   overflow: hidden;
-  margin: -10px;
-  -webkit-border-radius: 0px;
 }
 
-.results img.thumbnail {
+.videos .video {
   float: left;
-  margin: -12px 12px -12px -12px;
+  width: 100px;
+  height: 150px;
+}
+
+.videos .video a {
+  display: block;
+  padding: 6px;
+  text-decoration: none;
+  color: white;
+  font-size: 82.353%;
+  line-height: 1.25em;
+}
+
+.videos .wrapper {
+  float: none;
+  height: 100px;
+  overflow: hidden;
+  line-height: normal;
+  text-align: center;
+  position: relative;
+  vertical-align: middle;
+}
+.videos .wrapper .wrapper2 {
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+}
+.videos .wrapper .wrapper2 img {
+  height: auto;
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 div.author {

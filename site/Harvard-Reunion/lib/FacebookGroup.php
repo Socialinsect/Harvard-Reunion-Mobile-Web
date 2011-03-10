@@ -14,10 +14,29 @@ class FacebookGroup {
   private $apiToURL = array(
     'graph' => "https://graph.facebook.com/",
   );
+  private $queryFields = array(
+    'video' => null,
+    'photo' => array(
+      'source',
+      'height',
+      'width',
+      'images',
+    ),
+    'post'  => array(
+      'id',
+      'from',
+      'message',
+      'source',
+      'type',
+      'object_id',
+      'updated_time',
+      'comments',
+    ),
+  );
   const AUTHOR_URL = "http://m.facebook.com/profile.php?id=";
   
   protected $cache;
-  protected $cacheLifetime = 900;
+  protected $cacheLifetime = 60;
   
   function __construct($groupId, $accessToken) {
     $this->accessToken = $accessToken;
@@ -33,8 +52,8 @@ class FacebookGroup {
   }
   
   public function getGroupPhotos() {
-    $result = $this->getGroupPosts($this->groupId);
-
+    $result = $this->getGroupPosts();
+    error_log(print_r($result, true));
     $photos = array();
     if (isset($result['data'])) {
       foreach ($result['data'] as $i => $post) {
@@ -48,31 +67,12 @@ class FacebookGroup {
     return $photos;
   }
   
-  public function getPhotoPostDetails($postId) {
-    $post = $this->graphQuery($postId);
-    
-    $photoDetails = $this->formatPost($post);
-    
-    if (isset($post['object_id'])) {
-      $photo = $this->graphQuery($post['object_id']);
-      
-      if (isset($photo['source'])) {
-        $photoDetails['img'] = $photo['source'];
-      }
-    }
-    
-    $photoDetails['comments'] = $this->getPostComments($postId);
-    
-    return $photoDetails;
-  }
-  
   public function getGroupVideos() {
-    $result = $this->getGroupPosts($this->groupId);
+    $result = $this->getGroupPosts();
 
     $videos = array();
     foreach ($result['data'] as $i => $post) {
       if ($post['type'] == 'video') {
-
         $videos[] = $this->formatPost($post);
       }
     }
@@ -80,24 +80,45 @@ class FacebookGroup {
     return $videos;
   }
   
-  public function getVideoPostDetails($postId) {
-    $post = $this->graphQuery($postId);
+  public function getPhotoPostDetails($postId) {
+    $post = $this->getPostDetails($postId);
     //error_log(print_r($post, true));
+    
+    $photoDetails = $this->formatPost($post);
+    
+    if (isset($post['object_id'])) {
+      $photo = $this->getPhotoDetails($post['object_id']);
+      //error_log(print_r($photo, true));
+      
+      if (isset($photo['source'], $photo['height'], $photo['width'])) {
+        $photoDetails['img']['src'] = $photo['source'];
+        $photoDetails['img']['height'] = $photo['height'];
+        $photoDetails['img']['width'] = $photo['width'];
+      }
+    }
+    
+    return $photoDetails;
+  }
+  
+  public function getVideoPostDetails($postId) {
+    $post = $this->getPostDetails($postId);
+    //error_log(print_r($post, true));
+    
     $videoDetails = $this->formatPost($post);
     
     if (isset($post['source'])) {
       $videoDetails['embed'] = $post['source'];
     }
 
-    if (isset($post['source'])) {
-      $video = $this->graphQuery($post['object_id']);
-      //error_log(print_r($video, true));
+    if (isset($post['object_id'])) {
+      $video = $this->getVideoDetails($post['object_id']);
+      error_log(print_r($video, true));
     }
     
     $videoDetails['comments'] = $this->getPostComments($postId);
     
     return $videoDetails;
-  }
+  }  
   
   private function getPostComments($postId) {
     $result = $this->graphQuery($postId.'/comments', array('limit' => 100));
@@ -122,8 +143,26 @@ class FacebookGroup {
     return $comments;
   }
 
-  private function getGroupPosts() {
-    return $this->graphQuery($this->groupId.'/feed', array('limit' => 50));
+  private function getPostDetails($id) {
+    return $this->getObjectDetails('post', $id);
+  }
+  private function getPhotoDetails($id) {
+    return $this->getObjectDetails('photo', $id);
+  }
+  private function getVideoDetails($id) {
+    return $this->getObjectDetails('video', $id);
+  }
+  private function getObjectDetails($type, $id) {
+    $args = array();
+    if (isset($this->queryFields[$type])) {
+      $args['fields'] = implode(',', $this->queryFields[$type]);
+    }
+  
+    return $this->graphQuery($id, $args);
+  }
+
+  private function getGroupPosts($fields=array()) {
+    return $this->graphQuery($this->groupId.'/feed', array('limit' => 500));
   }
   
   private function formatPost($post) {
@@ -134,7 +173,6 @@ class FacebookGroup {
         'id'   => $post['from']['id'],
         'url'  => $this->authorURL($post['from']),
       ),
-      'link'  => $post['link'],
       'when'  => array(
         'time'  => $post['updated_time'],
         'delta' => self::relativeTime($post['updated_time']),
@@ -146,9 +184,26 @@ class FacebookGroup {
     if (isset($post['picture'])) {
       $formatted['thumbnail'] = $post['picture'];
     }
-    if (isset($post['actions'])) {
-      $formatted['actions'] = $post['actions'];
+    
+    $comments = array();
+    if (isset($post['comments'], $post['comments']['data'])) {
+      foreach ($post['comments']['data'] as $comment) {
+        $comments[] = array(
+          'id'      => $comment['id'],
+          'message' => $comment['message'],
+          'author'  => array(
+            'name' => $comment['from']['name'],
+            'id'   => $comment['from']['id'],
+            'url'  => $this->authorURL($comment['from']),
+          ),
+          'when'    => array(
+            'time'  => $comment['created_time'],
+            'delta' => self::relativeTime($comment['created_time']),
+          ),
+        );
+      }
     }
+    $formatted['comments'] = $comments;
     
     return $formatted;
   }
@@ -198,7 +253,7 @@ class FacebookGroup {
     } else {
       // add access token to params
       $getParams['access_token'] = $this->accessToken;
-
+      
       $getParamString = http_build_query($getParams, null, '&');
       $url = $this->apiToURL[$type].$path.($getParamString ? '?' : '').$getParamString;
 
@@ -230,7 +285,7 @@ class FacebookGroup {
     return $result;
   }
 
-  public static function relativeTime($time=null, $limit=86400, $format='g:i A M jS') {
+  public static function relativeTime($time=null, $limit=86400, $format='M j g:ia') {
     if (empty($time) || (!is_string($time) && !is_numeric($time))) {
       $time = time();
       

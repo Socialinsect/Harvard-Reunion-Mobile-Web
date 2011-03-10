@@ -7,17 +7,19 @@
   </div>
 </div>
 
-<ul class="results">
+<div class="photos">
   {foreach $photos as $photo}
-    <li class="photo">
+    <div class="photo">
       <a href="{$photo['url']}">
-        <img class="thumbnail" src="{$photo['thumbnail']}" />
-        <div class="author">{$photo['author']['name']}</div>
-        <div class="message">{$photo['message']}</div>
-        <div class="when smallprint">{$photo['when']['delta']}</div>
+        <div class="wrapper">
+          <div class="wrapper2">
+            <img class="thumbnail" src="{$photo['thumbnail']}" />
+          </div>
+        </div>
+        <div class="when">{$photo['when']['delta']}</div>
       </a>
-    </li>
+    </div>
   {/foreach}
-</ul>
+</div>
 
 {include file="findInclude:common/footer.tpl"}

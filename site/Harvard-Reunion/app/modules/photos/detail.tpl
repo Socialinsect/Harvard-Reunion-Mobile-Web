@@ -4,15 +4,12 @@
   <div class="author"><a href="{$photo['author']['url']}">{$photo['author']['name']}</a></div>
   <div class="message">{$photo['message']}</div>
   <div class="when smallprint">
-    {$photo['when']['delta']}
-    {foreach $photo['actions'] as $action} 
-    &nbsp;-&nbsp;<a href="{$action['link']}">{$action['name']}</a>
-    {/foreach}
+    {$photo['when']['delta']} - <a href="{$photo['commentURL']}">Comment</a> - <a href="{$photo['likeURL']}">Like</a>
   </div>
 </div>
 
 <div class="photo">
-  <img src="{$photo['img']}" />
+  <img src="{$photo['img']['src']}" />
 </div>
 
 {if count($photo['comments'])}

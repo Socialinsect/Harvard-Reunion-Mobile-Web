@@ -3,15 +3,48 @@
   color: #DCDAD9;
 }
 
-.results li.photo a {
+.photos {
+  padding: 6px;
   overflow: hidden;
-  margin: -10px;
-  -webkit-border-radius: 0px;
 }
 
-.results img.thumbnail {
+.photos .photo {
   float: left;
-  margin: -12px 12px -12px -12px;
+  width: 100px;
+  height: 150px;
+}
+
+.photos .photo a {
+  display: block;
+  padding: 6px;
+  text-decoration: none;
+  color: white;
+  font-size: 82.353%;
+  line-height: 1.25em;
+}
+
+.photos .wrapper {
+  float: none;
+  height: 100px;
+  overflow: hidden;
+  line-height: normal;
+  text-align: center;
+  position: relative;
+  vertical-align: middle;
+}
+.photos .wrapper .wrapper2 {
+  width: 100%;
+  /*position: absolute;
+  bottom: 0;*/
+  height: 100px;
+  line-height: 100px;
+}
+.photos .photo .wrapper .wrapper2 img {
+  height: auto;
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
 }
 
 div.author {
