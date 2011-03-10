@@ -1,5 +1,4 @@
-
-{include file="findInclude:common/header.tpl"}
+{include file="findInclude:common/templates/header.tpl"}
 
 <div class="nonfocal">
   <div class="author"><a href="{$video['author']['url']}">{$video['author']['name']}</a></div>
@@ -28,7 +27,7 @@
     {$video['comments'][$i]['subtitle'] = $comment['when']['delta']}
   {/foreach}
 
-  {include file="findInclude:common/results.tpl" results=$video['comments']}
+  {include file="findInclude:common/templates/results.tpl" results=$video['comments']}
 {/if}
 
-{include file="findInclude:common/footer.tpl"}
+{include file="findInclude:common/templates/footer.tpl"}

@@ -53,7 +53,8 @@ class FacebookGroup {
   
   public function getGroupPhotos() {
     $result = $this->getGroupPosts();
-    error_log(print_r($result, true));
+    //error_log(print_r($result, true));
+    
     $photos = array();
     if (isset($result['data'])) {
       foreach ($result['data'] as $i => $post) {

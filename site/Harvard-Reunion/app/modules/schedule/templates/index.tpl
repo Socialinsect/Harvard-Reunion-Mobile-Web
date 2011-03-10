@@ -1,4 +1,4 @@
-{include file="findInclude:common/header.tpl"}
+{include file="findInclude:common/templates/header.tpl"}
 
 <div class="nonfocal" id="navbar2">
   <form method="get" action="./">
@@ -24,7 +24,7 @@
   <div class="nonfocal dateHeader">
     {$dayInfo['title']}
   </div>
-  {include file="findInclude:common/results.tpl" results=$dayInfo['events']}
+  {include file="findInclude:common/templates/results.tpl" results=$dayInfo['events']}
 {/foreach}
 
-{include file="findInclude:common/footer.tpl"}
+{include file="findInclude:common/templates/footer.tpl"}

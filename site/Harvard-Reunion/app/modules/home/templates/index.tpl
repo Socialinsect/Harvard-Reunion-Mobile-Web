@@ -12,9 +12,9 @@
   </div>
 {/capture}
 
-{include file="findInclude:common/header.tpl" customHeader=$banner scalable=false}
+{include file="findInclude:common/templates/header.tpl" customHeader=$banner scalable=false}
 
-{include file="findInclude:common/springboard.tpl" springboardItems=$modules springboardID="homegrid"}
+{include file="findInclude:common/templates/springboard.tpl" springboardItems=$modules springboardID="homegrid"}
 
 <div id="social">
   <div class="links">
@@ -35,4 +35,4 @@
   </div>
 </div>
 
-{include file="findInclude:common/footer.tpl"}
+{include file="findInclude:common/templates/footer.tpl"}

@@ -1,4 +1,4 @@
-{include file="findInclude:common/header.tpl"}
+{include file="findInclude:common/templates/header.tpl"}
 
 <div class="nonfocal">
   <div class="author"><a href="{$photo['author']['url']}">{$photo['author']['name']}</a></div>
@@ -22,7 +22,7 @@
     {$photo['comments'][$i]['subtitle'] = $comment['when']['delta']}
   {/foreach}
 
-  {include file="findInclude:common/results.tpl" results=$photo['comments']}
+  {include file="findInclude:common/templates/results.tpl" results=$photo['comments']}
 {/if}
 
-{include file="findInclude:common/footer.tpl"}
+{include file="findInclude:common/templates/footer.tpl"}
