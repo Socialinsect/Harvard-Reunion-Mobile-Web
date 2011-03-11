@@ -7,17 +7,17 @@
   </div>
 </div>
 
-<div class="videos">
+<ul class="results">
   {foreach $videos as $video}
-    <div class="video">
+    <li class="video">
       <a href="{$video['url']}">
-        <div class="wrapper">
-          <img class="thumbnail" src="{$video['thumbnail']}" />
-        </div>
-        <div class="when">{$video['when']['delta']}</div>
+        <div class="thumbnail"><img src="{$video['thumbnail']}" /></div>
+        <div class="message">{$video['message']}</div>
+        <div class="author smallprint">Uploaded by {$video['author']['name']}</div>
+        <div class="when smallprint">{$video['when']['delta']}</div>
       </a>
-    </div>
+    </li>
   {/foreach}
-</div>
+</ul>
 
 {include file="findInclude:common/templates/footer.tpl"}

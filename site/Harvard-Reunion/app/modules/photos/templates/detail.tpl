@@ -1,28 +1,35 @@
 {include file="findInclude:common/templates/header.tpl"}
 
-<div class="nonfocal">
-  <div class="author"><a href="{$photo['author']['url']}">{$photo['author']['name']}</a></div>
-  <div class="message">{$photo['message']}</div>
-  <div class="when smallprint">
-    {$photo['when']['delta']} - <a href="{$photo['commentURL']}">Comment</a> - <a href="{$photo['likeURL']}">Like</a>
-  </div>
+<div class="nonfocal" id="navbar2">
+  comment - like - etc
 </div>
 
 <div class="photo">
   <img src="{$photo['img']['src']}" />
 </div>
 
+<div class="nonfocal">
+  <div class="message">{$photo['message']}</div>
+  <div class="smallprint">
+    Uploaded {$photo['when']['delta']} by 
+    <a class="author" href="{$photo['author']['url']}">{$photo['author']['name']}</a>
+  </div>
+</div>
+
 {if count($photo['comments'])}
   {foreach $photo['comments'] as $i => $comment}
     {capture name="title" assign="title"}
-      <a class="author" href="{$comment['author']['url']}">{$comment['author']['name']}</a>
-      &nbsp;{$comment['message']}
+      "{$comment['message']}" 
+      <span class="smallprint">
+        <a class="author" href="{$comment['author']['url']}">
+          {$comment['author']['name']}
+        </a>, {$comment['when']['delta']}
+      </span>
     {/capture}
     {$photo['comments'][$i]['title'] = $title}
-    {$photo['comments'][$i]['subtitle'] = $comment['when']['delta']}
   {/foreach}
 
-  {include file="findInclude:common/templates/results.tpl" results=$photo['comments']}
+  {include file="findInclude:common/templates/navlist.tpl" navlistItems=$photo['comments']}
 {/if}
 
 {include file="findInclude:common/templates/footer.tpl"}
