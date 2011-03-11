@@ -25,10 +25,13 @@
   height: 90px;
   margin: 0;
   text-align: center;
+  line-height: 86px;
+  background-color: black;
 }
 .results .thumbnail img {
   max-width: 90px;
   max-height: 90px;
+  vertical-align: middle;
 }
 
 div.author {
@@ -46,10 +49,8 @@ div.video {
   text-align: center;
   background: black;
 }
-div.video video {
-}
 
-div.video + .nonfocal {
+div.videoInfo {
   text-align: center;
 }
 
@@ -59,4 +60,19 @@ div.video + .nonfocal {
   padding: 0;
   background: none;
   text-decoration: underline;
+}
+
+li {
+  overflow: hidden;
+}
+form textarea {
+  width: 99%;
+  line-height: normal;
+}
+form input[type=submit] {
+  float: right;
+}
+
+#navbar2 {
+  text-align: center;
 }

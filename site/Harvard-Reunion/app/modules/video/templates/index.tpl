@@ -1,5 +1,9 @@
 {include file="findInclude:common/templates/header.tpl"}
 
+<div class="nonfocal" id="navbar2">
+  sorting goodness
+</div>
+
 <div class="nonfocal">
   <h2>{$title}</h2>
   <div class="smallprint">

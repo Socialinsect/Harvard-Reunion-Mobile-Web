@@ -1,10 +1,22 @@
 {include file="findInclude:common/templates/header.tpl"}
 
-<div class="nonfocal">
-  <h2>{$title}</h2>
-  <div class="smallprint">
-    Signed in as {$user} (<a href="{$logoutURL}">change</a>)
-  </div>
+<div class="nonfocal" id="navbar2">
+  {foreach $views as $view => $url}
+    {if !$url@first}&nbsp;|&nbsp;{/if}
+    {if $currentView != $view}
+      <a href="{$url}">
+    {/if}
+    {if $view == 'all'}
+      All Photos
+    {elseif $view == 'mine'}
+      My Photos
+    {elseif $view == 'bookmarked'}
+      Bookmarks
+    {/if}
+    {if $currentView != $view}
+      </a>
+    {/if}
+  {/foreach}
 </div>
 
 <div class="photos">
@@ -18,6 +30,10 @@
       </a>
     </div>
   {/foreach}
+</div>
+
+<div class="nonfocal">
+  <span class="smallprint">Signed in as {$user} (<a href="{$logoutURL}">change</a>)</span>
 </div>
 
 {include file="findInclude:common/templates/footer.tpl"}

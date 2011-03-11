@@ -22,16 +22,7 @@ class FacebookGroup {
       'width',
       'images',
     ),
-    'post'  => array(
-      'id',
-      'from',
-      'message',
-      'source',
-      'type',
-      'object_id',
-      'updated_time',
-      'comments',
-    ),
+    'post'  => null,
   );
   const AUTHOR_URL = "http://m.facebook.com/profile.php?id=";
   
@@ -41,6 +32,14 @@ class FacebookGroup {
   function __construct($groupId, $accessToken) {
     $this->accessToken = $accessToken;
     $this->groupId = $groupId;
+  }
+  
+  public function getMyId() {
+    $json = $this->graphQuery('me');
+    if ($json) {
+      return $json['id'];
+    }
+    return null;
   }
   
   public function getGroupFullName() {
@@ -81,7 +80,7 @@ class FacebookGroup {
     return $videos;
   }
   
-  public function getPhotoPostDetails($postId) {
+  public function getPhotoPost($postId) {
     $post = $this->getPostDetails($postId);
     //error_log(print_r($post, true));
     
@@ -101,25 +100,27 @@ class FacebookGroup {
     return $photoDetails;
   }
   
-  public function getVideoPostDetails($postId) {
+  public function getVideoPost($postId) {
     $post = $this->getPostDetails($postId);
     //error_log(print_r($post, true));
     
     $videoDetails = $this->formatPost($post);
     
     if (isset($post['source'])) {
-      $videoDetails['embed'] = $post['source'];
+      $videoDetails['embedHTML'] = $this->getVideoEmbedHTML($post);
     }
 
     if (isset($post['object_id'])) {
-      $video = $this->getVideoDetails($post['object_id']);
-      error_log(print_r($video, true));
+      //$video = $this->getVideoDetails($post['object_id']);
+      //error_log(print_r($video, true));
     }
-    
-    $videoDetails['comments'] = $this->getPostComments($postId);
     
     return $videoDetails;
   }  
+  
+  public function addComment($postId, $comment) {
+    $result = $this->graphQuery($postId.'/comments', array(), array('message' => $comment));
+  }
   
   private function getPostComments($postId) {
     $result = $this->graphQuery($postId.'/comments', array('limit' => 100));
@@ -148,18 +149,18 @@ class FacebookGroup {
     return $this->getObjectDetails('post', $id);
   }
   private function getPhotoDetails($id) {
-    return $this->getObjectDetails('photo', $id);
+    return $this->getObjectDetails('photo', $id, true);
   }
   private function getVideoDetails($id) {
-    return $this->getObjectDetails('video', $id);
+    return $this->getObjectDetails('video', $id, true);
   }
-  private function getObjectDetails($type, $id) {
+  private function getObjectDetails($type, $id, $cacheResult=false) {
     $args = array();
     if (isset($this->queryFields[$type])) {
       $args['fields'] = implode(',', $this->queryFields[$type]);
     }
   
-    return $this->graphQuery($id, $args);
+    return $this->graphQuery($id, $args, array(), $cacheResult);
   }
 
   private function getGroupPosts($fields=array()) {
@@ -175,8 +176,8 @@ class FacebookGroup {
         'url'  => $this->authorURL($post['from']),
       ),
       'when'  => array(
-        'time'  => $post['updated_time'],
-        'delta' => self::relativeTime($post['updated_time']),
+        'time'  => $post['created_time'],
+        'delta' => self::relativeTime($post['created_time']),
       ),
     );
     if (isset($post['message'])) {
@@ -198,23 +199,28 @@ class FacebookGroup {
             'url'  => $this->authorURL($comment['from']),
           ),
           'when'    => array(
-            'time'  => $comment['created_time'],
+            'time'  => strtotime($comment['created_time']),
             'delta' => self::relativeTime($comment['created_time']),
           ),
         );
       }
     }
+    usort($comments, array(get_class($this), 'commentSort'));
     $formatted['comments'] = $comments;
     
     return $formatted;
+  }
+  
+  private static function commentSort($a, $b) {
+    return intval($b['when']['time']) - intval($a['when']['time']);
   }
   
   private function authorURL($from) {
     return self::AUTHOR_URL.$from['id'];
   }
   
-  private function graphQuery($path, $params=array()) {
-    $result = json_decode($this->query('graph', $path, $params), true);
+  private function graphQuery($path, $getParams=array(), $postParams=array(), $cacheResult=false) {
+    $result = json_decode($this->query('graph', $path, $getParams, $postParams, $cacheResult), true);
 
     if (isset($result['error'])) {
       error_log("Got Facebook graph API error: ".print_r($result['error'], true));
@@ -224,8 +230,11 @@ class FacebookGroup {
     return $result;
   }
 
-  private function query($type, $path, $getParams=array(), $postParams=array()) {
+  private function query($type, $path, $getParams=array(), $postParams=array(), $cacheResult=false) {
     if (!isset($this->apiToURL[$type])) { return null; }
+    
+    // Never cache post results
+    if (count($postParams)) { $cacheResult = false; }
     
     // json_encode all params values that are not strings
     foreach ($getParams as $key => $value) {
@@ -242,13 +251,13 @@ class FacebookGroup {
     $cacheParams = http_build_query($getParams, null, '&');
     $cacheName = "{$type}_$path".($cacheParams ? '?' : '').$cacheParams;
     
-    if (!$this->cache) {
+    if ($cacheResult && !$this->cache) {
       $this->cache = new DiskCache(CACHE_DIR."/Facebook", $this->cacheLifetime, TRUE);
       $this->cache->setSuffix('.json');
       $this->cache->preserveFormat();
     }
     
-    if (!count($postParams) && $this->cache->isFresh($cacheName)) {
+    if ($cacheResult && $this->cache->isFresh($cacheName)) {
       $result = $this->cache->read($cacheName);
       
     } else {
@@ -262,7 +271,7 @@ class FacebookGroup {
       
       $opts = $this->CURL_OPTS;
       if ($postParams) {
-        error_log("With post parameters ".print_r($postParams, true));
+        error_log("With post parameters ".json_encode($postParams));
         $opts[CURLOPT_POST] = 1;
         $opts[CURLOPT_POSTFIELDS] = $postParams;
       }
@@ -274,12 +283,14 @@ class FacebookGroup {
       $result = curl_exec($ch);
       curl_close($ch);
       
-      if ($result !== false && $result !== 'false') {
-        $this->cache->write($result, $cacheName);
-        
-      } else if (!count($postParams) && $result === false) {
-        error_log("Request failed, reading expired cache");
-        $result = $this->cache->read($cacheName);
+      if ($cacheResult) {
+        if ($result !== false && $result !== 'false') {
+          $this->cache->write($result, $cacheName);
+          
+        } else if ($result === false) {
+          error_log("Request failed, reading expired cache");
+          $result = $this->cache->read($cacheName);
+        }
       }
     }
     
@@ -320,5 +331,35 @@ class FacebookGroup {
     }
     
     return $relative;
+  }
+  
+  private function getVideoEmbedHTML($post) {
+    $html = '';
+    
+    $source = $post['source'];error_log($source);
+    $isObject = isset($post['object_id']) && $post['object_id'];
+    
+    if ($isObject) {
+      $html = '<video controls><source src="'.$source.'" /></video>';
+      
+    } else if (preg_match(';^http://www.youtube.com/v/([^&]+).*$;', $source, $matches)) {
+      $videoID = $matches[1];
+
+      $html = '<iframe id="videoFrame" src="http://www.youtube.com/embed/'.$videoID.
+        '" width="640" height="390" frameborder="0"></iframe>';
+    
+    } else if (preg_match(';clip_id=(.+);', $source, $matches)) {
+      $videoID = $matches[1];
+      $videoInfo = json_decode(file_get_contents(
+        "http://vimeo.com/api/v2/video/{$videoID}.json"), true);
+      
+      if (isset($videoInfo, $videoInfo[0], $videoInfo[0]['width'], $videoInfo[0]['height'])) {
+        $html = '<iframe id="videoFrame" src="http://player.vimeo.com/video/'.$videoID.
+          '" width="'.$videoInfo[0]['width'].'" height="'.$videoInfo[0]['height'].
+          '" frameborder="0"></iframe>';
+      }
+    }
+    
+    return $html;
   }
 }
