@@ -21,11 +21,14 @@
 {if count($video['comments'])}
   {foreach $video['comments'] as $i => $comment}
     {capture name="title" assign="title"}
-      <a class="author" href="{$comment['author']['url']}">{$comment['author']['name']}</a>
-      &nbsp;{$comment['message']}
+      "{$comment['message']}" 
+      <span class="smallprint">
+        <a class="author" href="{$comment['author']['url']}">
+          {$comment['author']['name']}
+        </a>, {$comment['when']['delta']}
+      </span>
     {/capture}
     {$video['comments'][$i]['title'] = $title}
-    {$video['comments'][$i]['subtitle'] = $comment['when']['delta']}
   {/foreach}
 
   {include file="findInclude:common/templates/navlist.tpl" navlistItems=$video['comments']}
