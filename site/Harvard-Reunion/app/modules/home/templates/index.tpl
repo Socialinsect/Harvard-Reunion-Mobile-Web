@@ -5,10 +5,9 @@
       <br/><span class="ribbonDesc">Reunion</span>
       <br/><span class="ribbonDate">{$scheduleInfo['dates']}</span>
     </div>
-    <h3>Harvard College Reunion</h3>
+    <h3>Harvard Class of {$userInfo['class']} Reunion</h3>
     <h2>{$userInfo['fullname']}</h2>
-    <p>Class of {$userInfo['class']}</p>
-    <p><a href="#">Sign out</a> | <a href="/settings/">Settings</a></p>
+    <p><a href="#" onclick="confirmLogout())">Log out &gt;</a></p>
   </div>
 {/capture}
 

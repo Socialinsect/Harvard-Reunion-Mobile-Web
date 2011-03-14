@@ -47,37 +47,19 @@ class HarvardMapSearch extends MapSearch {
         if ($bldgIds) {
             foreach ($bldgIds as $bldgId) {
                 $featureInfo = HarvardMapDataController::getBldgDataByNumber($bldgId);
-                $feature = new ArcGISFeature($featureInfo['attributes'], $featureInfo['geometry']);
+                // we've set up HarvardMapDataController to expect building ID's
+                // if the data source is the search layer, which isn't consistent
+                // with the other layers but...
+                $feature = new ArcGISFeature(
+                    $featureInfo['attributes'],
+                    $featureInfo['geometry'],
+                    $bldgId,
+                    $this->controllerLayerID);
                 $feature->setTitleField('Building Name');
                 $results[] = $feature;
             }
         }
         return $results;
-    }
-    
-    public function getURLArgsForSearchResult($aResult) {
-        $featureIndex = null;
-        // sad list of possible fields i got from examining ArcGISLayer::parseData output.
-        // don't know if there is a less manual way to get id field
-        foreach (array('Building Number', 'Building_HU.BL_ID') as $idField) {
-            if ($featureIndex = $aResult->getField($idField)) {
-                break;
-            }
-        }
-        return array(
-            'featureindex' => $featureIndex,
-            'category' => $this->controllerLayerID,
-            );
-    }
-	
-    public function getTitleForSearchResult($aResult) {
-        // results in this class are ArcGISFeature objects
-        // instead of dictionaries containing MapFeature objects
-        return $aResult->getTitle();
-    }
-    
-    public function getSubtitleForSearchResult($aResult) {
-        return $aResult->getSubtitle();
     }
 
     public function getLayerForSearchResult($featureID=null) {
@@ -113,7 +95,11 @@ class HarvardMapSearch extends MapSearch {
         if ($bldgIds) {
             foreach ($bldgIds as $bldgId) {
                 $featureInfo = HarvardMapDataController::getBldgDataByNumber($bldgId);
-                $feature = new ArcGISFeature($featureInfo['attributes'], $featureInfo['geometry']);
+                $feature = new ArcGISFeature(
+                    $featureInfo['attributes'],
+                    $featureInfo['geometry'],
+                    $bldgId,
+                    $this->controllerLayerID);
                 $feature->setTitleField('Building Name');
                 $results[] = $feature;
             }
