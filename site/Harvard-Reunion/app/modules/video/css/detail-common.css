@@ -1,11 +1,6 @@
-div.photo {
-  text-align: center;
-}
-div.photo img {
+div.video {
   max-width: 100%;
-}
-div.photo + .nonfocal {
-  text-align: center;
+  overflow: hidden;
 }
 
 .nav a.author {
@@ -32,21 +27,4 @@ div.photo + .nonfocal {
 }
 .nav li form {
   margin-top: 0;
-}
-
-#navbar2 {
-  position: relative;
-}
-
-#comment {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-}
-#bookmark2 {
-}
-#like {
-  position: absolute;
-  top: 6px;
-  right: 6px;
 }

@@ -5,7 +5,7 @@
 
 <div class="nonfocal">
   {include file="findInclude:common/templates/bookmark.tpl" name=$cookieName item=$eventId exdate="COOKIE_DURATION" path="COOKIE_PATH"}
-  <h2>{include file="findInclude:common/listItem.tpl" item=$titleField}</h2>
+  <h2>{include file="findInclude:common/templates/listItem.tpl" item=$titleField}</h2>
   {foreach $firstSection as $field}
     <p{if $field['class']} class="{$field['class']}"{/if}>
       {include file="findInclude:common/templates/listItem.tpl" item=$field}

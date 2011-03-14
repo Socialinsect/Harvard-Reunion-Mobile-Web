@@ -3,6 +3,7 @@
 class FacebookGroup {
   private $accessToken = null;
   private $groupId = null;
+  private $myId = null;
   private $CURL_OPTS = array(
     CURLOPT_CONNECTTIMEOUT => 20,
     CURLOPT_RETURNTRANSFER => true,
@@ -27,7 +28,7 @@ class FacebookGroup {
   const AUTHOR_URL = "http://m.facebook.com/profile.php?id=";
   
   protected $cache;
-  protected $cacheLifetime = 60;
+  protected $cacheLifetime = 120;
   
   function __construct($groupId, $accessToken) {
     $this->accessToken = $accessToken;
@@ -35,15 +36,18 @@ class FacebookGroup {
   }
   
   public function getMyId() {
-    $json = $this->graphQuery('me');
-    if ($json) {
-      return $json['id'];
+    if (!$this->myId) {
+      $json = $this->graphQuery('me');
+      if ($json) {
+        $this->myId = $json['id'];
+      }
     }
-    return null;
+    
+    return $this->myId;
   }
   
   public function getGroupFullName() {
-    $json = $this->graphQuery($this->groupId);
+    $json = $this->graphQuery($this->groupId, array('cache' => true));
     if ($json) {
       return $json['name'];
     }
@@ -118,53 +122,73 @@ class FacebookGroup {
     return $videoDetails;
   }  
   
-  public function addComment($postId, $comment) {
-    $result = $this->graphQuery($postId.'/comments', array(), array('message' => $comment));
+  public function addComment($postId, $message) {
+    $result = $this->graphQuery($postId.'/comments', array(), array(), array('message' => $message));
   }
   
-  private function getPostComments($postId) {
-    $result = $this->graphQuery($postId.'/comments', array('limit' => 100));
+  public function removeComment($commentId) {
+    $result = $this->graphQuery($commentId, array('method' => 'DELETE'));
+  }
+  
+  public function likePost($postId) {
+    $result = $this->graphQuery($postId.'/likes', array('method' => 'POST'));
+  }
+  
+  public function unlikePost($postId) {
+    $result = $this->graphQuery($postId.'/likes', array('method' => 'DELETE'));
+  }
+  
+  public function getPostComments($postId) {
+    $result = $this->graphQuery($postId.'/comments', array(), array('limit' => 500));
     
     $comments = array();
-    foreach ($result['data'] as $comment) {
-      $comments[] = array(
-        'id'      => $comment['id'],
-        'message' => $comment['message'],
-        'author'  => array(
-          'name' => $comment['from']['name'],
-          'id'   => $comment['from']['id'],
-          'url'  => $this->authorURL($comment['from']),
-        ),
-        'when'    => array(
-          'time'  => $comment['created_time'],
-          'delta' => self::relativeTime($comment['created_time']),
-        ),
-      );
+    if (isset($result['data'])) {
+      foreach ($result['data'] as $comment) {
+        $comments[] = array(
+          'id'      => $comment['id'],
+          'message' => $comment['message'],
+          'author'  => array(
+            'name' => $comment['from']['name'],
+            'id'   => $comment['from']['id'],
+            'url'  => $this->authorURL($comment['from']),
+          ),
+          'when'    => array(
+            'time'  => strtotime($comment['created_time']),
+            'delta' => self::relativeTime($comment['created_time']),
+          ),
+        );
+      }
     }
     
     return $comments;
+  }
+  
+  public function getPostLikes($postId) {
+    $result = $this->graphQuery($postId.'/likes', array());
+        
+    return isset($result['data']) ? $result['data'] : array();
   }
 
   private function getPostDetails($id) {
     return $this->getObjectDetails('post', $id);
   }
   private function getPhotoDetails($id) {
-    return $this->getObjectDetails('photo', $id, true);
+    return $this->getObjectDetails('photo', $id);
   }
   private function getVideoDetails($id) {
-    return $this->getObjectDetails('video', $id, true);
+    return $this->getObjectDetails('video', $id);
   }
-  private function getObjectDetails($type, $id, $cacheResult=false) {
+  private function getObjectDetails($type, $id) {
     $args = array();
     if (isset($this->queryFields[$type])) {
       $args['fields'] = implode(',', $this->queryFields[$type]);
     }
   
-    return $this->graphQuery($id, $args, array(), $cacheResult);
+    return $this->graphQuery($id, array('cache' => true), $args);
   }
 
   private function getGroupPosts($fields=array()) {
-    return $this->graphQuery($this->groupId.'/feed', array('limit' => 500));
+    return $this->graphQuery($this->groupId.'/feed', array(), array('limit' => 500));
   }
   
   private function formatPost($post) {
@@ -187,27 +211,6 @@ class FacebookGroup {
       $formatted['thumbnail'] = $post['picture'];
     }
     
-    $comments = array();
-    if (isset($post['comments'], $post['comments']['data'])) {
-      foreach ($post['comments']['data'] as $comment) {
-        $comments[] = array(
-          'id'      => $comment['id'],
-          'message' => $comment['message'],
-          'author'  => array(
-            'name' => $comment['from']['name'],
-            'id'   => $comment['from']['id'],
-            'url'  => $this->authorURL($comment['from']),
-          ),
-          'when'    => array(
-            'time'  => strtotime($comment['created_time']),
-            'delta' => self::relativeTime($comment['created_time']),
-          ),
-        );
-      }
-    }
-    usort($comments, array(get_class($this), 'commentSort'));
-    $formatted['comments'] = $comments;
-    
     return $formatted;
   }
   
@@ -219,8 +222,8 @@ class FacebookGroup {
     return self::AUTHOR_URL.$from['id'];
   }
   
-  private function graphQuery($path, $getParams=array(), $postParams=array(), $cacheResult=false) {
-    $result = json_decode($this->query('graph', $path, $getParams, $postParams, $cacheResult), true);
+  private function graphQuery($path, $options=array(), $getParams=array(), $postParams=array()) {
+    $result = json_decode($this->query('graph', $path, $options, $getParams, $postParams), true);
 
     if (isset($result['error'])) {
       error_log("Got Facebook graph API error: ".print_r($result['error'], true));
@@ -230,11 +233,18 @@ class FacebookGroup {
     return $result;
   }
 
-  private function query($type, $path, $getParams=array(), $postParams=array(), $cacheResult=false) {
+  private function query($type, $path, $options=array(), $getParams=array(), $postParams=array()) {
     if (!isset($this->apiToURL[$type])) { return null; }
     
-    // Never cache post results
-    if (count($postParams)) { $cacheResult = false; }
+    // Options:
+    $method = isset($options['method']) ? $options['method'] : 'GET';
+    $cacheResult = isset($options['cache']) && $options['cache'];
+    if (count($postParams)) { 
+      $method = 'POST';
+    }
+    if ($method != 'GET') {
+      $cacheResult = false;  // only cache GET requests
+    }
     
     // json_encode all params values that are not strings
     foreach ($getParams as $key => $value) {
@@ -267,12 +277,12 @@ class FacebookGroup {
       $getParamString = http_build_query($getParams, null, '&');
       $url = $this->apiToURL[$type].$path.($getParamString ? '?' : '').$getParamString;
 
-      error_log("Requesting $url");
+      error_log("$method request for $url");
       
       $opts = $this->CURL_OPTS;
-      if ($postParams) {
-        error_log("With post parameters ".json_encode($postParams));
-        $opts[CURLOPT_POST] = 1;
+      $opts[CURLOPT_CUSTOMREQUEST] = $method;
+      if (count($postParams)) {
+        error_log("... with post parameters ".json_encode($postParams));
         $opts[CURLOPT_POSTFIELDS] = $postParams;
       }
       $opts[CURLOPT_URL] = $url;

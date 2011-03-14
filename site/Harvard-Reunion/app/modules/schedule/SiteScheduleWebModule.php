@@ -253,7 +253,7 @@ class SiteScheduleWebModule extends WebModule {
         //error_log(print_r($event, true));
         
         // build the list of attributes
-        $fieldConfig = $this->loadWebAppConfigFile('schedule-detail', 'detailFields');
+        $fieldConfig = $this->loadPageConfigFile('detail', 'detailFields');
         $allKeys = array_keys($fieldConfig);
         $sections = array();
         foreach ($fieldConfig as $key => $info) {
