@@ -12,7 +12,7 @@ body {
 
 body, th, td, li {
 	/* Primary font */
-	color: #dcdad9;
+	color: #fff;
 }
 
 option, select, input {
@@ -68,12 +68,17 @@ h4 {
 dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .smallprint, .fineprint, .dek {
 	/* Accent text color for several types of secondary text that appears on white backgrounds, e.g., label in label/value pairs, e.g., People Directory detail screen and for labels in certain calendar listing screens */
 	/* Often the same as the secondary text color defined in the next rule */
-	color: #5c5a59;
+	color: #4b4947;
 }
 
 .foundat, .address, #footer, .copyright, #footerlinks a, #footerlinks a:visited {
 	/* Secondary text color for several types of secondary text that typically appear on the colored background */
 	color: #aca7a4;
+}
+
+.address {
+	/* Specific override for the Harvard Reunion theme */
+	color: #4b4947;
 }
 
 #footer a, #footer a:visited, #footerlinks a, #footerlinks a:visited {
