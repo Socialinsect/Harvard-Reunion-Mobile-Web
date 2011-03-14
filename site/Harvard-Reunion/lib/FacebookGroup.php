@@ -56,7 +56,7 @@ class FacebookGroup {
   
   public function getGroupPhotos() {
     $result = $this->getGroupPosts();
-    //error_log(print_r($result, true));
+    error_log(print_r($result, true));
     
     $photos = array();
     if (isset($result['data'])) {
@@ -187,7 +187,7 @@ class FacebookGroup {
     return $this->graphQuery($id, array('cache' => true), $args);
   }
 
-  private function getGroupPosts($fields=array()) {
+  private function getGroupPosts() {
     return $this->graphQuery($this->groupId.'/feed', array(), array('limit' => 500));
   }
   
