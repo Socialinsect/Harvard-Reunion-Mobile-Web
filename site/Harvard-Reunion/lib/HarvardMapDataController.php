@@ -19,10 +19,8 @@ class HarvardMapDataController extends ArcGISDataController
             $this->returnsGeometry = $args['RETURNS_GEOMETRY'];
     }
     
-    public function getItem($name)
+    public function getFeature($name, $categoryPath=array())
     {
-        $theItem = null;
-        
         if ($this->searchable) {
             $this->initializeParser();
             $this->initializeLayers();
@@ -34,7 +32,7 @@ class HarvardMapDataController extends ArcGISDataController
                 $theItem->setTitleField("Building Name");
             }
         } else {
-            $items = $this->items();
+            $items = $this->getListItems($categoryPath);
             if (isset($items[$name])) {
                 $theItem = $items[$name];
                 if (!$this->returnsGeometry || $theItem->getGeometry() == null) {
