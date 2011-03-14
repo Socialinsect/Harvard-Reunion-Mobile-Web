@@ -3,6 +3,10 @@
   color: #DCDAD9;
 }
 
+#navbar2 + .results {
+  margin-top: 0;
+}
+
 .results li.video {
   margin: 0;
   padding: 0;
@@ -52,14 +56,6 @@ div.video {
 
 div.videoInfo {
   text-align: center;
-}
-
-.nav a.author {
-  display: inline;
-  margin: 0;
-  padding: 0;
-  background: none;
-  text-decoration: underline;
 }
 
 li {

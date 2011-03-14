@@ -15,3 +15,38 @@ div.photo + .nonfocal {
   background: none;
   text-decoration: underline;
 }
+
+.nav a.scrolllink {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  background: none;
+}
+
+.nav a.removeLink {
+  display: block;
+  margin: 0;
+  padding: 0 0 5px 10px;
+  background: none;
+  float: right;
+}
+.nav li form {
+  margin-top: 0;
+}
+
+#navbar2 {
+  position: relative;
+}
+
+#comment {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+}
+#bookmark2 {
+}
+#like {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}

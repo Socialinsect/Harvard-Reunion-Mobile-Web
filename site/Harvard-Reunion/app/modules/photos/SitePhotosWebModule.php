@@ -111,16 +111,16 @@ class SitePhotosWebModule extends WebModule {
 
         $myId = $facebook->getMyId();
 
-        $photos = $facebook->getGroupPhotos();
-        foreach ($photos as $i => $photo) {
-          if (($view == 'mine'       && $photo['author']['id'] != $myId) ||
-              ($view == 'bookmarked' && !$this->hasBookmark($photo['id']))) {
-            unset($photos[$i]);
+        $posts = $facebook->getGroupPhotos();
+        foreach ($posts as $i => $post) {
+          if (($view == 'mine'       && $post['author']['id'] != $myId) ||
+              ($view == 'bookmarked' && !$this->hasBookmark($post['id']))) {
+            unset($posts[$i]);
             continue;
           }
           
-          $photos[$i]['url'] = $this->buildBreadcrumbURL('detail', array( 
-            'id' => $photo['id'],
+          $posts[$i]['url'] = $this->buildBreadcrumbURL('detail', array( 
+            'id' => $post['id'],
           ));
         }
         
@@ -139,9 +139,7 @@ class SitePhotosWebModule extends WebModule {
 
         $this->assign('views',       $views);
         $this->assign('currentView', $view);
-
-        $this->assign('title',       $facebook->getGroupFullName());
-        $this->assign('photos',      $photos);
+        $this->assign('photos',      $posts);
         break;
               
       case 'detail':
@@ -149,14 +147,62 @@ class SitePhotosWebModule extends WebModule {
       
         $this->generateBookmarkOptions($postId);
         
-        $this->assign('photo', $facebook->getPhotoPost($postId));
+        $postDetails = $facebook->getPhotoPost($postId);
+        $postDetails['comments'] = $facebook->getPostComments($postId);
+        
+        $myId = $facebook->getMyId();        
+        
+        foreach ($postDetails['comments'] as $i => $comment) {
+          if ($comment['author']['id'] == $myId) {
+            $postDetails['comments'][$i]['removeURL'] = $this->buildBreadcrumbURL('comment', array(
+              'id'        => $postId,
+              'commentId' => $comment['id'],
+              'action'    => 'remove',
+            ), false);
+          }
+        }
+        
+        $postDetails['liked'] = false;
+        foreach ($facebook->getPostLikes($postId) as $i => $like) {
+          if ($like['id'] == $myId) {
+            $postDetails['liked'] = true;
+          }
+        }
+        $postDetails['likeURL'] = $this->buildBreadcrumbURL('like', array(
+          'id'        => $postId,
+          'action'    => $postDetails['liked'] ? 'remove' : 'add',
+        ), false);
+        
+        $this->assign('photo', $postDetails);
         break;
         
       case 'comment':
         $postId = $this->getArg('id');
-        if (isset($this->args['comment'])) {
-          $facebook->addComment($postId, $this->args['comment']);
+        $action = $this->getArg('action', 'add');
+        
+        if ($action == 'add') {
+          $facebook->addComment($postId, $this->getArg('message'));
+          
+        } else if ($action == 'remove') {
+          $facebook->removeComment($this->getArg('commentId'));
         }
+        
+        $this->redirectTo('detail', array(
+          'id' => $postId,
+        ), true);
+        break;
+        
+      case 'like':
+        $postId = $this->getArg('id');
+        $action = $this->getArg('action', 'like');
+        
+        if ($action == 'add') {
+          $facebook->likePost($postId);
+          
+        } else if ($action == 'remove') {
+          $facebook->unlikePost($postId);
+        }
+        
         $this->redirectTo('detail', array(
           'id' => $postId,
         ), true);
