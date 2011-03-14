@@ -43,14 +43,14 @@ h1 {
 	font-family: Georgia, serif;
 	font-size: 29px;
 	font-weight: normal;
-	color: #f2f1ed;
+	color: #fff;
 }
 
 h2 {
 	font-family: Georgia, serif;
 	font-size: 22px;
 	font-weight: normal;
-	color: #f2f1ed;
+	color: #fff;
 }
 
 h3 {
@@ -73,10 +73,10 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 
 .foundat, .address, #footer, .copyright, #footerlinks a, #footerlinks a:visited {
 	/* Secondary text color for several types of secondary text that typically appear on the colored background */
-	color: #5c5a59;
+	color: #aca7a4;
 }
 
-#footerlinks a, #footerlinks a:visited {
+#footer a, #footer a:visited, #footerlinks a, #footerlinks a:visited {
 	/* Specific override for the Harvard Reunion theme */
 	color: #aca7a4;
 }
@@ -223,6 +223,18 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 .nav, .results {
 	/* Main navigation lists and search-results lists */
 	background-color: #e2e1dd; 	
+}
+
+.results li {
+	padding-top: 7px; 
+	padding-bottom: 9px;
+}
+
+.results a {
+	padding-top: 5px;
+	padding-bottom: 7px;
+	margin-top: -4px;
+	margin-bottom: -6px;
 }
 
 .tabbody .nav, .tabbody .results {

@@ -1,6 +1,5 @@
 .banner {
   position: relative;
-  font-size: 88%;
   line-height: 1.2em;
   padding-right: 75px;
 }
@@ -12,19 +11,21 @@
 }
 
 .banner p {
-	margin: 6px 0;
+  font-size: 88%;
+  line-height: 1.2em;
+  margin: 6px 0;
 }
 
 .banner h3 {
 	margin: 8px 0 6px 0;
 	color: #d3dbe0;
-	font-size: 100%;
+	font-size: 88%;
 }
 
 .banner h2 {
-  font-size: 160%;
+  font-size: 150%;
   margin: 6px 0;
-  text-shadow: #444 0 1px 2px;
+  text-shadow: #333 0 1px 2px;
 }
 
 #ribbon {
@@ -68,7 +69,6 @@
 #social {
   position: relative;
   padding: 0 4px 0 115px;
-  height: 94px;
   clear: both;
 }
 
@@ -83,7 +83,7 @@
 #social .links a {
   font-size: 70%;
   line-height: normal;
-  padding: 4px 6px;
+  padding: 5px 6px;
   height: 32px;
   overflow: hidden;
   background: url('/modules/home/images/socialbutton.png') no-repeat;
@@ -98,14 +98,16 @@
 #social .links a .wrapper {
   background: transparent no-repeat left center;
   background-size: 24px;
-  padding-left: 28px;
+  padding-left: 29px;
+  height: 30px;
 }
 #social .links .facebookLink .wrapper {
   background-image: url('/common/images/button-facebook.png');
+  line-height: 15px;
 }
 #social .links .twitterLink .wrapper {
   background-image: url('/common/images/button-twitter.png');
-  line-height: 28px;
+  line-height: 30px;
 }
 
 #social .recent {
