@@ -13,16 +13,12 @@ class FacebookGroup {
     CURLOPT_SSL_VERIFYHOST => 2,
   );
   private $apiToURL = array(
-    'graph' => "https://graph.facebook.com/",
+    'graph' => 'https://graph.facebook.com/',
+    'fql'   => 'https://api.facebook.com/method/fql.query',
   );
   private $queryFields = array(
     'video' => null,
-    'photo' => array(
-      'source',
-      'height',
-      'width',
-      'images',
-    ),
+    'photo' => null,
     'post'  => null,
   );
   const AUTHOR_URL = "http://m.facebook.com/profile.php?id=";
@@ -55,18 +51,17 @@ class FacebookGroup {
   }
   
   public function getGroupPhotos() {
-    $result = $this->getGroupPosts();
-    error_log(print_r($result, true));
+    $results = $this->fqlQuery("SELECT pid, aid, owner, object_id, src, link, caption FROM photo WHERE pid IN (SELECT pid FROM photo_tag WHERE subject = {$this->groupId} LIMIT 1000) LIMIT 1000");
+    //$result3 = $this->fqlQuery("SELECT post_id,viewer_id,message,attachment FROM stream WHERE source_id={$this->groupId}  LIMIT 1000");
+    //error_log(print_r($results, true));
     
     $photos = array();
-    if (isset($result['data'])) {
-      foreach ($result['data'] as $i => $post) {
-        if ($post['type'] == 'photo') {
-          
-          $photos[] = $this->formatPost($post);
-        }
-      }
+    foreach ($results as $result) {
+      $photo = $this->getPhotoDetails(number_format($result['object_id'], 0, '.', ''));
+      
+      $photos[] = $this->formatPhoto($photo);
     }
+    usort($photos, array(get_class($this), 'positionSort'));
     
     return $photos;
   }
@@ -82,6 +77,21 @@ class FacebookGroup {
     }
     
     return $videos;
+  }
+  
+  public function getPhoto($photoId) {
+    $photo = $this->getPhotoDetails($photoId);
+    //error_log(print_r($photo, true));    
+
+    $photoDetails =  $this->formatPhoto($photo);
+    
+    if (isset($photo['source'], $photo['height'], $photo['width'])) {
+      $photoDetails['img']['src'] = $photo['source'];
+      $photoDetails['img']['height'] = $photo['height'];
+      $photoDetails['img']['width'] = $photo['width'];
+    }
+    
+    return $photoDetails;
   }
   
   public function getPhotoPost($postId) {
@@ -122,24 +132,24 @@ class FacebookGroup {
     return $videoDetails;
   }  
   
-  public function addComment($postId, $message) {
-    $result = $this->graphQuery($postId.'/comments', array(), array(), array('message' => $message));
+  public function addComment($objectId, $message) {
+    $result = $this->graphQuery($objectId.'/comments', array(), array(), array('message' => $message));
   }
   
   public function removeComment($commentId) {
     $result = $this->graphQuery($commentId, array('method' => 'DELETE'));
   }
   
-  public function likePost($postId) {
-    $result = $this->graphQuery($postId.'/likes', array('method' => 'POST'));
+  public function like($objectId) {
+    $result = $this->graphQuery($objectId.'/likes', array('method' => 'POST'));
   }
   
-  public function unlikePost($postId) {
-    $result = $this->graphQuery($postId.'/likes', array('method' => 'DELETE'));
+  public function unlike($objectId) {
+    $result = $this->graphQuery($objectId.'/likes', array('method' => 'DELETE'));
   }
   
-  public function getPostComments($postId) {
-    $result = $this->graphQuery($postId.'/comments', array(), array('limit' => 500));
+  public function getComments($objectId) {
+    $result = $this->graphQuery($objectId.'/comments', array(), array('limit' => 500));
     
     $comments = array();
     if (isset($result['data'])) {
@@ -163,28 +173,28 @@ class FacebookGroup {
     return $comments;
   }
   
-  public function getPostLikes($postId) {
-    $result = $this->graphQuery($postId.'/likes', array());
+  public function getLikes($objectId) {
+    $result = $this->graphQuery($objectId.'/likes', array());
         
     return isset($result['data']) ? $result['data'] : array();
   }
 
-  private function getPostDetails($id) {
-    return $this->getObjectDetails('post', $id);
+  private function getPostDetails($objectId) {
+    return $this->getObjectDetails('post', $objectId);
   }
-  private function getPhotoDetails($id) {
-    return $this->getObjectDetails('photo', $id);
+  private function getPhotoDetails($objectId) {
+    return $this->getObjectDetails('photo', $objectId);
   }
-  private function getVideoDetails($id) {
-    return $this->getObjectDetails('video', $id);
+  private function getVideoDetails($objectId) {
+    return $this->getObjectDetails('video', $objectId);
   }
-  private function getObjectDetails($type, $id) {
+  private function getObjectDetails($type, $objectId) {
     $args = array();
     if (isset($this->queryFields[$type])) {
       $args['fields'] = implode(',', $this->queryFields[$type]);
     }
   
-    return $this->graphQuery($id, array('cache' => true), $args);
+    return $this->graphQuery($objectId, array('cache' => true), $args);
   }
 
   private function getGroupPosts() {
@@ -214,8 +224,37 @@ class FacebookGroup {
     return $formatted;
   }
   
+  private function formatPhoto($photo) {
+    $formatted = array(
+      'id'    => $photo['id'],
+      'author'    => array(
+        'name' => $photo['from']['name'],
+        'id'   => $photo['from']['id'],
+        'url'  => $this->authorURL($photo['from']),
+      ),
+      'when'  => array(
+        'time'  => $photo['created_time'],
+        'delta' => self::relativeTime($photo['created_time']),
+      ),
+    );
+    if (isset($photo['name'])) {
+      $formatted['message'] = $photo['name'];
+    }
+    if (isset($photo['picture'])) {
+      $formatted['thumbnail'] = $photo['picture'];
+    }
+    
+    $formatted['position'] = isset($photo['position']) ? $photo['position'] : PHP_INT_MAX;
+    
+    return $formatted;
+  }
+  
   private static function commentSort($a, $b) {
-    return intval($b['when']['time']) - intval($a['when']['time']);
+    return intval($a['when']['time']) - intval($b['when']['time']);
+  }
+  
+  private static function positionSort($a, $b) {
+    return intval($a['position']) - intval($b['position']);
   }
   
   private function authorURL($from) {
@@ -231,6 +270,15 @@ class FacebookGroup {
     }
     
     return $result;
+  }
+  
+  private function fqlQuery($query, $options=array()) {
+    $getParams = array(
+      'query'  => $query,
+      'format' => 'json',
+    );
+    
+    return json_decode($this->query('fql', '', $options, $getParams), true);
   }
 
   private function query($type, $path, $options=array(), $getParams=array(), $postParams=array()) {
@@ -346,7 +394,7 @@ class FacebookGroup {
   private function getVideoEmbedHTML($post) {
     $html = '';
     
-    $source = $post['source'];error_log($source);
+    $source = $post['source'];
     $isObject = isset($post['object_id']) && $post['object_id'];
     
     if ($isObject) {

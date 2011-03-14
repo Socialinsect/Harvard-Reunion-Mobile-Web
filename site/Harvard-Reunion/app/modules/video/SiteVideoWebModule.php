@@ -147,7 +147,7 @@ class SiteVideoWebModule extends WebModule {
         //$this->generateBookmarkOptions($postId);
 
         $postDetails = $facebook->getVideoPost($postId);
-        $postDetails['comments'] = $facebook->getPostComments($postId);
+        $postDetails['comments'] = $facebook->getComments($postId);
         
         $myId = $facebook->getMyId();        
         
@@ -162,14 +162,14 @@ class SiteVideoWebModule extends WebModule {
         }
         
         $postDetails['liked'] = false;
-        foreach ($facebook->getPostLikes($postId) as $i => $like) {
+        foreach ($facebook->getLikes($postId) as $i => $like) {
           if ($like['id'] == $myId) {
             $postDetails['liked'] = true;
           }
         }
         $postDetails['likeURL'] = $this->buildBreadcrumbURL('like', array(
-          'id'        => $postId,
-          'action'    => $postDetails['liked'] ? 'remove' : 'add',
+          'id'     => $postId,
+          'action' => $postDetails['liked'] ? 'remove' : 'add',
         ), false);
         
         $this->assign('video', $postDetails);
@@ -197,10 +197,10 @@ class SiteVideoWebModule extends WebModule {
         $action = $this->getArg('action', 'like');
         
         if ($action == 'add') {
-          $facebook->likePost($postId);
+          $facebook->like($postId);
           
         } else if ($action == 'remove') {
-          $facebook->unlikePost($postId);
+          $facebook->unlike($postId);
         }
         
         $this->redirectTo('detail', array(
