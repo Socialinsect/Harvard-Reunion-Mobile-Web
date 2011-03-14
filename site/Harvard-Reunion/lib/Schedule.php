@@ -17,7 +17,7 @@ class Schedule {
       $GLOBALS['siteConfig']->getVar('LOCAL_TIMEZONE', Config::LOG_ERRORS | Config::EXPAND_VALUE));
   
     $scheduleConfigs = array();
-    $configFile = realpath_exists(SITE_CONFIG_DIR.'/feeds/schedule.ini');
+    $configFile = realpath_exists(SITE_CONFIG_DIR.'/schedule/feeds.ini');
     if ($configFile) {
       $scheduleConfigs = parse_ini_file($configFile, true);
     }

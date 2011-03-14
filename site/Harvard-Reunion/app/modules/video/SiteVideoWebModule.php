@@ -40,8 +40,24 @@ class SiteVideoWebModule extends WebModule {
         break;
               
       case 'detail':
-        $this->assign('video', $facebook->getVideoPostDetails($this->getArg('id')));
+        $postId = $this->getArg('id');
+      
+        $this->addOnOrientationChange('resizeVideoFrame();');
+        //$this->generateBookmarkOptions($postId);
+        
+        $this->assign('video', $facebook->getVideoPost($postId));
         break;
+        
+      case 'comment':
+        $postId = $this->getArg('id');
+        if (isset($this->args['comment'])) {
+          $facebook->addComment($postId, $this->args['comment']);
+        }
+        $this->redirectTo('detail', array(
+          'id' => $postId,
+        ), true);
+        break;
+
     }
   }
 }
