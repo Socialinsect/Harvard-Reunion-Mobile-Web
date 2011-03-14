@@ -21,6 +21,7 @@ class HarvardMapDataController extends ArcGISDataController
     
     public function getFeature($name, $categoryPath=array())
     {
+        $theItem = null;
         if ($this->searchable) {
             $this->initializeParser();
             $this->initializeLayers();
@@ -40,27 +41,18 @@ class HarvardMapDataController extends ArcGISDataController
                     $theItem->setGeometryType($featureInfo['geometryType']);
                     $theItem->readGeometry($featureInfo['geometry']);
                 }
-
+                
                 if ($theItem->getField('Photo') === null) {
                     if (!isset($featureInfo))
                         $featureInfo = $this->queryFeatureServer($theItem);
 
-                    $photoFields = array('PHOTO_FILE', 'Photo', 'Photo File');
-                    foreach ($photoFields as $field) {
-                        if (isset($featureInfo['attributes'][$field])) {
-                            $theItem->setField('Photo', $featureInfo['attributes'][$field]);
-                            break;
-                        }
-                    }
-
-                    if ($theItem->getField('Photo') === null) {
+                    $photoURL = self::getPhotoFromFeatureInfo($featureInfo);
+                    if (!$photoURL) {
                         $featureInfo = self::getBldgDataByNumber($theItem->getField('Building Number'));
-                        foreach ($photoFields as $field) {
-                            if (isset($featureInfo['attributes'][$field])) {
-                                $theItem->setField('Photo', $featureInfo['attributes'][$field]);
-                                break;
-                            }
-                        }
+                        $photoURL = self::getPhotoFromFeatureInfo($featureInfo);
+                    }
+                    if ($photoURL) {
+                        $theItem->setField('Photo', $photoURL);
                     }
                 }
             }
@@ -92,6 +84,23 @@ class HarvardMapDataController extends ArcGISDataController
             }
         }
         $result = $featureCache->read($bldgId);
+
+        $photoURL = self::getPhotoFromFeatureInfo($result);
+        if ($photoURL) {
+            $result['attributes']['Photo'] = $photoURL;
+        }
+        return $result;
+    }
+
+    private static function getPhotoFromFeatureInfo($featureInfo) {
+        $result = null;
+        $photoFields = array('PHOTO_FILE', 'Photo', 'Photo File');
+        foreach ($photoFields as $field) {
+            if (isset($featureInfo['attributes'][$field])) {
+                $result = $featureInfo['attributes'][$field];
+                break;
+            }
+        }
         return $result;
     }
     
