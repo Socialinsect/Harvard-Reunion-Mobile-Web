@@ -246,7 +246,7 @@ class AdminWebModule extends WebModule {
             case 'modules':
                 $allModules = $this->getAllModules();
                 $moduleList = array();
-
+                
                 foreach ($allModules as $moduleID=>$moduleData) {
                     try {
                         $moduleList[] = array(

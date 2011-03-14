@@ -21,7 +21,7 @@ Overriding a template is a very simple process. You simply provide an alternate 
 folder and that file will be loaded instead. 
 
 For example, if you want to extend the *story.tpl* of the news module you would create *story.tpl* 
-in *SITE_DIR/app/modules/news*. 
+in *SITE_DIR/app/modules/news/templates*. 
 
 There are two approaches to updating a template. 
 
@@ -65,11 +65,11 @@ Replacing a module completely
 This process is similar to extending the module except that you extend from the *Module* class rather than
 the original module. This is useful if you want to have a module that has a URL that is the same as an
 existing module. For instance, if you want to write a completely new *about* module you will create
-a *SiteAboutModule.php* file in the *SITE_DIR/app/modules/about* folder. It would look like this::
+a *AboutModule.php* file in the *SITE_DIR/app/modules/about* folder. It would look like this::
 
     <?php 
     
-    class SiteAboutWebModule extends WebModule
+    class AboutWebModule extends WebModule
     {
         protected $id='about';
         protected function initializeForPage() {
