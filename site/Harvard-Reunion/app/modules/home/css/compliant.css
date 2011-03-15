@@ -127,7 +127,6 @@
   height: 81px;
   font-size: 82.3%;
   line-height: 1.3em;
-  overflow: hidden;
   background: url('/modules/home/images/chatbubble-mid.png') repeat-x;
 }
 
@@ -158,4 +157,12 @@
   color: #43484c;
   font-size: 85.7%;
   padding-top: 0.2em;
+  max-height: 20px;
+  overflow: hidden;
+}
+
+#social .recent .chatbubble .message {
+  max-height: 56px;
+  padding-bottom: 2px;
+  overflow: hidden;
 }

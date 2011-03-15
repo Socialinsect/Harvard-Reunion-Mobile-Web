@@ -5,7 +5,7 @@
       <br/><span class="ribbonDesc">Reunion</span>
       <br/><span class="ribbonDate">{$scheduleInfo['dates']}</span>
     </div>
-    <h3>Harvard Class of {$userInfo['class']} Reunion</h3>
+    <h3>{$scheduleInfo['title']}</h3>
     <h2>{$userInfo['fullname']}</h2>
     <p><a href="#" onclick="confirmLogout())">Log out &gt;</a></p>
   </div>
@@ -27,8 +27,8 @@
   <div class="recent {$socialInfo['recent']['type']}">
     <div class="cbl"></div>
     <div class="chatbubble">
-      {$socialInfo['recent']['message']}
-      <div class="info smallprint">{$socialInfo['recent']['author']}, {$socialInfo['recent']['age']} ago</div>
+      <div id="ellipsis_0" class="message">{$socialInfo['recent']['message']}</div>
+      <div id="ellipsis_1" class="info smallprint">{$socialInfo['recent']['author']}, {$socialInfo['recent']['age']}</div>
     </div>
     <div class="cbr"></div>
   </div>

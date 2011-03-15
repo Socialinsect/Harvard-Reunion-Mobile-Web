@@ -50,16 +50,37 @@ class FacebookGroup {
     return null;
   }
   
+  public function getGroupStatusMessages() {
+    $results = $this->getGroupPosts();
+    error_log(print_r($results, true));
+    
+    $statuses = array();
+    if (isset($results['data'])) {
+      foreach ($results['data'] as $i => $post) {
+        if ($post['type'] == 'status') {
+          $statuses[] = $this->formatPost($post);
+        }
+      }
+    }
+    
+    return $statuses;
+  }
+  
   public function getGroupPhotos() {
+    $results = $this->getGroupPosts();
+    error_log(print_r($results, true));
+     
     $results = $this->fqlQuery("SELECT pid, aid, owner, object_id, src, link, caption FROM photo WHERE pid IN (SELECT pid FROM photo_tag WHERE subject = {$this->groupId} LIMIT 1000) LIMIT 1000");
     //$result3 = $this->fqlQuery("SELECT post_id,viewer_id,message,attachment FROM stream WHERE source_id={$this->groupId}  LIMIT 1000");
     //error_log(print_r($results, true));
     
     $photos = array();
     foreach ($results as $result) {
-      $photo = $this->getPhotoDetails(number_format($result['object_id'], 0, '.', ''));
-      
-      $photos[] = $this->formatPhoto($photo);
+      if (isset($result['object_id'])) {
+        $photo = $this->getPhotoDetails(number_format($result['object_id'], 0, '.', ''));
+        
+        $photos[] = $this->formatPhoto($photo);
+      }
     }
     usort($photos, array(get_class($this), 'positionSort'));
     
@@ -70,9 +91,11 @@ class FacebookGroup {
     $result = $this->getGroupPosts();
 
     $videos = array();
-    foreach ($result['data'] as $i => $post) {
-      if ($post['type'] == 'video') {
-        $videos[] = $this->formatPost($post);
+    if (isset($result['data'])) {
+      foreach ($result['data'] as $i => $post) {
+        if ($post['type'] == 'video') {
+          $videos[] = $this->formatPost($post);
+        }
       }
     }
     
@@ -163,8 +186,9 @@ class FacebookGroup {
             'url'  => $this->authorURL($comment['from']),
           ),
           'when'    => array(
-            'time'  => strtotime($comment['created_time']),
-            'delta' => self::relativeTime($comment['created_time']),
+            'time'       => strtotime($comment['created_time']),
+            'delta'      => self::relativeTime($comment['created_time']),
+            'shortDelta' => self::relativeTime($comment['created_time'], true),
           ),
         );
       }
@@ -210,8 +234,9 @@ class FacebookGroup {
         'url'  => $this->authorURL($post['from']),
       ),
       'when'  => array(
-        'time'  => $post['created_time'],
-        'delta' => self::relativeTime($post['created_time']),
+        'time'       => strtotime($post['created_time']),
+        'delta'      => self::relativeTime($post['created_time']),
+        'shortDelta' => self::relativeTime($post['created_time'], true),
       ),
     );
     if (isset($post['message'])) {
@@ -233,8 +258,9 @@ class FacebookGroup {
         'url'  => $this->authorURL($photo['from']),
       ),
       'when'  => array(
-        'time'  => $photo['created_time'],
-        'delta' => self::relativeTime($photo['created_time']),
+        'time'       => strtotime($photo['created_time']),
+        'delta'      => self::relativeTime($photo['created_time']),
+        'shortDelta' => self::relativeTime($photo['created_time'], true),
       ),
     );
     if (isset($photo['name'])) {
@@ -262,14 +288,14 @@ class FacebookGroup {
   }
   
   private function graphQuery($path, $options=array(), $getParams=array(), $postParams=array()) {
-    $result = json_decode($this->query('graph', $path, $options, $getParams, $postParams), true);
+    $results = json_decode($this->query('graph', $path, $options, $getParams, $postParams), true);
 
-    if (isset($result['error'])) {
-      error_log("Got Facebook graph API error: ".print_r($result['error'], true));
-      return false;
+    if (isset($results['error'])) {
+      error_log("Got Facebook graph API error: ".print_r($results['error'], true));
+      return array();
     }
     
-    return $result;
+    return $results;
   }
   
   private function fqlQuery($query, $options=array()) {
@@ -278,7 +304,14 @@ class FacebookGroup {
       'format' => 'json',
     );
     
-    return json_decode($this->query('fql', '', $options, $getParams), true);
+    $results = json_decode($this->query('fql', '', $options, $getParams), true);
+
+    if (isset($results['error_code'])) {
+      error_log("Got Facebook FQL error: {$results['error_msg']} ({$results['error_code']})");
+      return array();
+    }
+    
+    return $results;
   }
 
   private function query($type, $path, $options=array(), $getParams=array(), $postParams=array()) {
@@ -355,7 +388,7 @@ class FacebookGroup {
     return $result;
   }
 
-  public static function relativeTime($time=null, $limit=86400, $format='M j g:ia') {
+  public static function relativeTime($time=null, $shortFormat=false, $limit=86400) {
     if (empty($time) || (!is_string($time) && !is_numeric($time))) {
       $time = time();
       
@@ -369,6 +402,7 @@ class FacebookGroup {
     $diff = $now - $time;
     
     if ($diff >= $limit) {
+      $format = $shortFormat ? 'M j g:ia' : 'M j g:ia';
       $relative = date($format, $time);
       
     } else if ($diff < 0) {
@@ -378,14 +412,14 @@ class FacebookGroup {
       $relative = 'now';
       
     } else if ($diff < 60) {
-      $relative = 'less than one minute ago';
+      $relative = $shortFormat ? '< 1 min ago' : 'less than one minute ago';
       
     } else if (($minutes = ceil($diff / 60)) < 60) {
-      $relative = $minutes.' minute'.($minutes == 1 ? '' : 's').' ago';
+      $relative = $minutes.($shortFormat ? ' min' : ' minute').($minutes == 1 ? '' : 's').' ago';
       
     } else {
       $hours = ceil($diff / 3600);
-      $relative = 'about '.$hours.' hour'.($hours == 1 ? '' : 's').' ago';
+      $relative = ($shortFormat ? ' ' : 'about ').$hours.' hour'.($hours == 1 ? '' : 's').' ago';
     }
     
     return $relative;

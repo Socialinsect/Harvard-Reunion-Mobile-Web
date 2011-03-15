@@ -53,6 +53,10 @@ class Schedule {
     return $this->getConfigValue('REUNION_NUMBER', '0');
   }
   
+  public function getReunionTitle() {
+    return $this->getConfigValue('REUNION_TITLE', '');
+  }
+  
   public function getFacebookGroupName() {
     return $this->getConfigValue('FACEBOOK_GROUP_NAME', '');
   }

@@ -25,6 +25,14 @@ class SiteHomeWebModule extends HomeWebModule {
   protected function initializeForPage() {
     $this->schedule = new Schedule();
     $user = $this->schedule->getAttendee();    
+
+    $facebookUser = $this->getUser();
+    $session = $facebookUser->getSessionData();
+    if (isset($session['fb_access_token'])) {
+      $facebook = new FacebookGroup($this->schedule->getFacebookGroupId(), $session['fb_access_token']);
+    } else {
+      $facebook = null;
+    }
   
     switch ($this->page) {
       case 'index':
@@ -37,6 +45,7 @@ class SiteHomeWebModule extends HomeWebModule {
         $scheduleInfo = array(
           'year'  => $this->schedule->getReunionNumber(),
           'dates' => $this->schedule->getDateDescription(),
+          'title' => $this->schedule->getReunionTitle(),
         );
         
         $socialInfo = array(
@@ -53,12 +62,22 @@ class SiteHomeWebModule extends HomeWebModule {
           'recent' => null,
         );
         
-        $socialInfo['recent'] = array(
-          'type'    => 'twitter',
-          'message' => 'big group going 2 John Harvard\'s in the Garage, everyone welcome',
-          'author'  => 'Katarina Ragulin',
-          'age'     => '12 min',
-        );
+        $facebookPosts = $facebook ? $facebook->getGroupStatusMessages() : array();
+        
+        if (count($facebookPosts)) {
+          $recentPost = reset($facebookPosts);
+          
+          
+          $socialInfo['recent'] = array(
+            'type'    => 'facebook',
+            'message' => $recentPost['message'],
+            'author'  => $recentPost['author']['name'],
+            'age'     => $recentPost['when']['shortDelta'],
+          );
+        }
+        
+        $this->addInternalJavascript('/common/javascript/lib/ellipsizer.js');
+        $this->addOnLoad('initHome();');
         
         $this->assign('userInfo',     $userInfo);
         $this->assign('scheduleInfo', $scheduleInfo);
