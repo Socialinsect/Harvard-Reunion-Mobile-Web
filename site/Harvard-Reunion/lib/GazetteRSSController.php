@@ -37,32 +37,34 @@ class GazetteRSScontroller extends RSSDataController
         return null;
     }
     
-    public function items(&$start=0,$limit=null, &$totalItems=0) 
+    public function items(&$start=0, $limit=null) 
     {
         if ($limit && $start % $limit != 0) {
             $start = floor($start/$limit)*$limit;
         }
         
-        $items = parent::items(0,null,$totalItems); //get all the items
-        $maxPages = $GLOBALS['siteConfig']->getVar('GAZETTE_NEWS_MAX_PAGES');; // to prevent runaway trains
+        $items = parent::items(0, null); // get all the items
+        $totalItems = count($items);
         
         if ($this->loadMore) {
             $page = 1;
 
-            /* load new pages until we have enough content */
+            $maxPages = $GLOBALS['siteConfig']->getVar('GAZETTE_NEWS_MAX_PAGES');; // to prevent runaway trains
+            
+            // load new pages until we have enough content
             while ( ($start > $totalItems) && ($page < $maxPages)) {
                 $moreItems = $this->loadPage(++$page);
-                $items = array_merge(array_values($items), array_values($moreItems));
                 $totalItems += count($moreItems);
+                $items = array_merge(array_values($items), array_values($moreItems));
             }
             
             if ($limit) {
-                $items = array_slice($items, $start, $limit); //slice off what's not needed
+                $items = array_slice($items, $start, $limit); // slice off what's not needed
                 
                 // see if we need to fill it out at the end
                 if (count($items) < $limit && $page < $maxPages) {
                     $moreItems = $this->loadPage(++$page);
-                    $items = array_merge($items, array_slice($moreItems,0,$limit-count($items)));
+                    $items = array_merge(array_values($items), array_slice($moreItems, 0, $limit-count($items)));
                     $totalItems += count($moreItems);
                 }
             }
@@ -71,9 +73,10 @@ class GazetteRSScontroller extends RSSDataController
               $totalItems++;
             }
         } elseif ($limit) {
-            $items = array_slice($items, $start, $limit); //slice off what's not needed
+            $items = array_slice($items, $start, $limit); // slice off what's not needed
         }
-
+        $this->totalItems = $totalItems; // override default item count
+        
         return $items;
     }
     
