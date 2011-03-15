@@ -105,7 +105,7 @@ class Schedule {
 
 class Attendee {  
   public function getGraduationClass() {
-    return 2001;
+    return 2005;
   }
   
   public function getFullName() {

@@ -24,7 +24,7 @@ class FacebookGroup {
   const AUTHOR_URL = "http://m.facebook.com/profile.php?id=";
   
   protected $cache;
-  protected $cacheLifetime = 120;
+  protected $cacheLifetime = 30;
   
   function __construct($groupId, $accessToken) {
     $this->accessToken = $accessToken;
@@ -52,7 +52,7 @@ class FacebookGroup {
   
   public function getGroupStatusMessages() {
     $results = $this->getGroupPosts();
-    error_log(print_r($results, true));
+    //error_log(print_r($results, true));
     
     $statuses = array();
     if (isset($results['data'])) {
@@ -67,8 +67,8 @@ class FacebookGroup {
   }
   
   public function getGroupPhotos() {
-    $results = $this->getGroupPosts();
-    error_log(print_r($results, true));
+    //$results = $this->getGroupPosts();
+    //error_log(print_r($results, true));
      
     $results = $this->fqlQuery("SELECT pid, aid, owner, object_id, src, link, caption FROM photo WHERE pid IN (SELECT pid FROM photo_tag WHERE subject = {$this->groupId} LIMIT 1000) LIMIT 1000");
     //$result3 = $this->fqlQuery("SELECT post_id,viewer_id,message,attachment FROM stream WHERE source_id={$this->groupId}  LIMIT 1000");
@@ -222,7 +222,7 @@ class FacebookGroup {
   }
 
   private function getGroupPosts() {
-    return $this->graphQuery($this->groupId.'/feed', array(), array('limit' => 500));
+    return $this->graphQuery($this->groupId.'/feed', array('cache' => true), array('limit' => 1000));
   }
   
   private function formatPost($post) {

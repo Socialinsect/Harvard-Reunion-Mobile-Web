@@ -10,6 +10,9 @@
   */
 class SiteHomeWebModule extends HomeWebModule {
   private $schedule = null;
+  const SEARCH_URL = 'http://search.twitter.com/search.json';
+  protected $tweetCache;
+  protected $tweetCacheLifetime = 30;
 
   static public function loadReunionConfig() {
     $data = array();
@@ -21,6 +24,53 @@ class SiteHomeWebModule extends HomeWebModule {
     
     return $data;
   }
+
+  function getRecentTweets($hashtag) {
+    $cacheName = "search_{$hashtag}";
+  
+    if (!$this->tweetCache) {
+      $this->tweetCache = new DiskCache(CACHE_DIR."/Twitter", $this->tweetCacheLifetime, TRUE);
+      $this->tweetCache->setSuffix('.json');
+      $this->tweetCache->preserveFormat();
+    }
+    
+    $content = '';
+    if ($this->tweetCache->isFresh($cacheName)) {
+      $content = $this->tweetCache->read($cacheName);
+      
+    } else {
+      $url = self::SEARCH_URL.'?'.http_build_query(array(
+        'q'           => $hashtag,
+        'result_type' => 'recent',
+        'rpp'         => 1,
+      ));
+      $content = file_get_contents($url);
+      $this->tweetCache->write($content, $cacheName);
+    }
+      
+    $json = json_decode($content, true);
+    
+    $tweets = array();
+    if (is_array($json) && isset($json['results'])) {
+      foreach ($json['results'] as $result) {
+        $tweets[] = array(
+          'message' => $result['text'],
+          'author'  => array(
+            'name' => $result['from_user'],
+            'id'   => $result['from_user_id'],
+          ),
+          'when' => array(
+            'time'       => strtotime($result['created_at']),
+            'delta'      => FacebookGroup::relativeTime($result['created_at']),
+            'shortDelta' => FacebookGroup::relativeTime($result['created_at'], true),
+          ),
+        );
+      }
+    }
+    
+    return $tweets;
+  }
+
 
   protected function initializeForPage() {
     $this->schedule = new Schedule();
@@ -62,17 +112,29 @@ class SiteHomeWebModule extends HomeWebModule {
           'recent' => null,
         );
         
-        $facebookPosts = $facebook ? $facebook->getGroupStatusMessages() : array();
+        $posts = $facebook ? $facebook->getGroupStatusMessages() : array();
+        $tweets = $this->getRecentTweets($this->schedule->getTwitterHashTag());
         
-        if (count($facebookPosts)) {
-          $recentPost = reset($facebookPosts);
-          
-          
+        $recent = false;
+        $recentType = false;
+        if (count($posts)) {
+          $recent = reset($posts);
+          $recentType = 'facebook';
+        }
+        if (count($tweets)) {
+          $tweet = reset($tweets);
+          if (!$recent || 
+              (intval($tweet['when']['time']) > intval($recent['when']['time']))) {
+            $recent = $tweet;
+            $recentType = 'twitter';
+          }
+        }
+        if ($recent) {
           $socialInfo['recent'] = array(
-            'type'    => 'facebook',
-            'message' => $recentPost['message'],
-            'author'  => $recentPost['author']['name'],
-            'age'     => $recentPost['when']['shortDelta'],
+            'type'    => $recentType,
+            'message' => $recent['message'],
+            'author'  => $recent['author']['name'],
+            'age'     => $recent['when']['shortDelta'],
           );
         }
         
