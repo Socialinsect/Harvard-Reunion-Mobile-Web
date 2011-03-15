@@ -23,7 +23,7 @@ class GazetteRSScontroller extends RSSDataController
     
     public function getItem($id, $page=1)
     {
-        $maxPages = $GLOBALS['siteConfig']->getVar('GAZETTE_NEWS_MAX_PAGES');; // to prevent runaway trains
+        $maxPages = $GLOBALS['siteConfig']->getVar('GAZETTE_NEWS_MAX_PAGES'); // to prevent runaway trains
         
         while ($page < $maxPages) {
             $items = $this->loadPage($page++);
