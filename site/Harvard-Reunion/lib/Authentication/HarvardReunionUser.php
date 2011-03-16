@@ -11,6 +11,10 @@ class HarvardReunionUser extends User
     public function getClass_year() {
         return $this->class_year;
     }
+    
+    public function getGraduationClass() {
+        return $this->getClass_year();
+    }
 
     protected function standardAttributes() {
         return array('class_year');

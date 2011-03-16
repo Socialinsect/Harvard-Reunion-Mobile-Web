@@ -7,7 +7,7 @@
     </div>
     <h3>{$scheduleInfo['title']}</h3>
     <h2>{$userInfo['fullname']}</h2>
-    <p><a href="#" onclick="confirmLogout())">Log out &gt;</a></p>
+    <p><a href="/login/logout?authority={$userInfo['authority']}" onclick="confirmLogout())">Log out &gt;</a></p>
   </div>
 {/capture}
 

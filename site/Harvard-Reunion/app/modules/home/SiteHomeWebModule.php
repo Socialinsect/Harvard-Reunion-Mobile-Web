@@ -74,22 +74,22 @@ class SiteHomeWebModule extends HomeWebModule {
 
   protected function initializeForPage() {
     $this->schedule = new Schedule();
-    $user = $this->schedule->getAttendee();    
+    $user = $this->getUser('HarvardReunionUser');
 
-    $facebookUser = $this->getUser();
-    $session = $facebookUser->getSessionData();
-    if (isset($session['fb_access_token'])) {
-      $facebook = new FacebookGroup($this->schedule->getFacebookGroupId(), $session['fb_access_token']);
+    $facebookUser = $this->getUser('FacebookUser');
+    $sessionData = $facebookUser->getSessionData();
+    if (isset($sessionData['fb_access_token'])) {
+      $facebook = new FacebookGroup($this->schedule->getFacebookGroupId(), $sessionData['fb_access_token']);
     } else {
       $facebook = null;
     }
   
     switch ($this->page) {
       case 'index':
-        // TODO: get from backend
         $userInfo = array(
+          'authority'=> $user->getAuthenticationAuthorityIndex(),
           'fullname' => $user->getFullName(),
-          'class' => $user->getGraduationClass(),
+          'class'    => $user->getGraduationClass(),
         );
 
         $scheduleInfo = array(
