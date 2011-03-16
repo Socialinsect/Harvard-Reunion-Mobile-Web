@@ -6,13 +6,12 @@
       <br/><span class="ribbonDate">{$scheduleInfo['dates']}</span>
     </div>
     {if $userInfo['fullname']}
-      <h3>{$scheduleInfo['title']}</h3>
+      <h3>{$scheduleInfo['title']} Reunion</h3>
       <h2>{$userInfo['fullname']}</h2>
-      <p><a href="/login/logout?authority={$userInfo['authority']}" onclick="return confirmLogout()">Sign out &gt;</a></p>
     {else}
       <h2>{$scheduleInfo['title']}</h2>
-      <p><a href="/login/logout?authority={$userInfo['authority']}" onclick="return confirmLogout()">Sign in &gt;</a></p>
     {/if}
+    <p><a href="/login/logout?authority={$userInfo['authority']}" onclick="return confirmLogout()">Sign out &gt;</a></p>
   </div>
 {/capture}
 

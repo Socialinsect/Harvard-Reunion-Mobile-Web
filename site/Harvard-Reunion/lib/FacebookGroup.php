@@ -24,13 +24,7 @@ class FacebookGroup {
       'picture',
       'position',
     ),
-    'post'  => array(
-      'id',
-      'from',
-      'created_time',
-      'message',
-      'picture',
-    ),
+    'post'  => null,
   );
   const AUTHOR_URL    = 'http://m.facebook.com/profile.php?id=';
   const OLD_GROUP_URL = 'http://m.facebook.com/group.php?gid=';
@@ -515,8 +509,10 @@ class ReunionFacebook extends Facebook {
     }
   
     $shouldCache = isset($params['method']) && $params['method'] == 'GET';
-  
-    $cacheParams = http_build_query($params);
+    
+    $cacheParams = $params;
+    unset($cacheParams['access_token']);
+    $cacheParams = http_build_query($cacheParams);
     $cacheName = "$url".($cacheParams ? '?' : '').$cacheParams;
     
     if ($shouldCache && !$this->cache) {
@@ -529,7 +525,7 @@ class ReunionFacebook extends Facebook {
       $result = $this->cache->read($cacheName);
       
     } else {
-      error_log("Requesting $cacheName");
+      error_log("Requesting {$url}?".http_build_query($params));
       $result = parent::makeRequest($url, $params, $ch);
     
       if ($shouldCache) {

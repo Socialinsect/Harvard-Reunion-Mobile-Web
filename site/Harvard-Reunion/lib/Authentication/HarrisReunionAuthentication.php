@@ -10,7 +10,10 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
         if ($this->testing) {
             $user = $this->getUser($login);
             
-            if ($password == 'janedog') {
+            if ($login == 'jane.doe@post.harvard.edu' && $password != 'janedoe') {
+              return AUTH_FAILED;
+            }
+            if ($login == 'john.smith@post.harvard.edu' && $password != 'johnsmith') {
               return AUTH_FAILED;
             }
             
