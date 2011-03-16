@@ -2,7 +2,11 @@
 
 <h1>Harvard College Reunions</h1>
 
-<h2>Login with your user ID and password from alumni.harvard.edu:</h2>
+{if $authFailed}
+  <p>We're sorry, but there was a problem with your sign-in. Please check your user ID and password and try again.</p>
+{else}
+  <h2>Login with your user ID and password from alumni.harvard.edu:</h2>
+{/if}
 
 <form id="signin" name="signin" action="login" method="POST">
 <input type="hidden" name="authority" value="harris" />

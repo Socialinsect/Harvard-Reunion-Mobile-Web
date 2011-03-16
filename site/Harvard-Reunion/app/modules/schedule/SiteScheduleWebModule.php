@@ -367,7 +367,7 @@ class SiteScheduleWebModule extends WebModule {
                   $field['subtitle'] .= ', '.$buildingInfo['attributes']['State'];
                 }
               }
-              error_log(print_r($buildingInfo, true));
+              //error_log(print_r($buildingInfo, true));
               
               $validQuery = true;
             }

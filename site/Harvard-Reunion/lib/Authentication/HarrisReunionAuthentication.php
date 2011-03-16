@@ -9,6 +9,11 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
     
         if ($this->testing) {
             $user = $this->getUser($login);
+            
+            if ($password == 'janedog') {
+              return AUTH_FAILED;
+            }
+            
             return $user ? AUTH_OK: AUTH_FAILED;
         }
     
@@ -54,7 +59,7 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
 
     public function getUser($login) {
         $file = CACHE_DIR . "/Harris/" . md5($login);
-        if (($fh = fopen($file, 'r')) !== FALSE) {
+        if (($fh = @fopen($file, 'r')) !== FALSE) {
             $row = 0;
             while (($data = fgetcsv($fh, 2000, ",")) !== FALSE) {
                 if ($row==0) {
@@ -72,7 +77,7 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             fclose($fh);
             return $user;
         } else {
-            throw new Exception("User $login not found $file");
+            //throw new Exception("User $login not found $file");
             return false;
         }
     

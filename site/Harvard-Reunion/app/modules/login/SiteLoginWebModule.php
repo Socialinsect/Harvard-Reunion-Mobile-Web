@@ -4,8 +4,11 @@ class SiteLoginWebModule extends LoginWebModule
 {
 
   protected function initializeForPage() {
-    
-    $url = $this->getArg('url', ''); //return url
+    // return url
+    $url = $this->getArg('url');
+    if (!$url) {
+      $url = URL_PREFIX.ltrim($this->buildURLForModule('home', 'index'), '/');
+    }
     $session  = $this->getSession();
 
     switch ($this->page)
@@ -38,10 +41,15 @@ class SiteLoginWebModule extends LoginWebModule
             } else {
                 $this->redirectTo('index', array());
             }
-                
-            $this->assign('message', $result ? 'Logout Successful' : 'Logout failed');
-        
+            
+            $args = array();
+            if ($authorityIndex == 'facebook' || $authorityIndex == 'twitter') {
+              $args['authority'] = $authorityIndex;
+            }
+            
+            $this->redirectTo('index', $args);
             break;
+            
         case 'login':
             $login          = $this->argVal($_POST, 'loginUser', '');
             $password       = $this->argVal($_POST, 'loginPassword', '');
@@ -86,8 +94,8 @@ class SiteLoginWebModule extends LoginWebModule
                 case AUTH_FAILED:
                 case AUTH_USER_NOT_FOUND:
                 
-                    $this->setTemplatePage('login');
-                    $this->assign('message', 'Login Failed. Please check your login and password');
+                    $this->setTemplatePage($authorityIndex);
+                    $this->assign('authFailed', true);
                     break;
                 default:
                     $this->setTemplatePage('login');
@@ -126,12 +134,13 @@ class SiteLoginWebModule extends LoginWebModule
                 $this->assign('authenticationAuthorityLinks', $authenticationAuthorityLinks);
 
                 $this->setTemplatePage('loggedin');
+            
             } elseif ($authority = $this->getArg('authority')) {
                 $this->setTemplatePage($authority);
                 $this->assign('url',$url);
                 $this->assign('cancelURL',$this->buildURL('index', array('url'=>$url)));
+            
             } else {
-
                 $this->assign('harrisURL',   $this->buildURL($this->page, array('authority'=>'harris', 'url'=>$url)));
                 $this->assign('anonymousURL',$this->buildURL($this->page, array('authority'=>'anonymous', 'url'=>$url)));
             }

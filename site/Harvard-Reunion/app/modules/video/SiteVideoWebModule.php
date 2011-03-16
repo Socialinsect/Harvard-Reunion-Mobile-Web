@@ -98,13 +98,27 @@ class SiteVideoWebModule extends WebModule {
   protected function initializeForPage() {
     $user = $this->getUser('HarvardReunionUser');
     $this->schedule = new Schedule($user);
+    
+    $facebookGroupId = $this->schedule->getFacebookGroupId();
+    $loginURL = FULL_URL_PREFIX.ltrim(self::buildURLForModule($this->id, 'login'), '/');
+    $forceLogin = true;
+    if ($this->page == 'login' || $this->page == 'help' || $this->page == 'join') {
+      $forceLogin = false;
+    }
 
-    $facebookUser = $this->getUser('FacebookUser');
-    $sessionData = $facebookUser->getSessionData();
-    $facebook = new FacebookGroup($this->schedule->getFacebookGroupId(), $sessionData['fb_access_token']);
+    $facebook = new FacebookGroup($facebookGroupId, $loginURL, $forceLogin);
     
     switch ($this->page) {
       case 'help':
+        break;
+
+      case 'login': 
+        $this->assign('loginURL', $facebook->getNeedsLoginURL());
+        break;
+
+      case 'join':
+        $this->assign('groupName', $facebook->getGroupFullName());
+        $this->assign('groupURL',  $facebook->getGroupURL());
         break;
 
       case 'index':
@@ -131,14 +145,12 @@ class SiteVideoWebModule extends WebModule {
           'bookmarked' => $this->buildViewURL('bookmarked'),
         );
 
-        $this->assign('user',      $user->getFullName());
-        $this->assign('logoutURL', self::buildURLForModule('login', 'logout', array(
-          'authority' => 'facebook'
-        )));
+        $this->assign('user',          $facebook->getUserFullName());
+        $this->assign('switchUserURL', $facebook->getSwitchUserURL());
 
-        $this->assign('views',       $views);
-        $this->assign('currentView', $view);
-        $this->assign('videos',      $posts);
+        $this->assign('views',         $views);
+        $this->assign('currentView',   $view);
+        $this->assign('videos',        $posts);
         break;
               
       case 'detail':

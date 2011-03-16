@@ -75,15 +75,13 @@ class SiteHomeWebModule extends HomeWebModule {
   protected function initializeForPage() {
     $user = $this->getUser('HarvardReunionUser');
     $this->schedule = new Schedule($user);
+    
+    $facebookGroupId = $this->schedule->getFacebookGroupId();
+    $loginURL = FULL_URL_PREFIX.ltrim(self::buildURLForModule($this->id, 'login'), '/');
+    $forceLogin = false;
+    
+    $facebook = new FacebookGroup($facebookGroupId, $loginURL, $forceLogin);
 
-    $facebookUser = $this->getUser('FacebookUser');
-    $sessionData = $facebookUser->getSessionData();
-    if (isset($sessionData['fb_access_token'])) {
-      $facebook = new FacebookGroup($this->schedule->getFacebookGroupId(), $sessionData['fb_access_token']);
-    } else {
-      $facebook = null;
-    }
-  
     switch ($this->page) {
       case 'index':
         $userInfo = array(
@@ -112,7 +110,8 @@ class SiteHomeWebModule extends HomeWebModule {
           'recent' => null,
         );
         
-        $posts = $facebook ? $facebook->getGroupStatusMessages() : array();
+        // Only grab posts if logged in
+        $posts = $facebook->getMyId() ? $facebook->getGroupStatusMessages() : array();
         $tweets = $this->getRecentTweets($this->schedule->getTwitterHashTag());
         
         $recent = false;
