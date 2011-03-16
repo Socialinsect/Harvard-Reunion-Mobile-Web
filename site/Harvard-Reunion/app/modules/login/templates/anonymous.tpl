@@ -4,10 +4,12 @@
 
 <h2>Enter anonymously by selecting your graduation year:</h2>
 
-<form id="signin" name="signin" action="/home/" method="get" onsubmit="return validateForm()">
+<form id="signin" name="signin" action="login" method="POST" onsubmit="return validateAnonymousForm()">
+<input type="hidden" name="authority" value="anonymous" />
+<input type="hidden" name="url" value="{$url|escape}" />
 
 <p>
-<select id="year" name="year">
+<select id="year" name="loginUser">
 	<option value="" selected>Please select a year</option>
 	<option value="2006">2006 (5th Reunion)</option>
 	<option value="2001">2001 (10th Reunion)</option>
@@ -24,8 +26,8 @@
 </p>
 
 <div class="signinbuttons">
-	<input class="signinbutton submit" type="submit" value="Enter"/>
-	<a class="signinbutton cancel" href="index">Cancel</a>
+	<input class="signinbutton submit" name="login_submit" type="submit" value="Enter"/>
+	<a class="signinbutton cancel" href="{$cancelURL}">Cancel</a>
 </div>
 
 

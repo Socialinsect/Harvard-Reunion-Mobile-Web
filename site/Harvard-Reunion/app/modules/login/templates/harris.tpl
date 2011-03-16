@@ -5,7 +5,8 @@
 <h2>Login with your user ID and password from alumni.harvard.edu:</h2>
 
 <form id="signin" name="signin" action="login" method="POST">
-<input type="hidden" name="authority" value="harris">
+<input type="hidden" name="authority" value="harris" />
+<input type="hidden" name="url" value="{$url|escape}" />
 
 <p><label for="username">User ID:</label>
 <input type="text" id="username" name="loginUser" />
@@ -16,8 +17,8 @@
 </p>
 
 <div class="signinbuttons">
-	<input class="signinbutton submit" type="submit" value="Sign In"/>
-	<a class="signinbutton cancel" href="index">Cancel</a>
+	<input class="signinbutton submit" type="submit" name="login_submit" value="Sign In"/>
+	<a class="signinbutton cancel" href="{$cancelURL}">Cancel</a>
 </div>
 
 
