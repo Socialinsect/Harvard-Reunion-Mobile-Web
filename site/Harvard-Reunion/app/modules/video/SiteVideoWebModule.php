@@ -96,11 +96,12 @@ class SiteVideoWebModule extends WebModule {
   }
 
   protected function initializeForPage() {
-    $user = $this->getUser();
-    $session = $user->getSessionData();
-    
-    $this->schedule = new Schedule();
-    $facebook = new FacebookGroup($this->schedule->getFacebookGroupId(), $session['fb_access_token']);
+    $user = $this->getUser('HarvardReunionUser');
+    $this->schedule = new Schedule($user);
+
+    $facebookUser = $this->getUser('FacebookUser');
+    $sessionData = $facebookUser->getSessionData();
+    $facebook = new FacebookGroup($this->schedule->getFacebookGroupId(), $sessionData['fb_access_token']);
     
     switch ($this->page) {
       case 'help':

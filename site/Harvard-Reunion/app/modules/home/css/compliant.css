@@ -70,6 +70,7 @@
   position: relative;
   padding: 0 4px 0 115px;
   clear: both;
+  min-height: 92px;
 }
 
 #social .links {

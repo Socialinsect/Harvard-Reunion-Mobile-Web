@@ -12,7 +12,7 @@ class Schedule {
   private $attendee = null;
   private $timezone = null;
 
-  function __construct() {
+  function __construct($user) {
     $this->timezone = new DateTimeZone(
       $GLOBALS['siteConfig']->getVar('LOCAL_TIMEZONE', Config::LOG_ERRORS | Config::EXPAND_VALUE));
   
@@ -21,8 +21,8 @@ class Schedule {
     if ($configFile) {
       $scheduleConfigs = parse_ini_file($configFile, true);
     }
-
-    $this->attendee = new Attendee();
+    
+    $this->attendee = $user;
     $this->scheduleId = $this->attendee->getGraduationClass();
     
     if (isset($scheduleConfigs[$this->scheduleId])) {
@@ -100,16 +100,4 @@ class Schedule {
     
     return $controller;
   }
-}
-
-
-class Attendee {  
-  public function getGraduationClass() {
-    return 2005;
-  }
-  
-  public function getFullName() {
-    return 'John Smith';
-  }
-  
 }

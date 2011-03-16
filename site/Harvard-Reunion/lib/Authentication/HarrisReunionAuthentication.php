@@ -47,8 +47,8 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             $user = $this->getUser($login);
             return AUTH_OK;
         } else {
+            error_log("Unhandled Harris output: '$result'");
             throw new Exception("Unhandled Harris output");
-            error_log("Unhandled Harris output: $result");
         }        
     }
 

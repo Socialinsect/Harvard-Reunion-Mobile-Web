@@ -73,8 +73,8 @@ class SiteHomeWebModule extends HomeWebModule {
 
 
   protected function initializeForPage() {
-    $this->schedule = new Schedule();
     $user = $this->getUser('HarvardReunionUser');
+    $this->schedule = new Schedule($user);
 
     $facebookUser = $this->getUser('FacebookUser');
     $sessionData = $facebookUser->getSessionData();

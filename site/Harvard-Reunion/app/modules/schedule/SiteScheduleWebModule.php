@@ -3,6 +3,8 @@
   * @package Module
   * @subpackage Schedule
   */
+
+includePackage('Maps');
   
 define('SCHEDULE_BOOKMARKS_COOKIE_PREFIX', 'ScheduleBookmarks_');
 define('SCHEDULE_BOOKMARKS_COOKIE_DURATION', 160 * 24 * 60 * 60);
@@ -69,13 +71,14 @@ class SiteScheduleWebModule extends WebModule {
         if ($value instanceOf DayRange) {
           $valueForType = strval($value);
         } else {
-          $valueForType = date("D M j, ", $value->get_start());
+          $valueForType = date("l, F j", $value->get_start());
           if ($value->get_end() && $value->get_end() != $value->get_start()) {
             $startDate = intval(date('Ymd', $value->get_start()));
             $endDate = intval(date('Ymd', $value->get_end()));
             
             $sameDay = $startDate == $endDate;
             if (!$sameDay) {
+              $valueForType .= ', ';
               $endIsMidnight = intval(date('His', $value->get_end())) == 0;
               if ($endIsMidnight && ($endDate - $startDate == 1)) {
                 $sameDay = true;
@@ -84,20 +87,20 @@ class SiteScheduleWebModule extends WebModule {
             
             $sameAMPM = date('a', $value->get_start()) == date('a', $value->get_end());
           
-            $valueForType .= date('g:i', $value->get_start());
+            $valueForType .= ($sameDay ? '<br/>' : ', ').date('g:i', $value->get_start());
             if (!$sameAMPM) {
               $valueForType .= date('a', $value->get_start());
             }
 
             if (!$sameDay) {
-              $valueForType .= date(" - D M j, ", $value->get_end());
+              $valueForType .= date(" - l, F j, ", $value->get_end());
             } else if ($sameAMPM) {
               $valueForType .= '-';
             } else {
               $valueForType .= ' - ';
             }
           }
-          $valueForType .= date("g:ia", $value->get_end());
+          $valueForType .= date("</br>g:ia", $value->get_end());
         }
         
         break;
@@ -185,7 +188,8 @@ class SiteScheduleWebModule extends WebModule {
   }
 
   protected function initialize() {
-    $this->schedule = new Schedule();
+    $user = $this->getUser('HarvardReunionUser');
+    $this->schedule = new Schedule($user);
   }
 
   protected function initializeForPage() {    
@@ -208,15 +212,13 @@ class SiteScheduleWebModule extends WebModule {
           $showThisDate = $day == 'all' || $day == $date;
           
           if (!isset($eventDays[$date])) {
-            $dateString = date('l, F j, Y', $iCalEvent->get_start());
-            
             if ($showThisDate) {
               $eventDays[$date] = array(
-                'title'  => $dateString,
-                'events' => array(),
+                'title'      => date('l, F j, Y', $iCalEvent->get_start()),
+                'events'     => array(),
               );
             }
-            $days[$date] = $dateString;
+            $days[$date] = date('l, M j', $iCalEvent->get_start());
           }
           
           if ($showThisDate) {
@@ -281,44 +283,48 @@ class SiteScheduleWebModule extends WebModule {
             $field['class'] = $info['class'];
           }
           
-          
-          $title = '';
-          if (isset($info['prefix'])) {
-            $title .= $info['prefix'];
-          }
-          
-          if (is_array($value)) {		
-            $fieldValues = array();
-            foreach ($value as $item) {
-              $fieldValue = '';
-              $fieldValueUrl = null;
-              
-              if (isset($info['type'])) {
-                $fieldValue  = $this->valueForType($info['type'], $item);
-                $fieldValueUrl = $this->urlForType($info['type'], $item);
-              } else {
-                $fieldValue = $item;
-              }
-              
-              if (isset($fieldValueUrl)) {
-                $fieldValue = '<a href="'.$fieldValueUrl.'">'.$fieldValue.'</a>';
-              }
-              
-              $fieldValues[] = $fieldValue;
-            }
-            $title .= implode(', ', $fieldValues);
-          
+          if (!$value && isset($info['emptyValue'])) {
+            $title = $info['emptyValue'];
+            
           } else {
-            if (isset($info['type'])) {
-              $title .= $this->valueForType($info['type'], $value);
-              $field['url'] = $this->urlForType($info['type'], $value);
-            } else {
-              $title .= nl2br($value);
+            $title = '';
+            if (isset($info['prefix'])) {
+              $title .= $info['prefix'];
             }
-          }
-          
-          if (isset($info['suffix'])) {
-            $title .= $info['suffix'];
+            
+            if (is_array($value)) {		
+              $fieldValues = array();
+              foreach ($value as $item) {
+                $fieldValue = '';
+                $fieldValueUrl = null;
+                
+                if (isset($info['type'])) {
+                  $fieldValue  = $this->valueForType($info['type'], $item);
+                  $fieldValueUrl = $this->urlForType($info['type'], $item);
+                } else {
+                  $fieldValue = $item;
+                }
+                
+                if (isset($fieldValueUrl)) {
+                  $fieldValue = '<a href="'.$fieldValueUrl.'">'.$fieldValue.'</a>';
+                }
+                
+                $fieldValues[] = $fieldValue;
+              }
+              $title .= implode(', ', $fieldValues);
+            
+            } else {
+              if (isset($info['type'])) {
+                $title .= $this->valueForType($info['type'], $value);
+                $field['url'] = $this->urlForType($info['type'], $value);
+              } else {
+                $title .= nl2br($value);
+              }
+            }
+            
+            if (isset($info['suffix'])) {
+              $title .= $info['suffix'];
+            }
           }
           
           $hasMultipleLocations = false;
@@ -349,6 +355,20 @@ class SiteScheduleWebModule extends WebModule {
             
             if (isset($info['buildingIDField'])) {
               $args['building'] = $event->get_attribute($info['buildingIDField']);
+              
+              $buildingInfo = HarvardMapDataController::getBldgDataByNumber($args['building']);
+              if (isset($buildingInfo['attributes'], $buildingInfo['attributes']['Address'])) {
+                $field['subtitle'] = mb_convert_case($buildingInfo['attributes']['Address'], MB_CASE_TITLE);
+                
+                if (isset($buildingInfo['attributes']['City'])) {
+                  $field['subtitle'] .= ', '.mb_convert_case($buildingInfo['attributes']['City'], MB_CASE_TITLE);
+                }
+                if (isset($buildingInfo['attributes']['State'])) {
+                  $field['subtitle'] .= ', '.$buildingInfo['attributes']['State'];
+                }
+              }
+              error_log(print_r($buildingInfo, true));
+              
               $validQuery = true;
             }
             
