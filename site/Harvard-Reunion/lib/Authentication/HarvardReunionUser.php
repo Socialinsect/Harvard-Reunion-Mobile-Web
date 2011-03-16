@@ -3,6 +3,7 @@
 class HarvardReunionUser extends User 
 {
     protected $class_year;
+    protected $collegeIndex = 0;
 
     public function setClass_year($class_year) {
         $this->class_year = $class_year;
@@ -14,6 +15,14 @@ class HarvardReunionUser extends User
     
     public function getGraduationClass() {
         return $this->getClass_year();
+    }
+    
+    public function setCollegeIndex($collegeIndex) {
+      $this->collegeIndex = $collegeIndex;
+    }
+
+    public function getCollegeIndex() {
+      return $this->collegeIndex;
     }
 
     protected function standardAttributes() {

@@ -2,6 +2,7 @@
   position: relative;
   line-height: 1.2em;
   padding-right: 75px;
+  min-height: 85px;
 }
 .banner p,
 .banner a,

@@ -136,6 +136,10 @@ class SiteLoginWebModule extends LoginWebModule
                 $this->setTemplatePage('loggedin');
             
             } elseif ($authority = $this->getArg('authority')) {
+                if ($authority == 'anonymous') {
+                  $this->assign('reunionYears', Schedule::getAllReunionYears());
+                }
+            
                 $this->setTemplatePage($authority);
                 $this->assign('url',$url);
                 $this->assign('cancelURL',$this->buildURL('index', array('url'=>$url)));

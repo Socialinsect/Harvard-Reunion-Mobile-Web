@@ -12,21 +12,45 @@ class Schedule {
   private $attendee = null;
   private $timezone = null;
 
+  static private function getScheduleConfig() {
+    $configFile = realpath_exists(SITE_CONFIG_DIR.'/schedule/feeds.ini');
+    
+    return $configFile ? parse_ini_file($configFile, true) : array();
+  }
+
+  static public function getAllReunionYears() {
+    $scheduleConfigs = self::getScheduleConfig();
+    
+    $reunionYears = array();
+    foreach ($scheduleConfigs as $year => $config) {
+      $reunionYears[] = array(
+        'year'     => $year,
+        'number'   => $config['REUNION_NUMBER'],
+        'separate' => is_array($config['REUNION_TITLE']),
+      );
+    }
+    
+    return $reunionYears;
+  }
+
   function __construct($user) {
     $this->timezone = new DateTimeZone(
       $GLOBALS['siteConfig']->getVar('LOCAL_TIMEZONE', Config::LOG_ERRORS | Config::EXPAND_VALUE));
   
-    $scheduleConfigs = array();
-    $configFile = realpath_exists(SITE_CONFIG_DIR.'/schedule/feeds.ini');
-    if ($configFile) {
-      $scheduleConfigs = parse_ini_file($configFile, true);
-    }
+    $scheduleConfigs = self::getScheduleConfig();
     
     $this->attendee = $user;
     $this->scheduleId = $this->attendee->getGraduationClass();
     
     if (isset($scheduleConfigs[$this->scheduleId])) {
       $this->scheduleConfig = $scheduleConfigs[$this->scheduleId];
+      
+      $collegeIndex = $this->attendee->getCollegeIndex();
+      foreach ($this->scheduleConfig as $key => $value) {
+        if (is_array($value) && isset($value[$collegeIndex])) {
+          $this->scheduleConfig[$key] = $value[$collegeIndex];
+        }
+      }
       
       $this->startDate = $this->getDateTimeForDate($this->getConfigValue('START_DATE', ''));
       $this->endDate   = $this->getDateTimeForDate($this->getConfigValue('END_DATE', ''));
@@ -75,16 +99,19 @@ class Schedule {
   }
   
   public function getDateDescription() {
-    
-    $startMonth = $this->startDate->format('M');
-    $startDay   = $this->startDate->format('j');
-    $endMonth   = $this->endDate->format('M');
-    $endDay     = $this->endDate->format('j');
-    
-    if ($startMonth == $endMonth) {
-      return "$startMonth $startDay-$endDay";
+    if (isset($this->startDate, $this->endDate)) {
+      $startMonth = $this->startDate->format('M');
+      $startDay   = $this->startDate->format('j');
+      $endMonth   = $this->endDate->format('M');
+      $endDay     = $this->endDate->format('j');
+      
+      if ($startMonth == $endMonth) {
+        return "$startMonth $startDay-$endDay";
+      } else {
+        return "$startMonth $startDay-$endMonth $endDay";
+      }
     } else {
-      return "$startMonth $startDay-$endMonth $endDay";
+      return '';
     }
   }
   

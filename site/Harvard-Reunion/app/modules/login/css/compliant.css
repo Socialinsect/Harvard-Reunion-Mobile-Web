@@ -30,7 +30,8 @@ h2 {
 	background: url(/common/images/signin-ribbon.png) repeat-x;
 }
 
-.ribbon a {
+.ribbon a,
+.ribbon a:visited {
 	display: block;
 	padding: 7px 22px 7px 10px;
 	text-decoration: none;
@@ -63,7 +64,8 @@ h2 {
 	margin-top: -4px;
 }
 
-#download a {
+#download a,
+#download a:visited {
 	display: block;
 	padding: 8px;
 	color: #c1bcb9;
@@ -137,7 +139,7 @@ select {
 	color: #fff;
 }
 
-.cancel, a.cancel {
+.cancel, a.cancel, a.cancel:visited {
 	background: url(/common/images/signin-button-grey.png);
 	color: #bbb;
 }
@@ -148,6 +150,7 @@ select {
 	line-height: 1.2em;
 }
 
-.helptext a {
+.helptext a,
+.helptext a:visited {
 	color: #c1bcb9;
 }

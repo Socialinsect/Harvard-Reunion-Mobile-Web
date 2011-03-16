@@ -10,17 +10,19 @@ class AnonymousReunionAuthentication extends AuthenticationAuthority
         }
     }
     
-    protected function isValidYear($year) {
-        return preg_match("/^(19|20)\d\d$/", $year);
-    }
-
     public function getUser($login) {
-        if ($this->isValidYear($login)) {
+        if (preg_match("/^((19|20)\d\d)(|h|r)$/", $login, $matches)) {
+            $year = $matches[1];
+        
             $user = new AnonymousReunionUser($this);
-            $user->setClass_year($login);
+            $user->setClass_year($year);
             $user->setUserID($login);
-            $user->setFirstName('Class of'); //need input on this
-            $user->setLastName($login);
+            
+            if ($matches[3] == 'h') {
+              $user->setCollegeIndex(0);
+            } else if ($matches[3] == 'r') {
+              $user->setCollegeIndex(1);
+            }
             return $user;
         }
         
@@ -34,4 +36,17 @@ class AnonymousReunionAuthentication extends AuthenticationAuthority
 
 class AnonymousReunionUser extends HarvardReunionUser 
 {
+    public function getFullName()
+    {
+        return '';
+    }
+    public function getFirstName()
+    {
+        return '';
+    }
+
+    public function getLastName()
+    {
+        return '';
+    }
 }
