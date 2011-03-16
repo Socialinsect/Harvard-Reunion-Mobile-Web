@@ -190,7 +190,7 @@ class FacebookGroup {
   }  
   
   public function addComment($objectId, $message) {
-    $result = $this->graphQuery($objectId.'/comments', array('message' => $message));
+    $result = $this->graphQuery($objectId.'/comments', 'POST', array('message' => $message));
   }
   
   public function removeComment($commentId) {
