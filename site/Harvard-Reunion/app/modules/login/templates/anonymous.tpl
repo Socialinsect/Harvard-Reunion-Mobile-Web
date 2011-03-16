@@ -18,9 +18,11 @@
 	<option value="1986">1986 (25th Reunion)</option>
 	<option value="1976">1976 (35th Reunion)</option>
 	<option value="1961">1961 (50th Reunion)</option>
-	<option value="1956">1956 (55th Reunion)</option>
+	<option value="1956h">1956 (55th - Harvard)</option>
+	<option value="1956r">1956 (55th - Radcliffe)</option>
 	<option value="1951">1951 (60th Reunion)</option>
-	<option value="1946">1946 (65th Reunion)</option>
+	<option value="1946h">1946 (65th - Harvard)</option>
+	<option value="1946r">1946 (65th - Radcliffe)</option>
 	<option value="1941">1941 (70th Reunion)</option>
 </select>
 </p>
