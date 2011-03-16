@@ -42,7 +42,8 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             CURLOPT_FOLLOWLOCATION=>true,
             CURLOPT_RETURNTRANSFER=>true,
             CURLOPT_COOKIEJAR=>CACHE_DIR . "/Harris/cookie.txt", // need cookies for it to work
-            CURLOPT_COOKIEFILE=>CACHE_DIR . "/Harris/cookie.txt"
+            CURLOPT_COOKIEFILE=>CACHE_DIR . "/Harris/cookie.txt",
+            CURLOPT_SSL_VERIFYPEER=>false //to make MAMP work. TODO make this a parameter
         );
 
         curl_setopt_array($curl, $opts);
@@ -54,6 +55,8 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             file_put_contents(CACHE_DIR . "/Harris/" . md5($login), $result);
             $user = $this->getUser($login);
             return AUTH_OK;
+        } elseif (empty($result)) {
+            return AUTH_ERROR;
         } else {
             error_log("Unhandled Harris output: '$result'");
             throw new Exception("Unhandled Harris output");
@@ -62,28 +65,28 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
 
     public function getUser($login) {
         $file = CACHE_DIR . "/Harris/" . md5($login);
-        if (($fh = @fopen($file, 'r')) !== FALSE) {
-            $row = 0;
-            while (($data = fgetcsv($fh, 2000, ",")) !== FALSE) {
-                if ($row==0) {
-                    $fields=$data;
-                } elseif (count($data)==count($fields)) {
-                    $data = array_combine($fields, $data);
-                    $user = new HarrisReunionUser($this);
-                    $user->setUserID($login);
-                    foreach ($data as $field=>$value) {
-                        $user->setAttribute($field, $value);
+        if (is_file($file)) {
+            if (($fh = fopen($file, 'r')) !== FALSE) {
+                $row = 0;
+                while (($data = fgetcsv($fh, 2000, ",")) !== FALSE) {
+                    if ($row==0) {
+                        $fields=$data;
+                    } elseif (count($data)==count($fields)) {
+                        $data = array_combine($fields, $data);
+                        $user = new HarrisReunionUser($this);
+                        $user->setUserID($login);
+                        foreach ($data as $field=>$value) {
+                            $user->setAttribute($field, $value);
+                        }
                     }
+                    $row++;
                 }
-                $row++;
+                fclose($fh);
+                return $user;
             }
-            fclose($fh);
-            return $user;
-        } else {
-            //throw new Exception("User $login not found $file");
-            return false;
         }
-    
+
+        return false;
     }
     
     public function getGroup($group) {
