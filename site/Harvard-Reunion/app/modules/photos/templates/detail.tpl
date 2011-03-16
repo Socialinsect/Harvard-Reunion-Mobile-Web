@@ -2,7 +2,7 @@
 
 <div class="nonfocal" id="navbar2">
   <a id="comment" href="#commentscrolldown">Comment</a>
-  <a id="bookmark2" onclick="toggleBookmark('{$cookieName}', '{$photo['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}')">Bookmark</a>
+  <a id="bookmark" onclick="toggleBookmark('{$cookieName}', '{$photo['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}')">Bookmark</a>
   <a id="like" href="{$photo['likeURL']}">{if $photo['liked']}Unlike{else}Like{/if}</a>  
 </div>
 

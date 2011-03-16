@@ -16,14 +16,7 @@ class FacebookGroup {
       'version',
     ),
     'video' => null,
-    'photo' => array(
-      'id',
-      'from',
-      'created_time',
-      'name',
-      'picture',
-      'position',
-    ),
+    'photo' => null,
     'post'  => null,
   );
   const AUTHOR_URL    = 'http://m.facebook.com/profile.php?id=';
