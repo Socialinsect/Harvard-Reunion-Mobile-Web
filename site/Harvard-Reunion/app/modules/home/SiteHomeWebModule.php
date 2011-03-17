@@ -44,7 +44,7 @@ class SiteHomeWebModule extends HomeWebModule {
         'result_type' => 'recent',
         'rpp'         => 1,
       ));
-      $content = file_get_contents($url);
+      $content = @file_get_contents($url);
       $this->tweetCache->write($content, $cacheName);
     }
       
