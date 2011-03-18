@@ -14,8 +14,8 @@
       <option value="" selected>Please select a year</option>
       {foreach $reunionYears as $config}
         {if $config['separate']}
-          <option value="{$config['year']}h">{$config['year']} ({$config['number']}th - Harvard)</option>
-          <option value="{$config['year']}r">{$config['year']} ({$config['number']}th - Radcliffe)</option>
+          <option value="{$config['year']}h">{$config['year']} ({$config['number']}th Harvard)</option>
+          <option value="{$config['year']}r">{$config['year']} ({$config['number']}th Radcliffe)</option>
         {else}
           <option value="{$config['year']}">{$config['year']} ({$config['number']}th Reunion)</option>
         {/if}

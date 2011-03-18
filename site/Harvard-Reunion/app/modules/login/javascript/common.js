@@ -4,3 +4,10 @@ function validateAnonymousForm() {
         return false;
     }
 }
+
+function validateSelectCollegeForm() {
+    if(document.getElementById("collegeIndex").value=="") {
+        alert("Please select your college.")
+        return false;
+    }
+}

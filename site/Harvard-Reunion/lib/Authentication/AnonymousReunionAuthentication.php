@@ -19,9 +19,9 @@ class AnonymousReunionAuthentication extends AuthenticationAuthority
             $user->setUserID($login);
             
             if ($matches[3] == 'h') {
-              $user->setCollegeIndex(0);
+              $user->setCollegeIndex(0);  // Harvard
             } else if ($matches[3] == 'r') {
-              $user->setCollegeIndex(1);
+              $user->setCollegeIndex(1);  // Radcliffe
             }
             return $user;
         }
@@ -36,17 +36,15 @@ class AnonymousReunionAuthentication extends AuthenticationAuthority
 
 class AnonymousReunionUser extends HarvardReunionUser 
 {
-    public function getFullName()
-    {
+    public function getFullName() {
         return '';
     }
-    public function getFirstName()
-    {
+    
+    public function getFirstName() {
         return '';
     }
 
-    public function getLastName()
-    {
+    public function getLastName() {
         return '';
     }
 }

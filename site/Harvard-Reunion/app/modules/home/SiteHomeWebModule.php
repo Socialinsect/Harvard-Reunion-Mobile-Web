@@ -4,10 +4,6 @@
   * @subpackage Home
   */
 
-/**
-  * @package Module
-  * @subpackage Home
-  */
 class SiteHomeWebModule extends HomeWebModule {
   private $schedule = null;
   const SEARCH_URL = 'http://search.twitter.com/search.json';
@@ -73,7 +69,7 @@ class SiteHomeWebModule extends HomeWebModule {
 
 
   protected function initializeForPage() {
-    $user = $this->getUser('HarvardReunionUser');
+    $user = $this->getUser('HarvardReunionUser');error_log(print_r($user, true));
     $this->schedule = new Schedule($user);
     
     $facebookGroupId = $this->schedule->getFacebookGroupId();

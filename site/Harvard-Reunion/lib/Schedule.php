@@ -12,14 +12,20 @@ class Schedule {
   private $attendee = null;
   private $timezone = null;
 
-  static private function getScheduleConfig() {
-    $configFile = realpath_exists(SITE_CONFIG_DIR.'/schedule/feeds.ini');
+  static private function getScheduleConfigs() {
+    static $scheduleConfigs = null;
+  
+    if (!$scheduleConfigs) {
+      $configFile = realpath_exists(SITE_CONFIG_DIR.'/schedule/feeds.ini');
     
-    return $configFile ? parse_ini_file($configFile, true) : array();
+      $scheduleConfigs = $configFile ? parse_ini_file($configFile, true) : array();
+    }
+    
+    return $scheduleConfigs;
   }
 
   static public function getAllReunionYears() {
-    $scheduleConfigs = self::getScheduleConfig();
+    $scheduleConfigs = self::getScheduleConfigs();
     
     $reunionYears = array();
     foreach ($scheduleConfigs as $year => $config) {
@@ -32,12 +38,18 @@ class Schedule {
     
     return $reunionYears;
   }
+  
+  static public function reunionClassesAreSeparate($year) {
+    $scheduleConfigs = self::getScheduleConfigs();
+    
+    return isset($scheduleConfigs[$year]) && is_array($scheduleConfigs[$year]['REUNION_TITLE']);
+  }
 
   function __construct($user) {
     $this->timezone = new DateTimeZone(
       $GLOBALS['siteConfig']->getVar('LOCAL_TIMEZONE', Config::LOG_ERRORS | Config::EXPAND_VALUE));
   
-    $scheduleConfigs = self::getScheduleConfig();
+    $scheduleConfigs = self::getScheduleConfigs();
     
     $this->attendee = $user;
     $this->scheduleId = $this->attendee->getGraduationClass();
