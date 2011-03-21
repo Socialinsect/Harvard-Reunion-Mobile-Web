@@ -445,8 +445,8 @@ class ReunionFacebook extends Facebook {
       $this->needsLoginURL = $config['needsLoginURL'];
     }
     
-    self::$CURL_OPTS[CURLOPT_SSL_VERIFYPEER] = false;
-    self::$CURL_OPTS[CURLOPT_SSL_VERIFYHOST] = 2;
+    //self::$CURL_OPTS[CURLOPT_SSL_VERIFYPEER] = false;
+    //self::$CURL_OPTS[CURLOPT_SSL_VERIFYHOST] = 2;
   }
   
   public function getNeedsLoginURL() {
