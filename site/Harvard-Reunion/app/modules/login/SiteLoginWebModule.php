@@ -64,7 +64,7 @@ class SiteLoginWebModule extends LoginWebModule
 
             if ($this->isLoggedIn($authorityIndex)) {
                 $user = $this->getUser($authorityIndex);
-                if ($authorityIndex == 'harris' && $user->needsCollegeIndex() && isset($_POST['college'])) {
+                if ($authorityIndex == 'harris' && $user->needsCollegeIndex() && isset($_POST['collegeIndex'])) {
                     $user->setCollegeIndex($_POST['collegeIndex']);
                     error_log(print_r($this->getUser($authorityIndex), true));
                 }

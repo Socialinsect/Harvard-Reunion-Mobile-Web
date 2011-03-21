@@ -160,7 +160,7 @@ class SitePhotosWebModule extends WebModule {
       
         $this->generateBookmarkOptions($postId);
         
-        $postDetails = $facebook->getPhoto($postId);
+        $postDetails = $facebook->getPhotoPost($postId);
         $postDetails['comments'] = $facebook->getComments($postId);
         
         $myId = $facebook->getMyId();        

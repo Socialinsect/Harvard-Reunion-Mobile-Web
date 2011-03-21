@@ -67,7 +67,7 @@ class FacebookGroup {
   }
   
   public function getGroupFullName() {
-    $results = $this-getGroupDetails();
+    $results = $this->getGroupDetails();
     if ($results) {
       return $results['name'];
     }
@@ -101,32 +101,27 @@ class FacebookGroup {
   }
   
   public function getGroupPhotos() {
-    //$results = $this->getGroupPosts();
-    //error_log(print_r($results, true));
-     
-    $results = $this->fqlQuery("SELECT pid, aid, owner, object_id, src, link, caption FROM photo WHERE pid IN (SELECT pid FROM photo_tag WHERE subject = {$this->groupId} LIMIT 1000) LIMIT 1000");
-    //$result3 = $this->fqlQuery("SELECT post_id,viewer_id,message,attachment FROM stream WHERE source_id={$this->groupId}  LIMIT 1000");
-    //error_log(print_r($results, true));
-    
+    $results = $this->getGroupPosts();
+    error_log(print_r($results, true));
+
     $photos = array();
-    foreach ($results as $result) {
-      if (isset($result['object_id'])) {
-        $photo = $this->getPhotoDetails(number_format($result['object_id'], 0, '.', ''));
-        
-        $photos[] = $this->formatPhoto($photo);
+    if (isset($results['data'])) {
+      foreach ($results['data'] as $i => $post) {
+        if ($post['type'] == 'photo') {
+          $photos[] = $this->formatPost($post);
+        }
       }
     }
-    usort($photos, array(get_class($this), 'positionSort'));
     
     return $photos;
   }
   
   public function getGroupVideos() {
-    $result = $this->getGroupPosts();
+    $results = $this->getGroupPosts();
 
     $videos = array();
-    if (isset($result['data'])) {
-      foreach ($result['data'] as $i => $post) {
+    if (isset($results['data'])) {
+      foreach ($results['data'] as $i => $post) {
         if ($post['type'] == 'video') {
           $videos[] = $this->formatPost($post);
         }
@@ -136,24 +131,9 @@ class FacebookGroup {
     return $videos;
   }
   
-  public function getPhoto($photoId) {
-    $photo = $this->getPhotoDetails($photoId);
-    //error_log(print_r($photo, true));    
-
-    $photoDetails =  $this->formatPhoto($photo);
-    
-    if (isset($photo['source'], $photo['height'], $photo['width'])) {
-      $photoDetails['img']['src'] = $photo['source'];
-      $photoDetails['img']['height'] = $photo['height'];
-      $photoDetails['img']['width'] = $photo['width'];
-    }
-    
-    return $photoDetails;
-  }
-  
   public function getPhotoPost($postId) {
     $post = $this->getPostDetails($postId);
-    //error_log(print_r($post, true));
+    error_log(print_r($post, true));
     
     $photoDetails = $this->formatPost($post);
     
@@ -187,30 +167,34 @@ class FacebookGroup {
     }
     
     return $videoDetails;
-  }  
+  }
+  
+  public function addPost($message) {
+    $results = $this->graphQuery($this->groupId.'/feed', 'POST', array('message' => $message));
+  }
   
   public function addComment($objectId, $message) {
-    $result = $this->graphQuery($objectId.'/comments', 'POST', array('message' => $message));
+    $results = $this->graphQuery($objectId.'/comments', 'POST', array('message' => $message));
   }
   
   public function removeComment($commentId) {
-    $result = $this->graphQuery($commentId, 'DELETE');
+    $results = $this->graphQuery($commentId, 'DELETE');
   }
   
   public function like($objectId) {
-    $result = $this->graphQuery($objectId.'/likes', 'POST');
+    $results = $this->graphQuery($objectId.'/likes', 'POST');
   }
   
   public function unlike($objectId) {
-    $result = $this->graphQuery($objectId.'/likes', 'DELETE');
+    $results = $this->graphQuery($objectId.'/likes', 'DELETE');
   }
   
   public function getComments($objectId) {
-    $result = $this->graphQuery($objectId.'/comments', array('limit' => 500));
+    $results = $this->graphQuery($objectId.'/comments', array('limit' => 500));
     
     $comments = array();
-    if (isset($result['data'])) {
-      foreach ($result['data'] as $comment) {
+    if (isset($results['data'])) {
+      foreach ($results['data'] as $comment) {
         $comments[] = array(
           'id'      => $comment['id'],
           'message' => $comment['message'],
@@ -232,9 +216,9 @@ class FacebookGroup {
   }
   
   public function getLikes($objectId) {
-    $result = $this->graphQuery($objectId.'/likes');
+    $results = $this->graphQuery($objectId.'/likes');
         
-    return isset($result['data']) ? $result['data'] : array();
+    return isset($results['data']) ? $results['data'] : array();
   }
 
   private function getGroupDetails() {
@@ -263,19 +247,25 @@ class FacebookGroup {
   }
 
   private function formatPost($post) {
-    $formatted = array(
-      'id'    => $post['id'],
-      'author'    => array(
+    $formatted = array();
+    
+    if (isset($post['id'])) {
+      $formatted['id'] = $post['id'];
+    }
+    if (isset($post['from'])) {
+      $formatted['author'] = array(
         'name' => $post['from']['name'],
         'id'   => $post['from']['id'],
         'url'  => $this->authorURL($post['from']),
-      ),
-      'when'  => array(
+      );
+    }
+    if (isset($post['created_time'])) {
+      $formatted['when'] = array(
         'time'       => strtotime($post['created_time']),
         'delta'      => self::relativeTime($post['created_time']),
         'shortDelta' => self::relativeTime($post['created_time'], true),
-      ),
-    );
+      );
+    }
     if (isset($post['message'])) {
       $formatted['message'] = $post['message'];
     }
@@ -283,23 +273,30 @@ class FacebookGroup {
       $formatted['thumbnail'] = $post['picture'];
     }
     
-    return $formatted;
+    return $formatted ? $formatted : false;
   }
   
   private function formatPhoto($photo) {
-    $formatted = array(
-      'id'    => $photo['id'],
-      'author'    => array(
+    $formatted = array();
+    
+    if (isset($photo['id'])) {
+      $formatted['id'] = $photo['id'];
+      $formatted['position'] = isset($photo['position']) ? $photo['position'] : PHP_INT_MAX;
+    }
+    if (isset($photo['from'])) {
+      $formatted['author'] = array(
         'name' => $photo['from']['name'],
         'id'   => $photo['from']['id'],
         'url'  => $this->authorURL($photo['from']),
-      ),
-      'when'  => array(
+      );
+    }
+    if (isset($photo['created_time'])) {
+      $formatted['when'] = array(
         'time'       => strtotime($photo['created_time']),
         'delta'      => self::relativeTime($photo['created_time']),
         'shortDelta' => self::relativeTime($photo['created_time'], true),
-      ),
-    );
+      );
+    }
     if (isset($photo['name'])) {
       $formatted['message'] = $photo['name'];
     }
@@ -307,9 +304,7 @@ class FacebookGroup {
       $formatted['thumbnail'] = $photo['picture'];
     }
     
-    $formatted['position'] = isset($photo['position']) ? $photo['position'] : PHP_INT_MAX;
-    
-    return $formatted;
+    return $formatted ? $formatted : false;
   }
   
   private static function commentSort($a, $b) {
@@ -436,7 +431,7 @@ class ReunionFacebook extends Facebook {
   private $needsLoginURL = '';  
   protected $cache;
   protected $cacheLifetime = 30;
-
+  
   
   public function __construct($config) {
     parent::__construct($config);
@@ -445,10 +440,19 @@ class ReunionFacebook extends Facebook {
       $this->needsLoginURL = $config['needsLoginURL'];
     }
     
+    self::$CURL_OPTS[CURLOPT_CONNECTTIMEOUT] = 20;
+    
     //self::$CURL_OPTS[CURLOPT_SSL_VERIFYPEER] = false;
     //self::$CURL_OPTS[CURLOPT_SSL_VERIFYHOST] = 2;
   }
   
+  // Override to always use touch display
+  public function getLoginUrl($params=array()) {
+    $params['display'] = 'touch';
+    return parent::getLoginUrl($params);
+    $currentUrl = $this->getCurrentUrl();
+  }
+
   public function getNeedsLoginURL() {
     return $this->getLoginURL(array(
       'next'       => $this->getCurrentUrl(),
@@ -462,6 +466,7 @@ class ReunionFacebook extends Facebook {
       'next'       => $this->getCurrentUrl(),
       'cancel_url' => $this->needsLoginURL ? $this->needsLoginURL : $this->getCurrentUrl(),
       'req_perms'  => implode(',', $this->perms),
+      'refsrc'     => $this->getCurrentUrl(),
     ));
     
     return $this->getLogoutURL(array(
@@ -476,7 +481,7 @@ class ReunionFacebook extends Facebook {
     )), true);
     
     if (is_array($results) && isset($results['error_code'])) {
-      $e = new FacebookApiException($result);
+      $e = new FacebookApiException($results);
       switch ($e->getType()) {
         // OAuth 2.0 Draft 00 style
         case 'OAuthException':
@@ -493,6 +498,7 @@ class ReunionFacebook extends Facebook {
     return $results;
   }
   
+  // Override to cache responses from the server
   protected function makeRequest($url, $params, $ch=null) {
     // Check if logged in:
     if (!$this->getSession()) {
@@ -515,17 +521,31 @@ class ReunionFacebook extends Facebook {
     }
     
     if ($shouldCache && $this->cache->isFresh($cacheName)) {
-      $result = $this->cache->read($cacheName);
+      $results = $this->cache->read($cacheName);
       
     } else {
       error_log("Requesting {$url}?".http_build_query($params));
-      $result = parent::makeRequest($url, $params, $ch);
+      $results = parent::makeRequest($url, $params, $ch);
     
       if ($shouldCache) {
-        $this->cache->write($result, $cacheName);
+        $this->cache->write($results, $cacheName);
       }
     }
     
-    return $result;
+    return $results;
   }
+
+
+  // Override to fix bug when logging in as a different user
+  // https://github.com/facebook/php-sdk/issues#issue/263
+  public function getSession() {
+    if (!$this->sessionLoaded) {
+      $signedRequest = $this->getSignedRequest();
+      if ($signedRequest && !isset($signedRequest['user_id'])) {
+        return null;
+      }
+    }
+    return parent::getSession();
+  }
+
 }
