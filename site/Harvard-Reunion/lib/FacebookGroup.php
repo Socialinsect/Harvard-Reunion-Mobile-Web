@@ -102,7 +102,7 @@ class FacebookGroup {
   
   public function getGroupPhotos() {
     $results = $this->getGroupPosts();
-    error_log(print_r($results, true));
+    //error_log(print_r($results, true));
 
     $photos = array();
     if (isset($results['data'])) {
@@ -133,7 +133,7 @@ class FacebookGroup {
   
   public function getPhotoPost($postId) {
     $post = $this->getPostDetails($postId);
-    error_log(print_r($post, true));
+    //error_log(print_r($post, true));
     
     $photoDetails = $this->formatPost($post);
     
@@ -325,6 +325,7 @@ class FacebookGroup {
         $params = $method;
         $method = 'GET';
       }
+      $params['cacheName'] = "graph_{$path}";
       
       $results = $this->facebook->api($path, $method, $params);
       
@@ -430,7 +431,7 @@ class ReunionFacebook extends Facebook {
   );
   private $needsLoginURL = '';  
   protected $cache;
-  protected $cacheLifetime = 30;
+  protected $cacheLifetime = 90;
   
   
   public function __construct($config) {
@@ -476,8 +477,9 @@ class ReunionFacebook extends Facebook {
 
   public function fql($query) {
     $results = json_decode($this->_oauthRequest($this->getUrl('api', 'method/fql.query'), array(
-      'query'  => $query,
-      'format' => 'json',
+      'query'     => $query,
+      'format'    => 'json',
+      'cacheName' => 'fql_'.md5($query),
     )), true);
     
     if (is_array($results) && isset($results['error_code'])) {
@@ -506,18 +508,27 @@ class ReunionFacebook extends Facebook {
       
       header("Location: $loginURL");
     }
-  
-    $shouldCache = isset($params['method']) && $params['method'] == 'GET';
-    
-    $cacheParams = $params;
-    unset($cacheParams['access_token']);
-    $cacheParams = http_build_query($cacheParams);
-    $cacheName = "$url".($cacheParams ? '?' : '').$cacheParams;
-    
-    if ($shouldCache && !$this->cache) {
+        
+    if (!$this->cache) {
       $this->cache = new DiskCache(CACHE_DIR."/Facebook", $this->cacheLifetime, TRUE);
       $this->cache->setSuffix('.json');
       $this->cache->preserveFormat();
+    }
+    
+    $shouldCache = false;
+    $cacheName = isset($params['cacheName']) ? $params['cacheName'] : '';
+    if ($cacheName) {
+      $method = isset($params['method']) ? $params['method'] : 'GET';
+      if ($method == 'GET') {
+        $shouldCache = true;  
+      } else {
+        // destroy cache
+        $cacheFile = $this->cache->getFullPath($cacheName);
+        if (file_exists($cacheFile)) {
+          error_log("Removing stale cache file '$cacheFile'");
+          @unlink($cacheFile);
+        }
+      }
     }
     
     if ($shouldCache && $this->cache->isFresh($cacheName)) {

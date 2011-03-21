@@ -14,7 +14,7 @@
   </div>
 </div>
 
-{foreach $comments as $i => $comment}
+{foreach $post['comments'] as $i => $comment}
   {capture name="title" assign="title"}
     {* if $comment['removeURL']}
       <a class="removeLink" href="{$comment['removeURL']}">X</a>
@@ -23,7 +23,7 @@
     <span class="smallprint"> -&nbsp;{$comment['author']['name']}, {$comment['when']['delta']}
     </span>
   {/capture}
-  {$comments[$i]['title'] = $title}
+  {$post['comments'][$i]['title'] = $title}
 {/foreach}
 
 {capture name="addCommentHTML" assign="addCommentHTML"}
@@ -40,6 +40,6 @@
 {/capture}
 {$addComment = array()}
 {$addComment['title'] = $addCommentHTML}
-{$comments[] = $addComment}
+{$post['comments'][] = $addComment}
 
-{include file="findInclude:common/templates/navlist.tpl" navlistItems=$comments}
+{include file="findInclude:common/templates/navlist.tpl" navlistItems=$post['comments']}
