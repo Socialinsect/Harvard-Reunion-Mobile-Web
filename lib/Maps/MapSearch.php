@@ -5,9 +5,18 @@ class MapSearch {
     protected $searchResults;
     protected $resultCount;
     protected $feeds;
+    protected $feedGroup;
+    
+    public function __construct($feeds) {
+        $this->setFeedData($feeds);
+    }
     
     public function setFeedData($feeds) {
         $this->feeds = $feeds;
+    }
+    
+    public function setFeedGroup($feedGroup) {
+        $this->feedGroup = $feedGroup;
     }
 
     public function getSearchResults() {
@@ -25,7 +34,7 @@ class MapSearch {
         $resultsByDistance = array();
         foreach ($this->feeds as $categoryID => $feedData) {
             $controller = MapDataController::factory($feedData['CONTROLLER_CLASS'], $feedData);
-            $controller->setCategoryId($categoryID);
+            $controller->setCategory($categoryID);
             $controller->setDebugMode($GLOBALS['siteConfig']->getVar('DATA_DEBUG'));
             if ($controller->canSearch()) { // respect config settings
                 $results = $controller->searchByProximity($center, $tolerance, $maxItems);
@@ -50,7 +59,7 @@ class MapSearch {
     
     	foreach ($this->feeds as $id => $feedData) {
             $controller = MapDataController::factory($feedData['CONTROLLER_CLASS'], $feedData);
-            $controller->setCategoryId($id);
+            $controller->setCategory($id);
             $controller->setDebugMode($GLOBALS['siteConfig']->getVar('DATA_DEBUG'));
             
             if ($controller->canSearch()) {
