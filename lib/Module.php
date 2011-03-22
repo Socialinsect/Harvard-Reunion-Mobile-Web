@@ -106,21 +106,29 @@ abstract class Module
                 $moduleFile = realpath_exists($path);
                 if ($moduleFile && include_once($moduleFile)) {
                     //found it
-                    return new $className();
+                    $info = new ReflectionClass($className);
+                    if (!$info->isAbstract()) {
+                        $module = new $className();
+                        return $module;
+                    }
+                    return false;
                 }
             }
         }
        
         throw new Exception("Module $id not found");
     }
+    
+    public function __construct() {
+        if (!$this->configModule) {
+            $this->configModule = $this->id;
+        }
+    }
    
     /**
       * Common initialization. Checks access.
       */
     protected function init() {
-        if (!$this->configModule) {
-            $this->configModule = $this->id;
-        }
         $moduleData = $this->getModuleData();
 
         if ($moduleData['disabled']) {
@@ -269,6 +277,21 @@ abstract class Module
       */
     protected function getArg($key, $default='') {
         return self::argVal($this->args, $key, $default);
+    }
+
+    /**
+      * Returns a string from the site configuration (strings.ini)
+      * @param string $var the key to retrieve
+      * @param string $default an optional default value if the key is not present
+      * @return string the value of the string or the default 
+      */
+    protected function getSiteString($var, $default='') {
+        static $config;
+        if (!$config) {
+            $config = ConfigFile::factory('strings', 'site');
+        }
+        
+        return $config->getVar($var, $opts | Config::EXPAND_VALUE);
     }
 
     /**

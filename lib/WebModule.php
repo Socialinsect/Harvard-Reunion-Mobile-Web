@@ -403,7 +403,9 @@ abstract class WebModule extends Module {
   //
   public static function factory($id, $page='', $args=array()) {
   
-    $module = parent::factory($id, 'web');
+    if (!$module = parent::factory($id, 'web')) {
+        return false;
+    }
     $module->init($page, $args);
     $module->initialize();
 
@@ -556,8 +558,12 @@ abstract class WebModule extends Module {
             $d = dir($dir);
             while (false !== ($entry = $d->read())) {
                 if ($entry[0]!='.' && is_dir(sprintf("%s/%s", $dir, $entry))) {
-                   $module = WebModule::factory($entry);
-                   $modules[$entry] = $module;
+                    try {
+                        if ($module = WebModule::factory($entry)) {
+                           $modules[$entry] = $module;
+                        }
+                    } catch (Exception $e) {
+                    }
                 }
             }
             $d->close();
@@ -798,7 +804,7 @@ abstract class WebModule extends Module {
       
       $linkCrumbs = array_slice($breadcrumbs, 0, $i);
       if (count($linkCrumbs)) { 
-        $this->cleanBreadcrumbs(&$linkCrumbs);
+        $this->cleanBreadcrumbs($linkCrumbs);
         
         $crumbParam = http_build_query(array(
           MODULE_BREADCRUMB_PARAM => $this->encodeBreadcrumbParam($linkCrumbs),
@@ -1116,8 +1122,16 @@ abstract class WebModule extends Module {
         $session = $this->getSession();
         $this->assign('session', $session);
         $this->assign('session_isLoggedIn', $this->isLoggedIn());
-
         if ($this->isLoggedIn()) {
+            $user = $session->getUser();
+            $this->assign('session_userID', $user->getUserID());
+            $this->assign('session_fullName', $user->getFullname());
+            if (count($session->getUsers())==1) {
+                $this->assign('session_logout_url', $this->buildURLForModule('login', 'logout', array('authority'=>$user->getAuthenticationAuthorityIndex())));
+            } else {
+                $this->assign('session_logout_url', $this->buildURLForModule('login', 'logout', array()));
+            }
+
             $this->assign('session_max_idle', intval($this->getSiteVar('AUTHENTICATION_IDLE_TIMEOUT', 0, Config::SUPRESS_ERRORS)));
         }
     }
