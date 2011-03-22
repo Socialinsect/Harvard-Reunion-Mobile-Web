@@ -137,7 +137,7 @@ class PeopleWebModule extends WebModule {
         $section = $this->formatPersonDetail($people[$i], $this->detailFields['name']);
         
         $results[] = array(
-          'url' => $this->buildBreadcrumbURL("/{$this->id}/detail", array(
+          'url' => $this->buildBreadcrumbURL('detail', array(
              'uid'    => $people[$i]->getId(),
              'filter' => $searchTerms
           ), false),
@@ -180,7 +180,7 @@ class PeopleWebModule extends WebModule {
     if (isset($this->feeds[$index])) {
         $feedData = $this->feeds[$index];
         if (!isset($feedData['CONTROLLER_CLASS'])) {
-            $feedData['CONTROLLER_CLASS'] = 'LDAPDataController';
+            $feedData['CONTROLLER_CLASS'] = 'LDAPPeopleController';
         }
         $controller = PeopleController::factory($feedData['CONTROLLER_CLASS'], $feedData);
         $controller->setAttributes($this->detailAttributes);
@@ -288,6 +288,7 @@ class PeopleWebModule extends WebModule {
         }
         
         $this->loadPageConfigFile('index', 'contacts');
+        $this->setAutoPhoneNumberDetection(false);
         break;
     }  
   }

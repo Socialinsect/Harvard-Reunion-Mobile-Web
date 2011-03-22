@@ -1,0 +1,16 @@
+#navbar2 {
+  position: relative;
+}
+
+#comment {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+}
+#bookmark2 {
+}
+#like {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}

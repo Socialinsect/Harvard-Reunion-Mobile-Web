@@ -2,6 +2,7 @@
   position: relative;
   line-height: 1.2em;
   padding-right: 75px;
+  min-height: 85px;
 }
 .banner p,
 .banner a,
@@ -70,6 +71,7 @@
   position: relative;
   padding: 0 4px 0 115px;
   clear: both;
+  min-height: 92px;
 }
 
 #social .links {
@@ -165,4 +167,25 @@
   max-height: 56px;
   padding-bottom: 2px;
   overflow: hidden;
+}
+
+.nonfocal a,
+.nonfocal a:visited {
+  color: #DCDAD9;
+}
+li {
+  overflow: hidden;
+}
+form textarea {
+  width: 99%;
+  line-height: normal;
+}
+form input[type=submit] {
+  float: right;
+}
+.results a.scrolllink {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  background: none;
 }

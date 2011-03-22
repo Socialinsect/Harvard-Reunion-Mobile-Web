@@ -2,7 +2,7 @@
 
 <h1>Harvard/Radcliffe Reunions</h1>
 
-<h2>Sign in with your user ID and password from alumni.harvard.edu:</h2>
+<h2>Sign in with your alumni user ID and password:</h2>
 
 <form id="signin" name="signin" action="login" method="POST">
 <input type="hidden" name="authority" value="harris" />
@@ -27,8 +27,8 @@
 <div class="clear"></div>
 
 <div class="helptext">
-<p><a href="https://post.harvard.edu/olc/pub/HAA/forgot/forgot.cgi" target="_new">Forgot your password?</a></p>
-<p>If you don’t have an alumni.harvard.edu account, <a href="https://post.harvard.edu/olc/pub/HAA/register/register.cgi" target="_new">register for one now</a>! (it's free, and you’ll need it anyway to register online for many reunion events)</p>
+<p><a href="https://post.harvard.edu/olc/pub/HAA/forgot/forgot.cgi" target="_new">Forgot password</a></p>
+<p>Don’t have an alumni.harvard.edu account? <a href="https://post.harvard.edu/olc/pub/HAA/register/register.cgi" target="_new">Register for one now</a>!</p>
 </div>
 
-{include file="findInclude:modules/login/templates/header.tpl"}
+{include file="findInclude:modules/login/templates/footer.tpl"}

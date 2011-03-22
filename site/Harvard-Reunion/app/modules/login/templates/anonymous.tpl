@@ -18,11 +18,11 @@
 	<option value="1986">1986 (25th Reunion)</option>
 	<option value="1976">1976 (35th Reunion)</option>
 	<option value="1961">1961 (50th Reunion)</option>
-	<option value="1956h">1956 (55th - Harvard)</option>
-	<option value="1956r">1956 (55th - Radcliffe)</option>
+	<option value="1956h">1956 (55th: Harvard)</option>
+	<option value="1956r">1956 (55th: Radcliffe)</option>
 	<option value="1951">1951 (60th Reunion)</option>
-	<option value="1946h">1946 (65th - Harvard)</option>
-	<option value="1946r">1946 (65th - Radcliffe)</option>
+	<option value="1946h">1946 (65th: Harvard)</option>
+	<option value="1946r">1946 (65th: Radcliffe)</option>
 	<option value="1941">1941 (70th Reunion)</option>
 </select>
 </p>
@@ -38,8 +38,7 @@
 <div class="clear"></div>
 
 <div class="helptext">
-<p>Note: entering this way will allow you to view and bookmark events, maps, and more, but will lock you out of private areas and personalized features of the site. Please <a href="signin.html">log in</a> to unlock these features.</p>
-<p>If you don’t have an alumni.harvard.edu account, <a href="https://post.harvard.edu/olc/pub/HAA/register/register.cgi" target="_new">register for one now</a>! (it's free, and you’ll need it anyway to register online for many reunion events)</p>
+<p>Note: entering this app anonymously will lock you out of private areas and personalized features. Please  <a href="signin.html">sign in</a>.</p>
 </div>
 
 {include file="findInclude:modules/login/templates/footer.tpl"}

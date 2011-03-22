@@ -4,10 +4,6 @@
   * @subpackage Home
   */
 
-/**
-  * @package Module
-  * @subpackage Home
-  */
 class SiteHomeWebModule extends HomeWebModule {
   private $schedule = null;
   const SEARCH_URL = 'http://search.twitter.com/search.json';
@@ -25,7 +21,7 @@ class SiteHomeWebModule extends HomeWebModule {
     return $data;
   }
 
-  function getRecentTweets($hashtag) {
+  function getRecentTweets($hashtag, $limit=1) {
     $cacheName = "search_{$hashtag}";
   
     if (!$this->tweetCache) {
@@ -42,9 +38,9 @@ class SiteHomeWebModule extends HomeWebModule {
       $url = self::SEARCH_URL.'?'.http_build_query(array(
         'q'           => $hashtag,
         'result_type' => 'recent',
-        'rpp'         => 1,
+        'rpp'         => $limit,
       ));
-      $content = file_get_contents($url);
+      $content = @file_get_contents($url);
       $this->tweetCache->write($content, $cacheName);
     }
       
@@ -73,17 +69,15 @@ class SiteHomeWebModule extends HomeWebModule {
 
 
   protected function initializeForPage() {
-    $this->schedule = new Schedule();
-    $user = $this->getUser('HarvardReunionUser');
+    $user = $this->getUser('HarvardReunionUser');error_log(print_r($user, true));
+    $this->schedule = new Schedule($user);
+    
+    $facebookGroupId = $this->schedule->getFacebookGroupId();
+    $loginURL = FULL_URL_PREFIX.ltrim(self::buildURLForModule($this->id, 'login'), '/');
+    $forceLogin = $this->page != 'index';
+    
+    $facebook = new FacebookGroup($facebookGroupId, $loginURL, $forceLogin);
 
-    $facebookUser = $this->getUser('FacebookUser');
-    $sessionData = $facebookUser->getSessionData();
-    if (isset($sessionData['fb_access_token'])) {
-      $facebook = new FacebookGroup($this->schedule->getFacebookGroupId(), $sessionData['fb_access_token']);
-    } else {
-      $facebook = null;
-    }
-  
     switch ($this->page) {
       case 'index':
         $userInfo = array(
@@ -101,18 +95,21 @@ class SiteHomeWebModule extends HomeWebModule {
         $socialInfo = array(
           'facebook' => array(
             'name' => $this->schedule->getFacebookGroupName(),
-            'url'  => 'http://m.facebook.com/home.php?sk=group_'.
-                        $this->schedule->getFacebookGroupId(),
+            'url' => $this->buildURL('facebook', array()),
+            //'url'  => 'http://m.facebook.com/home.php?sk=group_'.
+            //            $this->schedule->getFacebookGroupId(),
           ),
           'twitter' => array(
             'name' => $this->schedule->getTwitterHashTag(),
-            'url'  => 'http://mobile.twitter.com/searches?q='.
-                        urlencode($this->schedule->getTwitterHashTag()),
+            'url' => $this->buildURL('twitter', array()),
+            //'url'  => 'http://mobile.twitter.com/searches?q='.
+            //            urlencode($this->schedule->getTwitterHashTag()),
           ),
           'recent' => null,
         );
         
-        $posts = $facebook ? $facebook->getGroupStatusMessages() : array();
+        // Only grab posts if logged in
+        $posts = $facebook->getMyId() ? $facebook->getGroupStatusMessages() : array();
         $tweets = $this->getRecentTweets($this->schedule->getTwitterHashTag());
         
         $recent = false;
@@ -146,7 +143,37 @@ class SiteHomeWebModule extends HomeWebModule {
         $this->assign('socialInfo',   $socialInfo);
         break;
         
-     case 'search':
+      case 'search':
+        break;
+        
+      case 'facebook':
+        $this->setPageTitle('Facebook Group');
+      
+        $this->assign('user',          $facebook->getUserFullName());
+        $this->assign('groupName',     $facebook->getGroupFullName());
+        $this->assign('switchUserURL', $facebook->getSwitchUserURL());
+        $this->assign('posts',         $facebook->getGroupStatusMessages());
+        break;
+      
+      case 'twitter':
+        $this->assign('hashtag', $this->schedule->getTwitterHashTag());
+        $this->assign('posts',   $this->getRecentTweets($this->schedule->getTwitterHashTag(), 1000));
+        break;
+      
+      case 'add':
+        $message = $this->getArg('message');
+        $type = $this->getArg('type');
+        
+        if ($message && $type == 'facebook') {
+          $facebook->addPost($message);
+          $this->redirectTo('facebook', array(), true);
+          
+        } else if ($message && $type == 'twitter') {
+          $this->redirectTo('twitter', array(), true);
+          
+        } else {
+          $this->redirectTo('index');
+        }
         break;
     }
     

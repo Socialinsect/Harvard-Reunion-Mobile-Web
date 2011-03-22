@@ -1,53 +1,87 @@
 <?php
 
+require_once realpath(SITE_LIB_DIR.'/facebook-php-sdk/src/facebook.php');
+
 class FacebookGroup {
-  private $accessToken = null;
+  private $facebook = null;
   private $groupId = null;
+  private $newStyle = true;
+  private $needsLoginURL = '';
+  private $loginFailedURL = '';
+
   private $myId = null;
-  private $CURL_OPTS = array(
-    CURLOPT_CONNECTTIMEOUT => 20,
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_TIMEOUT        => 90,
-    CURLOPT_USERAGENT      => 'facebook-php-2.0',
-    CURLOPT_SSL_VERIFYPEER => false,
-    CURLOPT_SSL_VERIFYHOST => 2,
-  );
-  private $apiToURL = array(
-    'graph' => 'https://graph.facebook.com/',
-    'fql'   => 'https://api.facebook.com/method/fql.query',
-  );
   private $queryFields = array(
+    'group' => array(
+      'name',
+      'version',
+    ),
     'video' => null,
     'photo' => null,
     'post'  => null,
   );
-  const AUTHOR_URL = "http://m.facebook.com/profile.php?id=";
+  const AUTHOR_URL    = 'http://m.facebook.com/profile.php?id=';
+  const OLD_GROUP_URL = 'http://m.facebook.com/group.php?gid=';
+  const NEW_GROUP_URL = 'http://m.facebook.com/home.php?sk=group_';
   
-  protected $cache;
-  protected $cacheLifetime = 30;
+  private $APP_ID = "193872970635695";
+  private $APP_SECRET = "05a64a59e4ee8db3acae85673fb91795";
   
-  function __construct($groupId, $accessToken) {
-    $this->accessToken = $accessToken;
+  function __construct($groupId, $needsLoginURL, $forceLogin) {
+    $this->facebook = new ReunionFacebook(array(
+      'appId'         => $this->APP_ID,
+      'secret'        => $this->APP_SECRET,
+      'cookie'        => true,
+      'needsLoginURL' => $needsLoginURL,
+    ));
+
     $this->groupId = $groupId;
+    
+    if ($forceLogin && !$this->facebook->getSession()) {
+      $url = $this->facebook->getLoginStatusUrl(array(
+        'no_user' => $needsLoginURL,
+      ));
+      
+      header("Location: $url");
+    }
+  }
+  
+  public function getSwitchUserURL() {
+    return $this->facebook->getSwitchUserURL();
+  }
+  
+  public function getNeedsLoginURL() {
+    return $this->facebook->getNeedsLoginURL();
   }
   
   public function getMyId() {
-    if (!$this->myId) {
-      $json = $this->graphQuery('me');
-      if ($json) {
-        $this->myId = $json['id'];
-      }
+    return $this->facebook->getUser();
+  }
+  
+  public function getUserFullName() {
+    $results = $this->graphQuery('me');
+    if ($results) {
+      return $results['name'];
     }
+    return 'error';
     
-    return $this->myId;
   }
   
   public function getGroupFullName() {
-    $json = $this->graphQuery($this->groupId, array('cache' => true));
-    if ($json) {
-      return $json['name'];
+    $results = $this->getGroupDetails();
+    if ($results) {
+      return $results['name'];
     }
     return null;
+  }
+  
+  public function getGroupURL() {
+    $results = $this->getGroupDetails();
+
+    if (isset($results, $results['version']) && $results['version'] == 0) {
+      return self::OLD_GROUP_URL.$this->groupId;
+    } else {
+      return self::NEW_GROUP_URL.$this->groupId;
+    }
   }
   
   public function getGroupStatusMessages() {
@@ -67,32 +101,27 @@ class FacebookGroup {
   }
   
   public function getGroupPhotos() {
-    //$results = $this->getGroupPosts();
+    $results = $this->getGroupPosts();
     //error_log(print_r($results, true));
-     
-    $results = $this->fqlQuery("SELECT pid, aid, owner, object_id, src, link, caption FROM photo WHERE pid IN (SELECT pid FROM photo_tag WHERE subject = {$this->groupId} LIMIT 1000) LIMIT 1000");
-    //$result3 = $this->fqlQuery("SELECT post_id,viewer_id,message,attachment FROM stream WHERE source_id={$this->groupId}  LIMIT 1000");
-    //error_log(print_r($results, true));
-    
+
     $photos = array();
-    foreach ($results as $result) {
-      if (isset($result['object_id'])) {
-        $photo = $this->getPhotoDetails(number_format($result['object_id'], 0, '.', ''));
-        
-        $photos[] = $this->formatPhoto($photo);
+    if (isset($results['data'])) {
+      foreach ($results['data'] as $i => $post) {
+        if ($post['type'] == 'photo') {
+          $photos[] = $this->formatPost($post);
+        }
       }
     }
-    usort($photos, array(get_class($this), 'positionSort'));
     
     return $photos;
   }
   
   public function getGroupVideos() {
-    $result = $this->getGroupPosts();
+    $results = $this->getGroupPosts();
 
     $videos = array();
-    if (isset($result['data'])) {
-      foreach ($result['data'] as $i => $post) {
+    if (isset($results['data'])) {
+      foreach ($results['data'] as $i => $post) {
         if ($post['type'] == 'video') {
           $videos[] = $this->formatPost($post);
         }
@@ -100,21 +129,6 @@ class FacebookGroup {
     }
     
     return $videos;
-  }
-  
-  public function getPhoto($photoId) {
-    $photo = $this->getPhotoDetails($photoId);
-    //error_log(print_r($photo, true));    
-
-    $photoDetails =  $this->formatPhoto($photo);
-    
-    if (isset($photo['source'], $photo['height'], $photo['width'])) {
-      $photoDetails['img']['src'] = $photo['source'];
-      $photoDetails['img']['height'] = $photo['height'];
-      $photoDetails['img']['width'] = $photo['width'];
-    }
-    
-    return $photoDetails;
   }
   
   public function getPhotoPost($postId) {
@@ -153,30 +167,34 @@ class FacebookGroup {
     }
     
     return $videoDetails;
-  }  
+  }
+  
+  public function addPost($message) {
+    $results = $this->graphQuery($this->groupId.'/feed', 'POST', array('message' => $message));
+  }
   
   public function addComment($objectId, $message) {
-    $result = $this->graphQuery($objectId.'/comments', array(), array(), array('message' => $message));
+    $results = $this->graphQuery($objectId.'/comments', 'POST', array('message' => $message));
   }
   
   public function removeComment($commentId) {
-    $result = $this->graphQuery($commentId, array('method' => 'DELETE'));
+    $results = $this->graphQuery($commentId, 'DELETE');
   }
   
   public function like($objectId) {
-    $result = $this->graphQuery($objectId.'/likes', array('method' => 'POST'));
+    $results = $this->graphQuery($objectId.'/likes', 'POST');
   }
   
   public function unlike($objectId) {
-    $result = $this->graphQuery($objectId.'/likes', array('method' => 'DELETE'));
+    $results = $this->graphQuery($objectId.'/likes', 'DELETE');
   }
   
   public function getComments($objectId) {
-    $result = $this->graphQuery($objectId.'/comments', array(), array('limit' => 500));
+    $results = $this->graphQuery($objectId.'/comments', array('limit' => 500));
     
     $comments = array();
-    if (isset($result['data'])) {
-      foreach ($result['data'] as $comment) {
+    if (isset($results['data'])) {
+      foreach ($results['data'] as $comment) {
         $comments[] = array(
           'id'      => $comment['id'],
           'message' => $comment['message'],
@@ -198,11 +216,14 @@ class FacebookGroup {
   }
   
   public function getLikes($objectId) {
-    $result = $this->graphQuery($objectId.'/likes', array());
+    $results = $this->graphQuery($objectId.'/likes');
         
-    return isset($result['data']) ? $result['data'] : array();
+    return isset($results['data']) ? $results['data'] : array();
   }
 
+  private function getGroupDetails() {
+    return $this->getObjectDetails('group', $this->groupId);
+  }
   private function getPostDetails($objectId) {
     return $this->getObjectDetails('post', $objectId);
   }
@@ -218,27 +239,33 @@ class FacebookGroup {
       $args['fields'] = implode(',', $this->queryFields[$type]);
     }
   
-    return $this->graphQuery($objectId, array('cache' => true), $args);
+    return $this->graphQuery($objectId, $args);
   }
 
   private function getGroupPosts() {
-    return $this->graphQuery($this->groupId.'/feed', array('cache' => true), array('limit' => 1000));
+    return $this->graphQuery($this->groupId.'/feed', array('limit' => 1000));
   }
-  
+
   private function formatPost($post) {
-    $formatted = array(
-      'id'    => $post['id'],
-      'author'    => array(
+    $formatted = array();
+    
+    if (isset($post['id'])) {
+      $formatted['id'] = $post['id'];
+    }
+    if (isset($post['from'])) {
+      $formatted['author'] = array(
         'name' => $post['from']['name'],
         'id'   => $post['from']['id'],
         'url'  => $this->authorURL($post['from']),
-      ),
-      'when'  => array(
+      );
+    }
+    if (isset($post['created_time'])) {
+      $formatted['when'] = array(
         'time'       => strtotime($post['created_time']),
         'delta'      => self::relativeTime($post['created_time']),
         'shortDelta' => self::relativeTime($post['created_time'], true),
-      ),
-    );
+      );
+    }
     if (isset($post['message'])) {
       $formatted['message'] = $post['message'];
     }
@@ -246,23 +273,30 @@ class FacebookGroup {
       $formatted['thumbnail'] = $post['picture'];
     }
     
-    return $formatted;
+    return $formatted ? $formatted : false;
   }
   
   private function formatPhoto($photo) {
-    $formatted = array(
-      'id'    => $photo['id'],
-      'author'    => array(
+    $formatted = array();
+    
+    if (isset($photo['id'])) {
+      $formatted['id'] = $photo['id'];
+      $formatted['position'] = isset($photo['position']) ? $photo['position'] : PHP_INT_MAX;
+    }
+    if (isset($photo['from'])) {
+      $formatted['author'] = array(
         'name' => $photo['from']['name'],
         'id'   => $photo['from']['id'],
         'url'  => $this->authorURL($photo['from']),
-      ),
-      'when'  => array(
+      );
+    }
+    if (isset($photo['created_time'])) {
+      $formatted['when'] = array(
         'time'       => strtotime($photo['created_time']),
         'delta'      => self::relativeTime($photo['created_time']),
         'shortDelta' => self::relativeTime($photo['created_time'], true),
-      ),
-    );
+      );
+    }
     if (isset($photo['name'])) {
       $formatted['message'] = $photo['name'];
     }
@@ -270,9 +304,7 @@ class FacebookGroup {
       $formatted['thumbnail'] = $photo['picture'];
     }
     
-    $formatted['position'] = isset($photo['position']) ? $photo['position'] : PHP_INT_MAX;
-    
-    return $formatted;
+    return $formatted ? $formatted : false;
   }
   
   private static function commentSort($a, $b) {
@@ -287,107 +319,37 @@ class FacebookGroup {
     return self::AUTHOR_URL.$from['id'];
   }
   
-  private function graphQuery($path, $options=array(), $getParams=array(), $postParams=array()) {
-    $results = json_decode($this->query('graph', $path, $options, $getParams, $postParams), true);
-
-    if (isset($results['error'])) {
-      error_log("Got Facebook graph API error: ".print_r($results['error'], true));
+  private function graphQuery($path, $method='GET', $params=array()) {
+    try {
+      if (is_array($method) && empty($params)) {
+        $params = $method;
+        $method = 'GET';
+      }
+      $params['cacheName'] = "graph_{$path}";
+      
+      $results = $this->facebook->api($path, $method, $params);
+      
+    } catch (FacebookApiException $e) {
+      error_log("Got Facebook graph API error: ".print_r($e->getResult(), true));
       return array();
     }
     
     return $results;
   }
   
-  private function fqlQuery($query, $options=array()) {
-    $getParams = array(
-      'query'  => $query,
-      'format' => 'json',
-    );
-    
-    $results = json_decode($this->query('fql', '', $options, $getParams), true);
-
-    if (isset($results['error_code'])) {
-      error_log("Got Facebook FQL error: {$results['error_msg']} ({$results['error_code']})");
+  private function fqlQuery($query) {
+    try {
+      $results = $this->facebook->fql($query);
+      
+    } catch (FacebookApiException $e) {
+      error_log("Got Facebook FQL error: ".print_r($e->getResult(), true));
       return array();
     }
     
     return $results;
   }
-
-  private function query($type, $path, $options=array(), $getParams=array(), $postParams=array()) {
-    if (!isset($this->apiToURL[$type])) { return null; }
-    
-    // Options:
-    $method = isset($options['method']) ? $options['method'] : 'GET';
-    $cacheResult = isset($options['cache']) && $options['cache'];
-    if (count($postParams)) { 
-      $method = 'POST';
-    }
-    if ($method != 'GET') {
-      $cacheResult = false;  // only cache GET requests
-    }
-    
-    // json_encode all params values that are not strings
-    foreach ($getParams as $key => $value) {
-      if (!is_string($value)) {
-        $getParams[$key] = json_encode($value);
-      }
-    }    
-    foreach ($postParams as $key => $value) {
-      if (!is_string($value)) {
-        $postParams[$key] = json_encode($value);
-      }
-    }    
-    
-    $cacheParams = http_build_query($getParams, null, '&');
-    $cacheName = "{$type}_$path".($cacheParams ? '?' : '').$cacheParams;
-    
-    if ($cacheResult && !$this->cache) {
-      $this->cache = new DiskCache(CACHE_DIR."/Facebook", $this->cacheLifetime, TRUE);
-      $this->cache->setSuffix('.json');
-      $this->cache->preserveFormat();
-    }
-    
-    if ($cacheResult && $this->cache->isFresh($cacheName)) {
-      $result = $this->cache->read($cacheName);
-      
-    } else {
-      // add access token to params
-      $getParams['access_token'] = $this->accessToken;
-      
-      $getParamString = http_build_query($getParams, null, '&');
-      $url = $this->apiToURL[$type].$path.($getParamString ? '?' : '').$getParamString;
-
-      error_log("$method request for $url");
-      
-      $opts = $this->CURL_OPTS;
-      $opts[CURLOPT_CUSTOMREQUEST] = $method;
-      if (count($postParams)) {
-        error_log("... with post parameters ".json_encode($postParams));
-        $opts[CURLOPT_POSTFIELDS] = $postParams;
-      }
-      $opts[CURLOPT_URL] = $url;
-      $opts[CURLOPT_HTTPHEADER] = array('Expect:'); // disable 'Expect: 100-continue' behavior
-      
-      $ch = curl_init();
-      curl_setopt_array($ch, $opts);
-      $result = curl_exec($ch);
-      curl_close($ch);
-      
-      if ($cacheResult) {
-        if ($result !== false && $result !== 'false') {
-          $this->cache->write($result, $cacheName);
-          
-        } else if ($result === false) {
-          error_log("Request failed, reading expired cache");
-          $result = $this->cache->read($cacheName);
-        }
-      }
-    }
-    
-    return $result;
-  }
-
+  
+  
   public static function relativeTime($time=null, $shortFormat=false, $limit=86400) {
     if (empty($time) || (!is_string($time) && !is_numeric($time))) {
       $time = time();
@@ -454,4 +416,147 @@ class FacebookGroup {
     
     return $html;
   }
+}
+
+class ReunionFacebook extends Facebook {
+  private $perms = array(
+    'user_about_me',
+    'user_photos',
+    'user_videos',
+    'user_checkins',
+    'publish_checkins',
+    'read_stream',
+    'publish_stream',
+    //'offline_access',
+  );
+  private $needsLoginURL = '';  
+  protected $cache;
+  protected $cacheLifetime = 90;
+  
+  
+  public function __construct($config) {
+    parent::__construct($config);
+
+    if (isset($config['needsLoginURL'])) {
+      $this->needsLoginURL = $config['needsLoginURL'];
+    }
+    
+    self::$CURL_OPTS[CURLOPT_CONNECTTIMEOUT] = 20;
+    
+    //self::$CURL_OPTS[CURLOPT_SSL_VERIFYPEER] = false;
+    //self::$CURL_OPTS[CURLOPT_SSL_VERIFYHOST] = 2;
+  }
+  
+  // Override to always use touch display
+  public function getLoginUrl($params=array()) {
+    $params['display'] = 'touch';
+    return parent::getLoginUrl($params);
+    $currentUrl = $this->getCurrentUrl();
+  }
+
+  public function getNeedsLoginURL() {
+    return $this->getLoginURL(array(
+      'next'       => $this->getCurrentUrl(),
+      'cancel_url' => $this->needsLoginURL ? $this->needsLoginURL : $this->getCurrentUrl(),
+      'req_perms'  => implode(',', $this->perms),
+    ));
+  }
+   
+  public function getSwitchUserURL() {
+    $loginURL = $this->getLoginURL(array(
+      'next'       => $this->getCurrentUrl(),
+      'cancel_url' => $this->needsLoginURL ? $this->needsLoginURL : $this->getCurrentUrl(),
+      'req_perms'  => implode(',', $this->perms),
+      'refsrc'     => $this->getCurrentUrl(),
+    ));
+    
+    return $this->getLogoutURL(array(
+      'next' => $loginURL,
+    ));
+  }
+
+  public function fql($query) {
+    $results = json_decode($this->_oauthRequest($this->getUrl('api', 'method/fql.query'), array(
+      'query'     => $query,
+      'format'    => 'json',
+      'cacheName' => 'fql_'.md5($query),
+    )), true);
+    
+    if (is_array($results) && isset($results['error_code'])) {
+      $e = new FacebookApiException($results);
+      switch ($e->getType()) {
+        // OAuth 2.0 Draft 00 style
+        case 'OAuthException':
+        // OAuth 2.0 Draft 10 style
+        case 'invalid_token':
+          $this->setSession(null);
+      }
+      throw $e;
+      
+    } else if (!is_array($results)) {
+      $results = array();
+    }
+    
+    return $results;
+  }
+  
+  // Override to cache responses from the server
+  protected function makeRequest($url, $params, $ch=null) {
+    // Check if logged in:
+    if (!$this->getSession()) {
+      $loginURL = $this->getNeedsLoginURL();
+      
+      header("Location: $loginURL");
+    }
+        
+    if (!$this->cache) {
+      $this->cache = new DiskCache(CACHE_DIR."/Facebook", $this->cacheLifetime, TRUE);
+      $this->cache->setSuffix('.json');
+      $this->cache->preserveFormat();
+    }
+    
+    $shouldCache = false;
+    $cacheName = isset($params['cacheName']) ? $params['cacheName'] : '';
+    if ($cacheName) {
+      $method = isset($params['method']) ? $params['method'] : 'GET';
+      if ($method == 'GET') {
+        $shouldCache = true;  
+      } else {
+        // destroy cache
+        $cacheFile = $this->cache->getFullPath($cacheName);
+        if (file_exists($cacheFile)) {
+          error_log("Removing stale cache file '$cacheFile'");
+          @unlink($cacheFile);
+        }
+      }
+    }
+    
+    if ($shouldCache && $this->cache->isFresh($cacheName)) {
+      $results = $this->cache->read($cacheName);
+      
+    } else {
+      error_log("Requesting {$url}?".http_build_query($params));
+      $results = parent::makeRequest($url, $params, $ch);
+    
+      if ($shouldCache) {
+        $this->cache->write($results, $cacheName);
+      }
+    }
+    
+    return $results;
+  }
+
+
+  // Override to fix bug when logging in as a different user
+  // https://github.com/facebook/php-sdk/issues#issue/263
+  public function getSession() {
+    if (!$this->sessionLoaded) {
+      $signedRequest = $this->getSignedRequest();
+      if ($signedRequest && !isset($signedRequest['user_id'])) {
+        return null;
+      }
+    }
+    return parent::getSession();
+  }
+
 }

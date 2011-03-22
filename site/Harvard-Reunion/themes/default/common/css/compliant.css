@@ -150,6 +150,14 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 	border-color: #700d15;
 }
 
+#navbar2 a#bookmark {
+  background: none;
+  text-decoration: underline;
+  cursor: pointer;
+}
+#navbar2 a#bookmark.on:before {
+  content: 'Un-';
+}
 
 
 /* Footer */

@@ -12,21 +12,57 @@ class Schedule {
   private $attendee = null;
   private $timezone = null;
 
-  function __construct() {
+  static private function getScheduleConfigs() {
+    static $scheduleConfigs = null;
+  
+    if (!$scheduleConfigs) {
+      $configFile = realpath_exists(SITE_CONFIG_DIR.'/schedule/feeds.ini');
+    
+      $scheduleConfigs = $configFile ? parse_ini_file($configFile, true) : array();
+    }
+    
+    return $scheduleConfigs;
+  }
+
+  static public function getAllReunionYears() {
+    $scheduleConfigs = self::getScheduleConfigs();
+    
+    $reunionYears = array();
+    foreach ($scheduleConfigs as $year => $config) {
+      $reunionYears[] = array(
+        'year'     => $year,
+        'number'   => $config['REUNION_NUMBER'],
+        'separate' => is_array($config['REUNION_TITLE']),
+      );
+    }
+    
+    return $reunionYears;
+  }
+  
+  static public function reunionClassesAreSeparate($year) {
+    $scheduleConfigs = self::getScheduleConfigs();
+    
+    return isset($scheduleConfigs[$year]) && is_array($scheduleConfigs[$year]['REUNION_TITLE']);
+  }
+
+  function __construct($user) {
     $this->timezone = new DateTimeZone(
       $GLOBALS['siteConfig']->getVar('LOCAL_TIMEZONE', Config::LOG_ERRORS | Config::EXPAND_VALUE));
   
-    $scheduleConfigs = array();
-    $configFile = realpath_exists(SITE_CONFIG_DIR.'/schedule/feeds.ini');
-    if ($configFile) {
-      $scheduleConfigs = parse_ini_file($configFile, true);
-    }
-
-    $this->attendee = new Attendee();
+    $scheduleConfigs = self::getScheduleConfigs();
+    
+    $this->attendee = $user;
     $this->scheduleId = $this->attendee->getGraduationClass();
     
     if (isset($scheduleConfigs[$this->scheduleId])) {
       $this->scheduleConfig = $scheduleConfigs[$this->scheduleId];
+      
+      $collegeIndex = $this->attendee->getCollegeIndex();
+      foreach ($this->scheduleConfig as $key => $value) {
+        if (is_array($value) && isset($value[$collegeIndex])) {
+          $this->scheduleConfig[$key] = $value[$collegeIndex];
+        }
+      }
       
       $this->startDate = $this->getDateTimeForDate($this->getConfigValue('START_DATE', ''));
       $this->endDate   = $this->getDateTimeForDate($this->getConfigValue('END_DATE', ''));
@@ -75,16 +111,19 @@ class Schedule {
   }
   
   public function getDateDescription() {
-    
-    $startMonth = $this->startDate->format('M');
-    $startDay   = $this->startDate->format('j');
-    $endMonth   = $this->endDate->format('M');
-    $endDay     = $this->endDate->format('j');
-    
-    if ($startMonth == $endMonth) {
-      return "$startMonth $startDay-$endDay";
+    if (isset($this->startDate, $this->endDate)) {
+      $startMonth = $this->startDate->format('M');
+      $startDay   = $this->startDate->format('j');
+      $endMonth   = $this->endDate->format('M');
+      $endDay     = $this->endDate->format('j');
+      
+      if ($startMonth == $endMonth) {
+        return "$startMonth $startDay-$endDay";
+      } else {
+        return "$startMonth $startDay-$endMonth $endDay";
+      }
     } else {
-      return "$startMonth $startDay-$endMonth $endDay";
+      return '';
     }
   }
   
@@ -100,16 +139,4 @@ class Schedule {
     
     return $controller;
   }
-}
-
-
-class Attendee {  
-  public function getGraduationClass() {
-    return 2005;
-  }
-  
-  public function getFullName() {
-    return 'John Smith';
-  }
-  
 }

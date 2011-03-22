@@ -5,8 +5,12 @@
       <br/><span class="ribbonDesc">Reunion</span>
       <br/><span class="ribbonDate">{$scheduleInfo['dates']}</span>
     </div>
-    <h3>{$scheduleInfo['title']}</h3>
-    <h2>{$userInfo['fullname']}</h2>
+    {if $userInfo['fullname']}
+      <h3>{$scheduleInfo['title']} Reunion</h3>
+      <h2>{$userInfo['fullname']}</h2>
+    {else}
+      <h2>{$scheduleInfo['title']}</h2>
+    {/if}
     <p><a href="/login/logout?authority={$userInfo['authority']}" onclick="return confirmLogout()">Sign out &gt;</a></p>
   </div>
 {/capture}

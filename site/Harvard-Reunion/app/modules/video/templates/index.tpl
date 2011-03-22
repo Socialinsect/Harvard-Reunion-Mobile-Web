@@ -37,7 +37,7 @@
 
 <div class="nonfocal">
   <span class="smallprint">
-    Signed in as {$user} (<a href="{$logoutURL}">change</a>)
+    Signed in as {$user} (<a href="{$switchUserURL}">change</a>)
   </span>
 </div>
 

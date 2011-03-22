@@ -33,7 +33,7 @@
 </div>
 
 <div class="nonfocal">
-  <span class="smallprint">Signed in as {$user} (<a href="{$logoutURL}">change</a>)</span>
+  <span class="smallprint">Signed in as {$user} (<a href="{$switchUserURL}">change</a>)</span>
 </div>
 
 {include file="findInclude:common/templates/footer.tpl"}

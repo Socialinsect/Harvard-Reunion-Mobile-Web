@@ -373,8 +373,10 @@ class CalendarWebModule extends WebModule {
         $end = clone $start;
         $end->setTime(23,59,59);
         
-        $type = $this->getArg('type', 'static');
-        $feed = $this->getFeed('events', $type);
+        $type     = $this->getArg('type', 'static');
+        $calendar = $this->getArg('calendar', $this->getDefaultFeed($type));
+
+        $feed = $this->getFeed($calendar, $type);
         $feed->setStartDate($start);
         $feed->setEndDate($end);
         $iCalEvents = $feed->items();
@@ -403,7 +405,7 @@ class CalendarWebModule extends WebModule {
                 if ($event->overlaps(new TimeRange($now, $now))) {
                     $availability = 'In use';
                 } elseif ($event->overlaps(new TimeRange($now + 900, $now + 1800))) {
-                    $availability = 'In use from ' . $this->timeText($event, true);
+                    $availability = 'In use at ' . $this->timeText($event, true);
                 }
             }
                 
@@ -442,6 +444,7 @@ class CalendarWebModule extends WebModule {
 
       case 'index':
         if ($userCalendar = $this->getDefaultFeed('user')) {
+            $this->assign('selectedFeed', 'user|' . $userCalendar);
             $feed = $this->getFeed($userCalendar, 'user');
             $feeds = $this->getFeeds('user');
             $upcomingEvents = array();
@@ -598,7 +601,7 @@ class CalendarWebModule extends WebModule {
           );
         }
 
-        $this->assign('feedTitle', $this->getFeedTitle($type, $user));
+        $this->assign('feedTitle', $this->getFeedTitle($calendar, $type));
         $this->assign('calendar', $calendar);
         $this->assign('current', $current);
         $this->assign('events',  $events);        
@@ -777,10 +780,14 @@ class CalendarWebModule extends WebModule {
         break;
         
       case 'year':
-        $year      = $this->getArg('year', date('Y'));
+        $year      = $this->getArg('year', null);
         $type      = $this->getArg('type', 'static');
         $calendar  = $this->getArg('calendar', $this->getDefaultFeed($type));
         $month     = $this->getArg('month', 1); // default to january
+        
+        if (!$year) {
+            $year = date('m') < $month ? date('Y') - 1 : date('Y');
+        }
         
         $start = new DateTime(sprintf("%d%02d01", $year, $month), $this->timezone);
         $end   = new DateTime(sprintf("%d%02d01", $year+1, $month), $this->timezone);
