@@ -1,6 +1,6 @@
 {include file="findInclude:modules/login/templates/header.tpl"}
 
-<h1>Harvard/Radcliffe Reunions</h1>
+<h1>Harvard/Radcliffe College Reunions</h1>
 
 <h2>Enter anonymously by selecting your graduation year:</h2>
 
@@ -38,7 +38,7 @@
 <div class="clear"></div>
 
 <div class="helptext">
-<p>Note: entering this app anonymously will lock you out of private areas and personalized features. Please  <a href="signin.html">sign in</a>.</p>
+<p>Note: entering this app anonymously will lock you out of private areas and personalized features. For the full reunion app experience, please <a href="signin.html">sign in</a>.</p>
 </div>
 
 {include file="findInclude:modules/login/templates/footer.tpl"}

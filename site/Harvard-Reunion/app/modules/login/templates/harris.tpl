@@ -1,6 +1,6 @@
 {include file="findInclude:modules/login/templates/header.tpl"}
 
-<h1>Harvard/Radcliffe Reunions</h1>
+<h1>Harvard/Radcliffe College Reunions</h1>
 
 <h2>Sign in with your alumni user ID and password:</h2>
 
@@ -27,8 +27,8 @@
 <div class="clear"></div>
 
 <div class="helptext">
+<p>Not registered? <a href="https://post.harvard.edu/olc/pub/HAA/register/register.cgi" target="_new">Sign up</a> for an alumni login.</p>
 <p><a href="https://post.harvard.edu/olc/pub/HAA/forgot/forgot.cgi" target="_new">Forgot password</a></p>
-<p>Don’t have an alumni.harvard.edu account? <a href="https://post.harvard.edu/olc/pub/HAA/register/register.cgi" target="_new">Register for one now</a>!</p>
 </div>
 
 {include file="findInclude:modules/login/templates/footer.tpl"}

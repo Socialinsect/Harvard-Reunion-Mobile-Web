@@ -1,7 +1,7 @@
 {include file="findInclude:common/templates/header.tpl" customHeader=''}
 
-<h1>Harvard/Radcliffe Reunions</h1>
-<p id="intro">Access your personalized schedule, maps, news, photos and more, and stay tuned in to what’s going on at your reunion.</p>
+<h1>Harvard/Radcliffe College Reunions</h1>
+<p id="intro">Veritas Mobile: Your Reunion Connection. View your personalized schedule, maps, news, photos, and more.</p>
 
 <div class="ribbon"><a href="{$harrisURL}">Sign in with your alumni login<br/>
 <span class="smallprint">This unlocks private features of the website.</span></a></div>
