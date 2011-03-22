@@ -830,7 +830,7 @@ abstract class WebModule extends Module {
   private function getBreadcrumbString($addBreadcrumb=true) {
     $breadcrumbs = $this->breadcrumbs;
     
-    $this->cleanBreadcrumbs(&$breadcrumbs);
+    $this->cleanBreadcrumbs($breadcrumbs);
     
     if ($addBreadcrumb) {
       $args = $this->args;
