@@ -17,3 +17,5 @@
 	<div id="download"><a href="http://itunes.apple.com/us/app/harvard-mobile/id389199460"><img src="common/images/signin-appstore.png" width="124" height="46" alt="Download">Get the free Harvard Reunion iPhone app</a></div>
 
 </div>
+
+{include file="findInclude:modules/login/templates/footer.tpl"}
