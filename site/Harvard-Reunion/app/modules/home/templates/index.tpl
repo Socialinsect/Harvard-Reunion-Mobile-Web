@@ -19,12 +19,6 @@
 
 {include file="findInclude:common/templates/springboard.tpl" springboardItems=$modules springboardID="homegrid"}
 
-<script type="text/javascript">
-	function confirmLogout() {
-		return (confirm("Are you sure you want to sign out? Events you\'ve bookmarked in this website may be forgotten.")) 
-	}
-</script>
-
 <div id="social">
   <div class="links">
     <a class="facebookLink" href="{$socialInfo['facebook']['url']}">
@@ -34,11 +28,13 @@
       <div class="wrapper">{$socialInfo['twitter']['name']}</div>
     </a>
   </div>
-  <div class="recent {$socialInfo['recent']['type']}">
+  <div id="recentContainer" class="recent {$socialInfo['recent']['type']}">
     <div class="cbl"></div>
     <div class="chatbubble">
-      <div id="ellipsis_0" class="message">{$socialInfo['recent']['message']}</div>
-      <div id="ellipsis_1" class="info smallprint">{$socialInfo['recent']['author']}, {$socialInfo['recent']['age']}</div>
+      <div id="ellipsis_0" class="message"><span id="recentMessage">{$socialInfo['recent']['message']}</span></div>
+      <div id="ellipsis_1" class="info smallprint">
+        <span id="recentAuthor">{$socialInfo['recent']['author']}</span>, <span id="recentAge">{$socialInfo['recent']['age']}</span>
+      </div>
     </div>
     <div class="cbr"></div>
   </div>

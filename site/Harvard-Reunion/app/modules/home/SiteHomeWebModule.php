@@ -6,9 +6,6 @@
 
 class SiteHomeWebModule extends HomeWebModule {
   private $schedule = null;
-  const SEARCH_URL = 'http://search.twitter.com/search.json';
-  protected $tweetCache;
-  protected $tweetCacheLifetime = 30;
 
   static public function loadReunionConfig() {
     $data = array();
@@ -20,59 +17,13 @@ class SiteHomeWebModule extends HomeWebModule {
     
     return $data;
   }
-
-  function getRecentTweets($hashtag, $limit=1) {
-    $cacheName = "search_{$hashtag}";
   
-    if (!$this->tweetCache) {
-      $this->tweetCache = new DiskCache(CACHE_DIR."/Twitter", $this->tweetCacheLifetime, TRUE);
-      $this->tweetCache->setSuffix('.json');
-      $this->tweetCache->preserveFormat();
-    }
-    
-    $content = '';
-    if ($this->tweetCache->isFresh($cacheName)) {
-      $content = $this->tweetCache->read($cacheName);
-      
-    } else {
-      $url = self::SEARCH_URL.'?'.http_build_query(array(
-        'q'           => $hashtag,
-        'result_type' => 'recent',
-        'rpp'         => $limit,
-      ));
-      $content = @file_get_contents($url);
-      $this->tweetCache->write($content, $cacheName);
-    }
-      
-    $json = json_decode($content, true);
-    
-    $tweets = array();
-    if (is_array($json) && isset($json['results'])) {
-      foreach ($json['results'] as $result) {
-        $tweets[] = array(
-          'message' => $result['text'],
-          'author'  => array(
-            'name' => $result['from_user'],
-            'id'   => $result['from_user_id'],
-          ),
-          'when' => array(
-            'time'       => strtotime($result['created_at']),
-            'delta'      => FacebookGroup::relativeTime($result['created_at']),
-            'shortDelta' => FacebookGroup::relativeTime($result['created_at'], true),
-          ),
-        );
-      }
-    }
-    
-    return $tweets;
-  }
-
-
   protected function initializeForPage() {
-    $user = $this->getUser('HarvardReunionUser');error_log(print_r($user, true));
+    $user = $this->getUser('HarvardReunionUser');
     $this->schedule = new Schedule($user);
     
     $facebook = $this->schedule->getFacebookGroup();
+    $twitter = $this->schedule->getTwitterFeed();
 
     switch ($this->page) {
       case 'index':
@@ -102,7 +53,7 @@ class SiteHomeWebModule extends HomeWebModule {
         
         // Only grab posts if logged in
         $posts = $facebook->getMyId() ? $facebook->getGroupStatusMessages() : array();
-        $tweets = $this->getRecentTweets($this->schedule->getTwitterHashTag());
+        $tweets = $twitter->getRecentTweets();
         
         $recent = false;
         $recentType = false;
@@ -130,6 +81,9 @@ class SiteHomeWebModule extends HomeWebModule {
         $this->addInternalJavascript('/common/javascript/lib/ellipsizer.js');
         $this->addOnLoad('initHome();');
         
+        $restURL = URL_BASE.API_URL_PREFIX."/{$this->id}/recent";
+        $this->addInlineJavascript('var RECENT_MESSAGE_AJAX_URL = "'.$restURL.'"');
+        
         $this->assign('userInfo',     $userInfo);
         $this->assign('scheduleInfo', $scheduleInfo);
         $this->assign('socialInfo',   $socialInfo);
@@ -139,8 +93,6 @@ class SiteHomeWebModule extends HomeWebModule {
         break;
         
       case 'facebook':
-        $this->setPageTitle('Facebook Group');
-        
         if ($facebook->needsLogin()) {
           $this->assign('needsLogin', true);
           $this->assign('service', array(
@@ -152,7 +104,6 @@ class SiteHomeWebModule extends HomeWebModule {
           
         } else if (!$facebook->isMemberOfGroup()) {
           $this->assign('needsJoinGroup', true);
-          $this->assign('groupURL', $facebook->getGroupURL());
           
         } else {
           $this->assign('user',          $facebook->getUserFullName());
@@ -162,12 +113,14 @@ class SiteHomeWebModule extends HomeWebModule {
         }
         
         $this->assign('groupName', $facebook->getGroupFullName());
+        $this->assign('groupURL', $facebook->getGroupURL());
         break;
       
       case 'twitter':
-        $this->assign('hashtag', $this->schedule->getTwitterHashTag());
-        $this->assign('tweetURL', $this->schedule->getTweetURL());
-        $this->assign('posts',   $this->getRecentTweets($this->schedule->getTwitterHashTag(), 1000));
+        $this->assign('hashtag',    $this->schedule->getTwitterHashTag());
+        $this->assign('tweetURL',   $twitter->getTweetURL());
+        $this->assign('twitterURL', $twitter->getFeedURL());
+        $this->assign('posts',      $twitter->getRecentTweets());
         break;
       
       case 'add':

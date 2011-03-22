@@ -12,6 +12,7 @@ class Schedule {
   private $attendee = null;
   private $timezone = null;
   private $facebook = null;
+  private $twitter = null;
 
   static private function getScheduleConfigs() {
     static $scheduleConfigs = null;
@@ -115,6 +116,14 @@ class Schedule {
   public function getTwitterHashTag() {
     return $this->getConfigValue('TWITTER_HASHTAG', '');
   }
+  public function getTwitterFeed() {
+    if (!$this->twitter) {
+      $this->twitter = new TwitterHashtag($this->getTwitterHashTag());
+    }
+    
+    return $this->twitter;
+  }
+  
   public function getStartDate() {
     return $this->startDate;
   }

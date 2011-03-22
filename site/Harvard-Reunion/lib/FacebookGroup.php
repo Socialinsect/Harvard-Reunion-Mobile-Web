@@ -438,7 +438,7 @@ class ReunionFacebook extends Facebook {
     //'offline_access',
   );
   protected $cache;
-  protected $cacheLifetime = 90;
+  protected $cacheLifetime = 60;
   
   
   public function __construct($config) {
@@ -531,6 +531,7 @@ class ReunionFacebook extends Facebook {
         }
       }
     }
+    unset($params['cacheName']); // Don't send this to facebook
     
     if ($shouldCache && $this->cache->isFresh($cacheName)) {
       $results = $this->cache->read($cacheName);

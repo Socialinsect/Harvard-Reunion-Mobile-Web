@@ -189,3 +189,22 @@ form input[type=submit] {
   padding: 0;
   background: none;
 }
+
+.tweetButton {
+  display: block;
+  float: right;
+}
+.tweetLink {
+  display: inline-block;
+  padding-left: 30px;
+  background: transparent url('/common/images/button-twitter.png') no-repeat left center;
+  background-size: 24px;
+  line-height: 30px;
+}
+.fbpostsLink {
+  display: inline-block;
+  padding-left: 30px;
+  background: transparent url('/common/images/button-facebook.png') no-repeat left center;
+  background-size: 24px;
+  line-height: 30px;
+}

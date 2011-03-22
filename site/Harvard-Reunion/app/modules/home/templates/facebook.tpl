@@ -35,6 +35,14 @@
   {$addPost['title'] = $addPostHTML}
   {$r = array_unshift($posts, $addPost)}
   
+  
+  {$more = array()}
+  {$more['title'] = '<span class="fbpostsLink">More results at facebook.com</span>'}
+  {$more['url'] = $groupURL}
+  {$more['class'] = 'external'}
+  {$posts[] = $more}
+
+  
   {include file="findInclude:common/templates/results.tpl" results=$posts}
   
   <div class="nonfocal">

@@ -8,4 +8,29 @@ function initHome() {
         if (!elem) { break; }
         homeEllipsizer.addElement(elem);
     }
+    
+    setInterval(updateRecentMessage, 5000);
+}
+
+function updateRecentMessage() {
+  var httpRequest = new XMLHttpRequest();
+  httpRequest.onreadystatechange = function() {
+    if (httpRequest.readyState == 4) {
+      var json = JSON.parse(httpRequest.responseText);
+      
+      if (json.response && json.response.message) {
+        document.getElementById('recentMessage').innerHTML = json.response.message;
+        document.getElementById('recentAuthor' ).innerHTML = json.response.author;
+        document.getElementById('recentAge'    ).innerHTML = json.response.age;
+        
+        document.getElementById('recentContainer').className = 'recent '+ json.response.type;
+      }
+    }
+  };
+  httpRequest.open("GET", RECENT_MESSAGE_AJAX_URL, true);
+  httpRequest.send(null);
+}
+
+function confirmLogout() {
+  return (confirm("Are you sure you want to sign out? Events you've bookmarked in this website may be forgotten.")) 
 }
