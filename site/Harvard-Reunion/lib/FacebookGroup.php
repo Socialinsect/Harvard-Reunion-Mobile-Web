@@ -546,6 +546,44 @@ class ReunionFacebook extends Facebook {
     return $results;
   }
 
+  /**
+   * Returns the Current URL, stripping it of known FB parameters that should
+   * not persist.
+   *
+   * @return String the current URL
+   */
+  protected function getCurrentUrl($additionalParams=array()) {
+    if (empty($additionalParams)) {
+      return parent::getCurrentUrl();
+    }
+    
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on'
+      ? 'https://'
+      : 'http://';
+    $currentUrl = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    $parts = parse_url($currentUrl);
+
+    // drop known fb params
+    $params = array();
+    if (!empty($parts['query'])) {
+      parse_str($parts['query'], $params);
+      foreach(self::$DROP_QUERY_PARAMS as $key) {
+        unset($params[$key]);
+      }
+    }
+    $params = array_merge($params, $additionalParams);
+    $query = '?' . http_build_query($params, null, '&');
+
+    // use port if non default
+    $port =
+      isset($parts['port']) &&
+      (($protocol === 'http://' && $parts['port'] !== 80) ||
+       ($protocol === 'https://' && $parts['port'] !== 443))
+      ? ':' . $parts['port'] : '';
+
+    // rebuild
+    return $protocol . $parts['host'] . $port . $parts['path'] . $query;
+  }
 
   // Override to fix bug when logging in as a different user
   // https://github.com/facebook/php-sdk/issues#issue/263
