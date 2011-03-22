@@ -53,6 +53,7 @@ class TwitterHashtag {
     if (is_array($json) && isset($json['results'])) {
       foreach ($json['results'] as $result) {
         $tweets[] = array(
+          'id'      => number_format($result['id'], 0, '.', ''),
           'message' => $result['text'],
           'author'  => array(
             'name' => $result['from_user'],

@@ -8,18 +8,17 @@
 {foreach $posts as $i => $post}
   {capture name="title" assign="title"}
     &ldquo;{$post['message']}&rdquo; 
-    <span class="smallprint"> -&nbsp;{$post['author']['name']}, {$post['when']['delta']}
-    </span>
+    <span class="smallprint"> - {$post['author']['name']}, {$post['when']['delta']}</span>
   {/capture}
   {$posts[$i]['title'] = $title}
 {/foreach}
 
 {$more = array()}
-{$more['title'] = '<span class="tweetLink">More results at twitter.com</span>'}
+{$more['title'] = '<span id="listFooter" class="tweetLink">More results at twitter.com</span>'}
 {$more['class'] = 'external'}
 {$more['url'] = $twitterURL}
 {$posts[] = $more}
 
-{include file="findInclude:common/templates/results.tpl" results=$posts}
+{include file="findInclude:common/templates/results.tpl" results=$posts resultslistID="listContainer"}
 
 {include file="findInclude:common/templates/footer.tpl"}

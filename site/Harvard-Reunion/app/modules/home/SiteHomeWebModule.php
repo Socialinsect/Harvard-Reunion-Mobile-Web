@@ -81,8 +81,8 @@ class SiteHomeWebModule extends HomeWebModule {
         $this->addInternalJavascript('/common/javascript/lib/ellipsizer.js');
         $this->addOnLoad('initHome();');
         
-        $restURL = URL_BASE.API_URL_PREFIX."/{$this->id}/recent";
-        $this->addInlineJavascript('var RECENT_MESSAGE_AJAX_URL = "'.$restURL.'"');
+        $this->addInlineJavascript(
+          'var RECENT_MESSAGE_AJAX_URL = "'.URL_BASE.API_URL_PREFIX.'/{$this->id}/recent"');
         
         $this->assign('userInfo',     $userInfo);
         $this->assign('scheduleInfo', $scheduleInfo);
@@ -106,6 +106,10 @@ class SiteHomeWebModule extends HomeWebModule {
           $this->assign('needsJoinGroup', true);
           
         } else {
+          $this->addInlineJavascript(
+            'var MESSAGE_LIST_AJAX_URL = "'.URL_BASE.API_URL_PREFIX.'/'.$this->id.'/facebook"');
+          $this->addOnLoad('initMessageList();');
+        
           $this->assign('user',          $facebook->getUserFullName());
           $this->assign('groupName',     $facebook->getGroupFullName());
           $this->assign('switchUserURL', $facebook->getSwitchUserURL());
@@ -117,6 +121,10 @@ class SiteHomeWebModule extends HomeWebModule {
         break;
       
       case 'twitter':
+        $this->addInlineJavascript(
+          'var MESSAGE_LIST_AJAX_URL = "'.URL_BASE.API_URL_PREFIX.'/'.$this->id.'/twitter"');
+        $this->addOnLoad('initMessageList();');
+
         $this->assign('hashtag',    $this->schedule->getTwitterHashTag());
         $this->assign('tweetURL',   $twitter->getTweetURL());
         $this->assign('twitterURL', $twitter->getFeedURL());

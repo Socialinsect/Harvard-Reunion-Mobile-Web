@@ -14,14 +14,13 @@
   {foreach $posts as $i => $post}
     {capture name="title" assign="title"}
       &ldquo;{$post['message']}&rdquo; 
-      <span class="smallprint"> -&nbsp;{$post['author']['name']}, {$post['when']['delta']}
-      </span>
+      <span class="smallprint"> -&nbsp;{$post['author']['name']}, {$post['when']['delta']}</span>
     {/capture}
     {$posts[$i]['title'] = $title}
   {/foreach}
   
   {capture name="addPostHTML" assign="addPostHTML"}
-    <form method="get" action="add">
+    <form id="listHeader" method="get" action="add">
       <a class="scrolllink" name="postscrolldown"> </a>
       <textarea rows="2" name="message" placeholder="Write something..."></textarea>
       <input type="submit" value="Submit" />
@@ -37,13 +36,13 @@
   
   
   {$more = array()}
-  {$more['title'] = '<span class="fbpostsLink">More results at facebook.com</span>'}
+  {$more['title'] = '<span id="listFooter" class="fbpostsLink">More results at facebook.com</span>'}
   {$more['url'] = $groupURL}
   {$more['class'] = 'external'}
   {$posts[] = $more}
 
   
-  {include file="findInclude:common/templates/results.tpl" results=$posts}
+  {include file="findInclude:common/templates/results.tpl" results=$posts resultslistID="listContainer"}
   
   <div class="nonfocal">
     <span class="smallprint">Signed in as {$user} (<a href="{$switchUserURL}">change</a>)</span>
