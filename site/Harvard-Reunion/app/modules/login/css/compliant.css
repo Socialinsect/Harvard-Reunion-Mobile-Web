@@ -33,17 +33,17 @@ h2 {
 .ribbon a,
 .ribbon a:visited {
 	display: block;
-	padding: 7px 22px 7px 10px;
+	padding: 6px 22px 7px 10px;
 	text-decoration: none;
 	color: #fff;
-	font-size: 88.23%;
+	font-size: 94.1%;
 	line-height: 1.2em;
 	font-weight: bold;
 	background: url(/common/images/signin-ribbon-actionarrow.png) no-repeat right;
 }
 
 .ribbon a .smallprint {
-	font-size: 93.3%;
+	font-size: 87.5%;
 	font-weight: normal;
 	color: #d8aaaa;
 }

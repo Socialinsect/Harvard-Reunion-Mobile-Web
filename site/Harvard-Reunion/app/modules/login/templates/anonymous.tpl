@@ -30,7 +30,7 @@
 	<div class="clear"></div>
 
 	<div class="helptext">
-		<p>Note: entering this app anonymously will lock you out of private areas and personalized features. For the full reunion app experience, please <a href="signin.html">sign in</a>.</p>
+		<p>Note: entering this app anonymously will lock you out of private areas and personalized features. For the full reunion app experience, please <a href="index?authority=harris&url=%2Fhome%2Findex">sign in</a>.</p>
 		<p>Not registered? <a href="https://post.harvard.edu/olc/pub/HAA/register/register.cgi" target="_new">Sign up</a> for an alumni login.</p>
 	</div>
 </div>
