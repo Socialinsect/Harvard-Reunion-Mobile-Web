@@ -72,11 +72,7 @@ class SiteHomeWebModule extends HomeWebModule {
     $user = $this->getUser('HarvardReunionUser');error_log(print_r($user, true));
     $this->schedule = new Schedule($user);
     
-    $facebookGroupId = $this->schedule->getFacebookGroupId();
-    $loginURL = FULL_URL_PREFIX.ltrim(self::buildURLForModule($this->id, 'login'), '/');
-    $forceLogin = $this->page != 'index';
-    
-    $facebook = new FacebookGroup($facebookGroupId, $loginURL, $forceLogin);
+    $facebook = $this->schedule->getFacebookGroup();
 
     switch ($this->page) {
       case 'index':
@@ -96,14 +92,10 @@ class SiteHomeWebModule extends HomeWebModule {
           'facebook' => array(
             'name' => $this->schedule->getFacebookGroupName(),
             'url' => $this->buildURL('facebook', array()),
-            //'url'  => 'http://m.facebook.com/home.php?sk=group_'.
-            //            $this->schedule->getFacebookGroupId(),
           ),
           'twitter' => array(
             'name' => $this->schedule->getTwitterHashTag(),
             'url' => $this->buildURL('twitter', array()),
-            //'url'  => 'http://mobile.twitter.com/searches?q='.
-            //            urlencode($this->schedule->getTwitterHashTag()),
           ),
           'recent' => null,
         );
@@ -148,15 +140,33 @@ class SiteHomeWebModule extends HomeWebModule {
         
       case 'facebook':
         $this->setPageTitle('Facebook Group');
-      
-        $this->assign('user',          $facebook->getUserFullName());
-        $this->assign('groupName',     $facebook->getGroupFullName());
-        $this->assign('switchUserURL', $facebook->getSwitchUserURL());
-        $this->assign('posts',         $facebook->getGroupStatusMessages());
+        
+        if ($facebook->needsLogin()) {
+          $this->assign('needsLogin', true);
+          $this->assign('service', array(
+            'type'  => 'facebook',
+            'name'  => 'Facebook',
+            'url'   => $facebook->getNeedsLoginURL(),
+            'items' => 'posts',
+          ));
+          
+        } else if (!$facebook->isMemberOfGroup()) {
+          $this->assign('needsJoinGroup', true);
+          $this->assign('groupURL', $facebook->getGroupURL());
+          
+        } else {
+          $this->assign('user',          $facebook->getUserFullName());
+          $this->assign('groupName',     $facebook->getGroupFullName());
+          $this->assign('switchUserURL', $facebook->getSwitchUserURL());
+          $this->assign('posts',         $facebook->getGroupStatusMessages());
+        }
+        
+        $this->assign('groupName', $facebook->getGroupFullName());
         break;
       
       case 'twitter':
         $this->assign('hashtag', $this->schedule->getTwitterHashTag());
+        $this->assign('tweetURL', $this->schedule->getTweetURL());
         $this->assign('posts',   $this->getRecentTweets($this->schedule->getTwitterHashTag(), 1000));
         break;
       

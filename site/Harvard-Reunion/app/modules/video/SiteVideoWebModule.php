@@ -94,34 +94,46 @@ class SiteVideoWebModule extends WebModule {
     
     return $this->buildBreadcrumbURL($this->page, $args, false);
   }
+  
+  private function checkLoginStatus($facebook) {
+    if ($facebook->needsLogin()) {
+      $this->assign('needsLogin', true);
+      $this->assign('service', array(
+        'type'  => 'facebook',
+        'name'  => 'Facebook',
+        'url'   => $facebook->getNeedsLoginURL(),
+        'items' => 'videos',
+      ));
+      return false;
+      
+    } else if (!$facebook->isMemberOfGroup()) {
+      $this->assign('needsJoinGroup', true);
+      $this->assign('groupName', $facebook->getGroupFullName());
+      $this->assign('groupURL', $facebook->getGroupURL());
+      return false;
+    }
+    
+    return true;
+  }
 
   protected function initializeForPage() {
     $user = $this->getUser('HarvardReunionUser');
     $this->schedule = new Schedule($user);
     
-    $facebookGroupId = $this->schedule->getFacebookGroupId();
     $loginURL = FULL_URL_PREFIX.ltrim(self::buildURLForModule($this->id, 'login'), '/');
     $forceLogin = true;
     if ($this->page == 'login' || $this->page == 'help' || $this->page == 'join') {
       $forceLogin = false;
     }
-
-    $facebook = new FacebookGroup($facebookGroupId, $loginURL, $forceLogin);
+    $facebook = $this->schedule->getFacebookGroup($loginURL, $forceLogin);
     
     switch ($this->page) {
       case 'help':
         break;
 
-      case 'login': 
-        $this->assign('loginURL', $facebook->getNeedsLoginURL());
-        break;
-
-      case 'join':
-        $this->assign('groupName', $facebook->getGroupFullName());
-        $this->assign('groupURL',  $facebook->getGroupURL());
-        break;
-
       case 'index':
+        if (!$this->checkLoginStatus($facebook)) { break; }
+      
         $view = $this->getArg('view', 'all');
 
         $myId = $facebook->getMyId();
@@ -154,6 +166,8 @@ class SiteVideoWebModule extends WebModule {
         break;
               
       case 'detail':
+        if (!$this->checkLoginStatus($facebook)) { break; }
+      
         $postId = $this->getArg('id');
       
         $this->addOnOrientationChange('resizeVideoFrame();');

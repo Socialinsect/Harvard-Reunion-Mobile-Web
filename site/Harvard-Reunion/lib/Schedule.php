@@ -11,6 +11,7 @@ class Schedule {
   private $endDate = null;
   private $attendee = null;
   private $timezone = null;
+  private $facebook = null;
 
   static private function getScheduleConfigs() {
     static $scheduleConfigs = null;
@@ -96,8 +97,19 @@ class Schedule {
   public function getFacebookGroupName() {
     return $this->getConfigValue('FACEBOOK_GROUP_NAME', '');
   }
-  public function getFacebookGroupId() {
+  
+  private function getFacebookGroupId() {
     return $this->getConfigValue('FACEBOOK_GROUP_ID', '');
+  }
+  private function getFacebookGroupIsOldGroup() {
+    return $this->getConfigValue('FACEBOOK_GROUP_OLD', 0);
+  }
+  public function getFacebookGroup() {
+    if (!$this->facebook) {
+      $this->facebook = new FacebookGroup($this->getFacebookGroupId(), $this->getFacebookGroupIsOldGroup());
+    }
+    
+    return $this->facebook;
   }
   
   public function getTwitterHashTag() {

@@ -5,8 +5,8 @@ require_once realpath(SITE_LIB_DIR.'/facebook-php-sdk/src/facebook.php');
 class FacebookGroup {
   private $facebook = null;
   private $groupId = null;
+  private $oldGroup = false;
   private $newStyle = true;
-  private $needsLoginURL = '';
   private $loginFailedURL = '';
 
   private $myId = null;
@@ -26,39 +26,48 @@ class FacebookGroup {
   private $APP_ID = "193872970635695";
   private $APP_SECRET = "05a64a59e4ee8db3acae85673fb91795";
   
-  function __construct($groupId, $needsLoginURL, $forceLogin) {
+  function __construct($groupId, $isOldGroup) {
     $this->facebook = new ReunionFacebook(array(
       'appId'         => $this->APP_ID,
       'secret'        => $this->APP_SECRET,
       'cookie'        => true,
-      'needsLoginURL' => $needsLoginURL,
     ));
 
     $this->groupId = $groupId;
-    
-    if ($forceLogin && !$this->facebook->getSession()) {
-      $url = $this->facebook->getLoginStatusUrl(array(
-        'no_user' => $needsLoginURL,
-      ));
-      
-      header("Location: $url");
-    }
   }
   
-  public function getSwitchUserURL() {
-    return $this->facebook->getSwitchUserURL();
+  public function needsLogin() {
+    return !$this->facebook->getSession();
   }
   
   public function getNeedsLoginURL() {
     return $this->facebook->getNeedsLoginURL();
   }
   
+  public function getSwitchUserURL() {
+    return $this->facebook->getSwitchUserURL();
+  }
+  
   public function getMyId() {
     return $this->facebook->getUser();
   }
   
+  public function isMemberOfGroup() {
+    $results = $this->graphQuery($this->getMyId().'/groups');
+    
+    if (isset($results, $results['data'])) {
+      foreach ($results['data'] as $result) {
+        if (isset($result['id']) && $result['id'] == $this->groupId) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+  
   public function getUserFullName() {
-    $results = $this->graphQuery('me');
+    $results = $this->graphQuery($this->getMyId());
     if ($results) {
       return $results['name'];
     }
@@ -75,9 +84,7 @@ class FacebookGroup {
   }
   
   public function getGroupURL() {
-    $results = $this->getGroupDetails();
-
-    if (isset($results, $results['version']) && $results['version'] == 0) {
+    if ($this->oldGroup) {
       return self::OLD_GROUP_URL.$this->groupId;
     } else {
       return self::NEW_GROUP_URL.$this->groupId;
@@ -421,6 +428,7 @@ class FacebookGroup {
 class ReunionFacebook extends Facebook {
   private $perms = array(
     'user_about_me',
+    'user_groups',
     'user_photos',
     'user_videos',
     'user_checkins',
@@ -429,7 +437,6 @@ class ReunionFacebook extends Facebook {
     'publish_stream',
     //'offline_access',
   );
-  private $needsLoginURL = '';  
   protected $cache;
   protected $cacheLifetime = 90;
   
@@ -437,12 +444,7 @@ class ReunionFacebook extends Facebook {
   public function __construct($config) {
     parent::__construct($config);
 
-    if (isset($config['needsLoginURL'])) {
-      $this->needsLoginURL = $config['needsLoginURL'];
-    }
-    
     self::$CURL_OPTS[CURLOPT_CONNECTTIMEOUT] = 20;
-    
     //self::$CURL_OPTS[CURLOPT_SSL_VERIFYPEER] = false;
     //self::$CURL_OPTS[CURLOPT_SSL_VERIFYHOST] = 2;
   }
@@ -454,20 +456,19 @@ class ReunionFacebook extends Facebook {
     $currentUrl = $this->getCurrentUrl();
   }
 
-  public function getNeedsLoginURL() {
+  public function getNeedsLoginURL($needsLoginURL='') {
     return $this->getLoginURL(array(
       'next'       => $this->getCurrentUrl(),
-      'cancel_url' => $this->needsLoginURL ? $this->needsLoginURL : $this->getCurrentUrl(),
+      'cancel_url' => $this->getCurrentUrl(),
       'req_perms'  => implode(',', $this->perms),
     ));
   }
    
-  public function getSwitchUserURL() {
+  public function getSwitchUserURL($needsLoginURL='') {
     $loginURL = $this->getLoginURL(array(
       'next'       => $this->getCurrentUrl(),
-      'cancel_url' => $this->needsLoginURL ? $this->needsLoginURL : $this->getCurrentUrl(),
+      'cancel_url' => $this->getCurrentUrl(),
       'req_perms'  => implode(',', $this->perms),
-      'refsrc'     => $this->getCurrentUrl(),
     ));
     
     return $this->getLogoutURL(array(
@@ -546,45 +547,6 @@ class ReunionFacebook extends Facebook {
     return $results;
   }
 
-  /**
-   * Returns the Current URL, stripping it of known FB parameters that should
-   * not persist.
-   *
-   * @return String the current URL
-   */
-  protected function getCurrentUrl($additionalParams=array()) {
-    if (empty($additionalParams)) {
-      return parent::getCurrentUrl();
-    }
-    
-    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on'
-      ? 'https://'
-      : 'http://';
-    $currentUrl = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-    $parts = parse_url($currentUrl);
-
-    // drop known fb params
-    $params = array();
-    if (!empty($parts['query'])) {
-      parse_str($parts['query'], $params);
-      foreach(self::$DROP_QUERY_PARAMS as $key) {
-        unset($params[$key]);
-      }
-    }
-    $params = array_merge($params, $additionalParams);
-    $query = '?' . http_build_query($params, null, '&');
-
-    // use port if non default
-    $port =
-      isset($parts['port']) &&
-      (($protocol === 'http://' && $parts['port'] !== 80) ||
-       ($protocol === 'https://' && $parts['port'] !== 443))
-      ? ':' . $parts['port'] : '';
-
-    // rebuild
-    return $protocol . $parts['host'] . $port . $parts['path'] . $query;
-  }
-
   // Override to fix bug when logging in as a different user
   // https://github.com/facebook/php-sdk/issues#issue/263
   public function getSession() {
@@ -596,5 +558,4 @@ class ReunionFacebook extends Facebook {
     }
     return parent::getSession();
   }
-
 }
