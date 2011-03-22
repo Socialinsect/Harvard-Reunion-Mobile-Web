@@ -1,8 +1,8 @@
 {include file="findInclude:modules/login/templates/header.tpl"}
 
-<h1>Harvard College Reunions</h1>
+<h1>Harvard/Radcliffe Reunions</h1>
 
-<h2>Login with your user ID and password from alumni.harvard.edu:</h2>
+<h2>Sign in with your user ID and password from alumni.harvard.edu:</h2>
 
 <form id="signin" name="signin" action="login" method="POST">
 <input type="hidden" name="authority" value="harris" />

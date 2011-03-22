@@ -1,4 +1,4 @@
-h1 {
+#container h1 {
 	background: url(/common/images/signin-logo.png) no-repeat left;
 	padding-left: 60px;
 	font-size: 150%;
@@ -30,7 +30,7 @@ h2 {
 	background: url(/common/images/signin-ribbon.png) repeat-x;
 }
 
-.ribbon a {
+.ribbon a, .ribbon a:visited {
 	display: block;
 	padding: 7px 22px 7px 10px;
 	text-decoration: none;

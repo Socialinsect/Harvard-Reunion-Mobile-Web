@@ -1,6 +1,6 @@
 {include file="findInclude:modules/login/templates/header.tpl"}
 
-<h1>Harvard College Reunions</h1>
+<h1>Harvard/Radcliffe Reunions</h1>
 
 <h2>Enter anonymously by selecting your graduation year:</h2>
 
