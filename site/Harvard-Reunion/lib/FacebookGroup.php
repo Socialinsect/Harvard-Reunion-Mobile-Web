@@ -13,24 +13,24 @@ class FacebookGroup {
   private $queryFields = array(
     'group' => array(
       'name',
-      'version',
     ),
     'video' => null,
-    'photo' => null,
+    'photo' => array(
+      'source',
+      'height',
+      'width',
+    ),
     'post'  => null,
   );
   const AUTHOR_URL    = 'http://m.facebook.com/profile.php?id=';
   const OLD_GROUP_URL = 'http://m.facebook.com/group.php?gid=';
   const NEW_GROUP_URL = 'http://m.facebook.com/home.php?sk=group_';
-  
-  private $APP_ID = "193872970635695";
-  private $APP_SECRET = "05a64a59e4ee8db3acae85673fb91795";
-  
+    
   function __construct($groupId, $isOldGroup) {
     $this->facebook = new ReunionFacebook(array(
-      'appId'         => $this->APP_ID,
-      'secret'        => $this->APP_SECRET,
-      'cookie'        => true,
+      'appId'  => $GLOBALS['siteConfig']->getVar('FACEBOOK_APP_ID'),
+      'secret' => $GLOBALS['siteConfig']->getVar('FACEBOOK_APP_SECRET'),
+      'cookie' => true,
     ));
 
     $this->groupId = $groupId;
@@ -166,11 +166,6 @@ class FacebookGroup {
     
     if (isset($post['source'])) {
       $videoDetails['embedHTML'] = $this->getVideoEmbedHTML($post);
-    }
-
-    if (isset($post['object_id'])) {
-      //$video = $this->getVideoDetails($post['object_id']);
-      //error_log(print_r($video, true));
     }
     
     return $videoDetails;

@@ -14,50 +14,46 @@ class Schedule {
   private $facebook = null;
   private $twitter = null;
 
-  static private function getScheduleConfigs() {
-    static $scheduleConfigs = null;
-  
-    if (!$scheduleConfigs) {
-      $configFile = realpath_exists(SITE_CONFIG_DIR.'/schedule/feeds.ini');
+  static private function getScheduleConfigFile() {
+    static $configFile = null;
     
-      $scheduleConfigs = $configFile ? parse_ini_file($configFile, true) : array();
+    if (!$configFile) {
+      $configFile = ConfigFile::factory('schedule', 'site');
     }
-    
-    return $scheduleConfigs;
+
+    return $configFile;
   }
 
-  static public function getAllReunionYears() {
-    $scheduleConfigs = self::getScheduleConfigs();
+  static private function getScheduleConfigs() {
+    $configFile = self::getScheduleConfigFile();
     
-    $reunionYears = array();
-    foreach ($scheduleConfigs as $year => $config) {
-      $reunionYears[] = array(
-        'year'     => $year,
-        'number'   => $config['REUNION_NUMBER'],
-        'separate' => is_array($config['REUNION_TITLE']),
-      );
-    }
-    
-    return $reunionYears;
+    return $configFile ? $configFile->getSectionVars() : array();
   }
   
-  static public function reunionClassesAreSeparate($year) {
-    $scheduleConfigs = self::getScheduleConfigs();
+  static private function getScheduleConfig($year) {
+    $configFile = self::getScheduleConfigFile();
+    if ($configFile) {
+      $config = $configFile->getSection($year);
+      if ($config) {
+        return $config;
+      }
+    }
     
-    return isset($scheduleConfigs[$year]) && is_array($scheduleConfigs[$year]['REUNION_TITLE']);
+    return array();
   }
 
   function __construct($user) {
     $this->timezone = new DateTimeZone(
       $GLOBALS['siteConfig']->getVar('LOCAL_TIMEZONE', Config::LOG_ERRORS | Config::EXPAND_VALUE));
   
-    $scheduleConfigs = self::getScheduleConfigs();
     
     $this->attendee = $user;
     $this->scheduleId = $this->attendee->getGraduationClass();
+
+    $scheduleConfig = self::getScheduleConfig($this->scheduleId);
     
-    if (isset($scheduleConfigs[$this->scheduleId])) {
-      $this->scheduleConfig = $scheduleConfigs[$this->scheduleId];
+    if ($scheduleConfig) {
+      $this->scheduleConfig = $scheduleConfig;
       
       $collegeIndex = $this->attendee->getCollegeIndex();
       foreach ($this->scheduleConfig as $key => $value) {
@@ -77,6 +73,31 @@ class Schedule {
   
   private function getConfigValue($key, $default=null) {
     return isset($this->scheduleConfig[$key]) ? $this->scheduleConfig[$key] : $default;
+  }
+
+  //
+  // Config settings
+  //
+  
+  static public function getAllReunionYears() {
+    $scheduleConfigs = self::getScheduleConfigs();
+    
+    $reunionYears = array();
+    foreach ($scheduleConfigs as $year => $config) {
+      $reunionYears[] = array(
+        'year'     => $year,
+        'number'   => $config['REUNION_NUMBER'],
+        'separate' => is_array($config['REUNION_TITLE']),
+      );
+    }
+    
+    return $reunionYears;
+  }
+  
+  static public function reunionClassesAreSeparate($year) {
+    $scheduleConfigs = self::getScheduleConfigs();
+    
+    return isset($scheduleConfigs[$year]) && is_array($scheduleConfigs[$year]['REUNION_TITLE']);
   }
 
   public function getScheduleId() {
@@ -105,23 +126,9 @@ class Schedule {
   private function getFacebookGroupIsOldGroup() {
     return $this->getConfigValue('FACEBOOK_GROUP_OLD', 0);
   }
-  public function getFacebookGroup() {
-    if (!$this->facebook) {
-      $this->facebook = new FacebookGroup($this->getFacebookGroupId(), $this->getFacebookGroupIsOldGroup());
-    }
-    
-    return $this->facebook;
-  }
   
   public function getTwitterHashTag() {
     return $this->getConfigValue('TWITTER_HASHTAG', '');
-  }
-  public function getTwitterFeed() {
-    if (!$this->twitter) {
-      $this->twitter = new TwitterHashtag($this->getTwitterHashTag());
-    }
-    
-    return $this->twitter;
   }
   
   public function getStartDate() {
@@ -148,6 +155,10 @@ class Schedule {
     }
   }
   
+  //
+  // Feeds
+  //
+  
   public function getEventFeed() {
     $controllerClass = $this->getConfigValue('CONTROLLER_CLASS', 'CalendarDataController');
     
@@ -159,5 +170,21 @@ class Schedule {
     $controller->setEndDate($endDate);
     
     return $controller;
+  }
+
+  public function getFacebookFeed() {
+    if (!$this->facebook) {
+      $this->facebook = new FacebookGroup($this->getFacebookGroupId(), $this->getFacebookGroupIsOldGroup());
+    }
+    
+    return $this->facebook;
+  }
+  
+  public function getTwitterFeed() {
+    if (!$this->twitter) {
+      $this->twitter = new TwitterHashtag($this->getTwitterHashTag());
+    }
+    
+    return $this->twitter;
   }
 }

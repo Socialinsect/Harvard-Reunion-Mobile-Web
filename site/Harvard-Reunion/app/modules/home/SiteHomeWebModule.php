@@ -22,7 +22,7 @@ class SiteHomeWebModule extends HomeWebModule {
     $user = $this->getUser('HarvardReunionUser');
     $this->schedule = new Schedule($user);
     
-    $facebook = $this->schedule->getFacebookGroup();
+    $facebook = $this->schedule->getFacebookFeed();
     $twitter = $this->schedule->getTwitterFeed();
 
     switch ($this->page) {

@@ -119,7 +119,7 @@ class SitePhotosWebModule extends WebModule {
   protected function initializeForPage() {
     $user = $this->getUser('HarvardReunionUser');
     $this->schedule = new Schedule($user);
-    $facebook = $this->schedule->getFacebookGroup();
+    $facebook = $this->schedule->getFacebookFeed();
     
     switch ($this->page) {
       case 'help':

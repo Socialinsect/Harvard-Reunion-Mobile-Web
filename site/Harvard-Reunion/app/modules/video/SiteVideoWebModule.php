@@ -125,7 +125,7 @@ class SiteVideoWebModule extends WebModule {
     if ($this->page == 'login' || $this->page == 'help' || $this->page == 'join') {
       $forceLogin = false;
     }
-    $facebook = $this->schedule->getFacebookGroup($loginURL, $forceLogin);
+    $facebook = $this->schedule->getFacebookFeed($loginURL, $forceLogin);
     
     switch ($this->page) {
       case 'help':

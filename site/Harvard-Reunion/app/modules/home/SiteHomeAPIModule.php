@@ -7,7 +7,7 @@ class SiteHomeAPIModule extends APIModule {
     $user = $this->getUser('HarvardReunionUser');
     $this->schedule = new Schedule($user);
     
-    $facebook = $this->schedule->getFacebookGroup();
+    $facebook = $this->schedule->getFacebookFeed();
     $twitter = $this->schedule->getTwitterFeed();
 
     switch ($this->command) {
@@ -42,7 +42,7 @@ class SiteHomeAPIModule extends APIModule {
         }
         
         $this->setResponse($response);
-        $this->setResponseVersion(1);          
+        $this->setResponseVersion(1);
         break;
         
       case 'facebook':
