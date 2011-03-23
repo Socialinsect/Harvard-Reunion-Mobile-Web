@@ -1,0 +1,10 @@
+.staticContentBody .phone {
+  white-space: nowrap;
+  background: none;
+  padding: 0;
+}
+
+.nav strong {
+  display: block;
+  padding-bottom: .25em;
+}

@@ -1,7 +1,9 @@
 <div class="nonfocal" id="navbar2">
-  <a id="comment" href="#commentscrolldown">Comment</a>
-  <a id="bookmark" onclick="toggleBookmark('{$cookieName}', '{$post['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}')">Bookmark</a>
+  {if $post['prevURL']}<a id="prev" href="{$post['prevURL']}">Prev</a>{/if}
+  <a id="comment" href="#commentscrolldown">Comment</a> | 
+  <a id="bookmark" onclick="toggleBookmark('{$cookieName}', '{$post['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}')">Bookmark</a> | 
   <a id="like" href="{$post['likeURL']}">{if $post['liked']}Unlike{else}Like{/if}</a>  
+  {if $post['nextURL']}<a id="next" href="{$post['nextURL']}">Next</a>{/if}
 </div>
 
 {$post['html']}
@@ -32,6 +34,7 @@
     <textarea rows="2" name="message" placeholder="Add a comment"></textarea>
     <input type="submit" value="Submit" />
     <input type="hidden" name="id" value="{$post['id']|escape:'url'}" />
+    <input type="hidden" name="view" value="{$currentView}" />
     <input type="hidden" name="action" value="add" />
     {foreach $breadcrumbSamePageArgs as $arg => $value}
       <input type="hidden" name="{$arg}" value="{$value}" />

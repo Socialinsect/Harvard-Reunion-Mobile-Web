@@ -138,6 +138,14 @@ class FacebookGroup {
     return $videos;
   }
   
+  public function getGroupPhotoOrder() {
+    return $this->getGroupPostOrder('photo');
+  }
+  
+  public function getGroupVideoOrder() {
+    return $this->getGroupPostOrder('video');
+  }
+  
   public function getPhotoPost($postId) {
     $post = $this->getPostDetails($postId);
     //error_log(print_r($post, true));
@@ -246,6 +254,35 @@ class FacebookGroup {
 
   private function getGroupPosts() {
     return $this->graphQuery($this->groupId.'/feed', array('limit' => 1000));
+  }
+  
+  private function getGroupPostOrder($type=null) {
+    $results = $this->fqlQuery("SELECT post_id,actor_id,attachment FROM stream WHERE source_id={$this->groupId} LIMIT 1000");
+    //error_log(print_r($results, true));
+    
+    $posts = array();
+    foreach ($results as $result) {
+      $post = array(
+        'id'     => $result['post_id'],
+        'type'   => 'status',
+        'author' => array(
+          'id' => $result['actor_id'],
+        ),
+      );
+      if (isset($result['attachment'], $result['attachment']['media'])) {
+        foreach ($result['attachment']['media'] as $media) {
+          if (isset($media['type'])) {
+            $post['type'] = $media['type'];
+            break;
+          }
+        }
+      }
+      if (!$type || $type == $post['type']) {
+        $posts[] = $post;
+      }
+    }
+
+    return $posts;
   }
 
   private function formatPost($post) {

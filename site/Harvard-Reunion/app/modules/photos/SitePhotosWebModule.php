@@ -115,11 +115,19 @@ class SitePhotosWebModule extends WebModule {
     
     return true;
   }
-
+  
+  protected function postMatchesView($post, $view, $myId) {
+    return ($view != 'mine'       || $post['author']['id'] == $myId) &&
+           ($view != 'bookmarked' || $this->hasBookmark($post['id']));
+  }
+  
   protected function initializeForPage() {
     $user = $this->getUser('HarvardReunionUser');
     $this->schedule = new Schedule($user);
     $facebook = $this->schedule->getFacebookFeed();
+    
+    $view = $this->getArg('view', 'all');
+    $this->assign('currentView', $view);
     
     switch ($this->page) {
       case 'help':
@@ -128,37 +136,32 @@ class SitePhotosWebModule extends WebModule {
       case 'index':
         if (!$this->checkLoginStatus($facebook)) { break; }
       
-        $view = $this->getArg('view', 'all');
-
-        $myId = $facebook->getMyId();
-
-        $posts = $facebook->getGroupPhotos();
-        foreach ($posts as $i => $post) {
-          if (($view == 'mine'       && $post['author']['id'] != $myId) ||
-              ($view == 'bookmarked' && !$this->hasBookmark($post['id']))) {
-            unset($posts[$i]);
-            continue;
-          }
-          
-          $posts[$i]['url'] = $this->buildBreadcrumbURL('detail', array( 
-            'id' => $post['id'],
-          ));
-        }
-        
-
         $views = array(
           'all'        => $this->buildViewURL('all'),
           'mine'       => $this->buildViewURL('mine'),
           'bookmarked' => $this->buildViewURL('bookmarked'),
         );
-        
+
+        $myId = $facebook->getMyId();
+    
+        $posts = $facebook->getGroupPhotos();
+        foreach ($posts as $i => $post) {
+          if (!$this->postMatchesView($post, $view, $myId)) {
+            unset($posts[$i]);
+            continue;
+          }
+          
+          $posts[$i]['url'] = $this->buildBreadcrumbURL('detail', array( 
+            'id'   => $post['id'],
+            'view' => $view,
+          ));
+        }
 
         $this->assign('user',          $facebook->getUserFullName());
         $this->assign('switchUserURL', $facebook->getSwitchUserURL());
 
-        $this->assign('views',         $views);
-        $this->assign('currentView',   $view);
-        $this->assign('photos',        $posts);
+        $this->assign('views',  $views);
+        $this->assign('photos', $posts);
         break;
               
       case 'detail':
@@ -170,18 +173,8 @@ class SitePhotosWebModule extends WebModule {
         
         $postDetails = $facebook->getPhotoPost($postId);
         $postDetails['comments'] = $facebook->getComments($postId);
-        
+    
         $myId = $facebook->getMyId();        
-        
-        foreach ($postDetails['comments'] as $i => $comment) {
-          if ($comment['author']['id'] == $myId) {
-            $postDetails['comments'][$i]['removeURL'] = $this->buildBreadcrumbURL('comment', array(
-              'id'        => $postId,
-              'commentId' => $comment['id'],
-              'action'    => 'remove',
-            ), false);
-          }
-        }
         
         $postDetails['liked'] = false;
         foreach ($facebook->getLikes($postId) as $i => $like) {
@@ -191,9 +184,42 @@ class SitePhotosWebModule extends WebModule {
         }
         $postDetails['likeURL'] = $this->buildBreadcrumbURL('like', array(
           'id'     => $postId,
+          'view'   => $view,
           'action' => $postDetails['liked'] ? 'remove' : 'add',
         ), false);
-        
+  
+        $postDetails['prevURL'] = '';
+        $postDetails['nextURL'] = '';
+        $posts = $facebook->getGroupPhotoOrder();
+        foreach ($posts as $i => $post) {
+          if ($post['id'] == $postId) {
+            $last = count($posts)-1;
+            
+            $prev = $i-1;
+            while (!$postDetails['prevURL'] && $prev >= 0) {
+              if ($this->postMatchesView($posts[$prev], $view, $myId)) {
+                $postDetails['prevURL'] = $this->buildBreadcrumbURL('detail', array( 
+                  'id'   => $posts[$prev]['id'],
+                  'view' => $view,
+                ), false);
+              }
+              $prev--;
+            }
+            
+            $next = $i+1;
+            while (!$postDetails['nextURL'] && $next <= $last) {
+              if ($this->postMatchesView($posts[$next], $view, $myId)) {
+                $postDetails['nextURL'] = $this->buildBreadcrumbURL('detail', array( 
+                  'id'   => $posts[$next]['id'],
+                  'view' => $view,
+                ), false);
+              }
+              $next++;
+            }
+            break;
+          }
+        }
+
         $this->assign('photo', $postDetails);
         break;
         
@@ -209,7 +235,8 @@ class SitePhotosWebModule extends WebModule {
         }
         
         $this->redirectTo('detail', array(
-          'id' => $postId,
+          'id'   => $postId,
+          'view' => $view,
         ), true);
         break;
         
@@ -225,7 +252,8 @@ class SitePhotosWebModule extends WebModule {
         }
         
         $this->redirectTo('detail', array(
-          'id' => $postId,
+          'id'   => $postId,
+          'view' => $view,
         ), true);
         break;
     }

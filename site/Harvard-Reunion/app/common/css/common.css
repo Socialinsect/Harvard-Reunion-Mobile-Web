@@ -2,14 +2,14 @@
   position: relative;
 }
 
-#comment {
+#prev {
   position: absolute;
   top: 6px;
   left: 6px;
 }
 #bookmark2 {
 }
-#like {
+#next {
   position: absolute;
   top: 6px;
   right: 6px;

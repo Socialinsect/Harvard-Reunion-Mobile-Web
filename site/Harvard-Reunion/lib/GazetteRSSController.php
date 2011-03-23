@@ -2,7 +2,7 @@
 
 require_once(LIB_DIR . '/RSS.php');
 
-class GazetteRSScontroller extends RSSDataController
+class GazetteRSSController extends RSSDataController
 {
     protected $DEFAULT_PARSER_CLASS='GazetteRSSDataParser';
     protected $loadMore=true;
