@@ -1,15 +1,15 @@
 <div class="nonfocal" id="navbar2">
   {if $post['prevURL']}
     <a id="prev" href="{$post['prevURL']}"><span>Prev</span></a>
-    <span class="separator"> | </span>
+    <span class="textspacer"> | </span>
   {/if}
   <a id="comment" href="#commentscrolldown"><span>Comment</span></a>
-  <span class="separator"> | </span>
+  <span class="textspacer"> | </span>
   <a id="bookmark" class="{$bookmarkStatus}" href="{$post['bookmarkURL']}" onclick="toggleBookmark('{$cookieName}', '{$post['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}'); return false;"><span>Bookmark</span></a>
-  <span class="separator"> | </span>
+  <span class="textspacer"> | </span>
   <a id="like" class="{if $post['liked']}liked{/if}" href="{$post['likeURL']}"><span>{if $post['liked']}Unlike{else}Like{/if}</span></a>  
   {if $post['nextURL']}
-    <span class="separator"> | </span>
+    <span class="textspacer"> | </span>
     <a id="next" href="{$post['nextURL']}"><span>| Next</span></a>
   {/if}
 </div>
