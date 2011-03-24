@@ -6,6 +6,7 @@ class GazetteRSSController extends RSSDataController
 {
     protected $DEFAULT_PARSER_CLASS='GazetteRSSDataParser';
     protected $loadMore=true;
+    const GAZETTE_NEWS_MAX_PAGES = 20;
     
     public function addFilter($var, $value)
     {
@@ -23,7 +24,7 @@ class GazetteRSSController extends RSSDataController
     
     public function getItem($id, $page=1)
     {
-        $maxPages = $GLOBALS['siteConfig']->getVar('GAZETTE_NEWS_MAX_PAGES'); // to prevent runaway trains
+        $maxPages = self::GAZETTE_NEWS_MAX_PAGES; // to prevent runaway trains
         
         while ($page < $maxPages) {
             $items = $this->loadPage($page++);
@@ -49,7 +50,7 @@ class GazetteRSSController extends RSSDataController
         if ($this->loadMore) {
             $page = 1;
 
-            $maxPages = $GLOBALS['siteConfig']->getVar('GAZETTE_NEWS_MAX_PAGES');; // to prevent runaway trains
+            $maxPages = self::GAZETTE_NEWS_MAX_PAGES; // to prevent runaway trains
             
             // load new pages until we have enough content
             while ( ($start > $totalItems) && ($page < $maxPages)) {
@@ -194,7 +195,7 @@ class GazetteRSSController extends RSSDataController
         $items = $this->getRSSPageItems($page); // get all the items
         $totalCount = count($items);
         
-        $maxPages = $GLOBALS['siteConfig']->getVar('GAZETTE_NEWS_MAX_PAGES');; // to prevent runaway trains
+        $maxPages = self::GAZETTE_NEWS_MAX_PAGES; // to prevent runaway trains
         
         if ($this->loadMore) {
             // load new pages until we have enough content
@@ -240,7 +241,7 @@ class GazetteRSSController extends RSSDataController
             return null;
         }
         
-        $maxPages = $GLOBALS['siteConfig']->getVar('GAZETTE_NEWS_MAX_PAGES');; // to prevent runaway trains
+        $maxPages = self::GAZETTE_NEWS_MAX_PAGES; // to prevent runaway trains
         $itemIndex = 0;
         
         for ($page = 1; $page <= $maxPages; $page++) {
