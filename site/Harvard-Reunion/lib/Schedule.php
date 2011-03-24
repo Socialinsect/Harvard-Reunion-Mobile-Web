@@ -43,8 +43,7 @@ class Schedule {
   }
 
   function __construct($user) {
-    $this->timezone = new DateTimeZone(
-      $GLOBALS['siteConfig']->getVar('LOCAL_TIMEZONE', Config::LOG_ERRORS | Config::EXPAND_VALUE));
+    $this->timezone = new DateTimeZone($GLOBALS['siteConfig']->getVar('LOCAL_TIMEZONE'));
   
     
     $this->attendee = $user;
@@ -163,7 +162,7 @@ class Schedule {
     $controllerClass = $this->getConfigValue('CONTROLLER_CLASS', 'CalendarDataController');
     
     $controller = CalendarDataController::factory($controllerClass, $this->scheduleConfig);
-    $controller->setDebugMode($GLOBALS['siteConfig']->getVar('DATA_DEBUG', Config::LOG_ERRORS | Config::EXPAND_VALUE));
+    $controller->setDebugMode($GLOBALS['siteConfig']->getVar('DATA_DEBUG'));
 
     $endDate = new DateTime($this->endDate->format('Y-m-d').' 00:00:00 +1 day', $this->timezone);
     $controller->setStartDate($this->startDate);
