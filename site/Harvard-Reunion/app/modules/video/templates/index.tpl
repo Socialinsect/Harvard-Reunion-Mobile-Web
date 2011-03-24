@@ -1,4 +1,4 @@
-{include file="findInclude:common/templates/header.tpl"}
+{include file="findInclude:common/templates/header.tpl" scalable=false}
 
 {if $needsLogin}
   {include file="findInclude:common/templates/needslogin.tpl" service=$service}

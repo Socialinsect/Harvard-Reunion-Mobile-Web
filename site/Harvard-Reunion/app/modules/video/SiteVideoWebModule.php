@@ -169,7 +169,8 @@ class SiteVideoWebModule extends WebModule {
         if (!$this->checkLoginStatus($facebook)) { break; }
 
         $postId = $this->getArg('id');
-      
+        
+        $this->addOnOrientationChange('setTimeout(resizeVideoFrame, 0);');
         $this->generateBookmarkOptions($postId);
         
         $postDetails = $facebook->getVideoPost($postId);

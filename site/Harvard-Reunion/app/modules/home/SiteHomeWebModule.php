@@ -135,11 +135,13 @@ class SiteHomeWebModule extends HomeWebModule {
         $message = $this->getArg('message');
         $type = $this->getArg('type');
         
-        if ($message && $type == 'facebook') {
-          $facebook->addPost($message);
+        if ($type == 'facebook') {
+          if ($message) {
+            $facebook->addPost($message);
+          }
           $this->redirectTo('facebook', array(), true);
           
-        } else if ($message && $type == 'twitter') {
+        } else if ($type == 'twitter') {
           $this->redirectTo('twitter', array(), true);
           
         } else {

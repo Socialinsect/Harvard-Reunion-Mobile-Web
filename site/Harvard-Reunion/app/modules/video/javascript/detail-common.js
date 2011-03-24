@@ -1,21 +1,33 @@
-var videoFrameHeight = null;
-var videoFrameWidth = null;
+var videoFrameOriginalRatio = null;
 
 function resizeVideoFrame() {
-  var videoFrame = document.getElementById('videoFrame');
+  var videoFrame   = document.getElementById('videoFrame');
+  var videoWrapper = document.getElementById('videoWrapper');
   
-  if (videoFrame) {
-    if (videoFrameHeight === null) {
-      videoFrameWidth  = videoFrame.offsetWidth;
-      videoFrameHeight = videoFrame.offsetHeight;
+  if (videoFrame && videoWrapper) {
+    if (videoFrameOriginalRatio === null) {
+      videoFrameOriginalRatio = videoFrame.offsetHeight/videoFrame.offsetWidth;
     }
     
-    videoFrame.width = '100%';
+    var newWidth = videoWrapper.offsetWidth;
+    var newHeight = Math.round(newWidth*videoFrameOriginalRatio);
+    
+    videoFrame.width = newWidth;
+    videoFrame.height = newHeight;
 
-    var newWidth = videoFrame.offsetWidth;
-    var newHeight = Math.round(newWidth/videoFrameWidth * videoFrameHeight);
+    // Run a second time in case the scroll bar disappeared when we resized
+    var newWidth = videoWrapper.offsetWidth;
+    var newHeight = Math.round(newWidth*videoFrameOriginalRatio);
     
     videoFrame.width = newWidth;
     videoFrame.height = newHeight;
   }
+}
+
+function validateTextInputForm(textId, message) {
+    if(document.getElementById(textId).value=="") {
+        alert(message);
+        return false;
+    }
+    return true;
 }

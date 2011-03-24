@@ -1,0 +1,19 @@
+/* Craziness to fake the focal div being attached to the nav list
+ * Exists because on compliant we update the nav list contents periodically 
+ * by setting innerHTML on the ul */
+
+.focal {
+  overflow: hidden;
+  margin: 9px 9px 0 9px;
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+
+.focal + .nav {
+  margin-top: 0;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+}
+.focal + .nav li:first-child {
+  border-top: 1px solid #AAA;
+}

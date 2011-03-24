@@ -10,17 +10,68 @@ class FacebookGroup {
   private $loginFailedURL = '';
 
   private $myId = null;
-  private $queryFields = array(
+  
+  const FEED_LIFETIME = 20;
+  const OBJECT_LIFETIME = 3600;
+  const NOCACHE_LIFETIME = 0;
+  const ALL_FIELDS = null;
+  
+  private $queryConfig = array(
+    'object' => array(         // default, no cache
+      'cache'         => null,
+      'cacheLifetime' => self::NOCACHE_LIFETIME,
+      'suffix'        => '',
+      'fields'        => self::ALL_FIELDS,
+    ),
+    'user' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::OBJECT_LIFETIME,
+      'suffix'        => '',
+      'fields'        => self::ALL_FIELDS,
+    ),
+    'usergroups' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::NOCACHE_LIFETIME,
+      'suffix'        => '/groups',
+    ),
     'group' => array(
-      'name',
+      'cache'         => null,
+      'cacheLifetime' => self::OBJECT_LIFETIME,
+      'suffix'        => '',
+      'fields'        => array('name'),
     ),
-    'video' => null,
+    'post' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::OBJECT_LIFETIME,
+      'suffix'        => '',
+      'fields'        => self::ALL_FIELDS, // doesn't work with 'picture' field
+    ),
     'photo' => array(
-      'source',
-      'height',
-      'width',
+      'cache'         => null,
+      'cacheLifetime' => self::OBJECT_LIFETIME,
+      'suffix'        => '',
+      'fields'        => array('source', 'height', 'width'),
     ),
-    'post'  => null,
+    'feed' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::FEED_LIFETIME,
+      'suffix'        => '/feed',
+    ),
+    'feedOrder' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::FEED_LIFETIME,
+      'suffix'        => '',
+    ),
+    'comments' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::FEED_LIFETIME,
+      'suffix'        => '/comments',
+    ),
+    'likes' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::FEED_LIFETIME,
+      'suffix'        => '/likes',
+    ),
   );
   const AUTHOR_URL    = 'http://m.facebook.com/profile.php?id=';
   const OLD_GROUP_URL = 'http://m.facebook.com/group.php?gid=';
@@ -53,7 +104,7 @@ class FacebookGroup {
   }
   
   public function isMemberOfGroup() {
-    $results = $this->graphQuery($this->getMyId().'/groups');
+    $results = $this->graphQuery('usergroups', $this->getMyId());
     
     if (isset($results, $results['data'])) {
       foreach ($results['data'] as $result) {
@@ -67,7 +118,7 @@ class FacebookGroup {
   }
   
   public function getUserFullName() {
-    $results = $this->graphQuery($this->getMyId());
+    $results = $this->graphQuery('user', $this->getMyId());
     if ($results) {
       return $results['name'];
     }
@@ -76,7 +127,7 @@ class FacebookGroup {
   }
   
   public function getGroupFullName() {
-    $results = $this->getGroupDetails();
+    $results = $this->graphQuery('group', $this->groupId);
     if ($results) {
       return $results['name'];
     }
@@ -90,6 +141,19 @@ class FacebookGroup {
       return self::NEW_GROUP_URL.$this->groupId;
     }
   }
+  
+  //
+  // Feed
+  // 
+  
+  public function addPost($message) {
+    $results = $this->graphQuery('feed', $this->groupId, 'POST', array('message' => $message));
+  }
+  
+  private function getGroupPosts() {
+    return $this->graphQuery('feed', $this->groupId, array('limit' => 1000));
+  }
+
   
   public function getGroupStatusMessages() {
     $results = $this->getGroupPosts();
@@ -138,14 +202,10 @@ class FacebookGroup {
     return $videos;
   }
   
-  public function getGroupPhotoOrder() {
-    return $this->getGroupPostOrder('photo');
-  }
-  
-  public function getGroupVideoOrder() {
-    return $this->getGroupPostOrder('video');
-  }
-  
+  //
+  // Posts
+  // 
+    
   public function getPhotoPost($postId) {
     $post = $this->getPostDetails($postId);
     //error_log(print_r($post, true));
@@ -178,86 +238,86 @@ class FacebookGroup {
     
     return $videoDetails;
   }
+    
+  private function getPostDetails($objectId) {
+    $postDetails = $this->graphQuery('post', $objectId);
+        
+    // Although there are comments and likes available here do not add them
+    // The cache lifetimes on the posts themselves are much longer than 
+    // the lifetime on the comment and like feeds.  We would suppress these
+    // with the fields parameter but there is a bug with the 'pictures' field
+    if (isset($postDetails['comments'])) {
+      unset($postDetails['comments']);
+    }
+    if (isset($postDetails['likes'])) {
+      unset($postDetails['likes']);
+    }
   
-  public function addPost($message) {
-    $results = $this->graphQuery($this->groupId.'/feed', 'POST', array('message' => $message));
+    return $postDetails;
   }
   
+  //
+  // Comments
+  //
+  
   public function addComment($objectId, $message) {
-    $results = $this->graphQuery($objectId.'/comments', 'POST', array('message' => $message));
+    $results = $this->graphQuery('comments', $objectId, 'POST', array('message' => $message));
   }
   
   public function removeComment($commentId) {
-    $results = $this->graphQuery($commentId, 'DELETE');
-  }
-  
-  public function like($objectId) {
-    $results = $this->graphQuery($objectId.'/likes', 'POST');
-  }
-  
-  public function unlike($objectId) {
-    $results = $this->graphQuery($objectId.'/likes', 'DELETE');
+    $results = $this->graphQuery('object', $commentId, 'DELETE');
   }
   
   public function getComments($objectId) {
-    $results = $this->graphQuery($objectId.'/comments', array('limit' => 500));
+    $results = $this->graphQuery('comments', $objectId, array('limit' => 500));
     
     $comments = array();
     if (isset($results['data'])) {
       foreach ($results['data'] as $comment) {
-        $comments[] = array(
-          'id'      => $comment['id'],
-          'message' => $comment['message'],
-          'author'  => array(
-            'name' => $comment['from']['name'],
-            'id'   => $comment['from']['id'],
-            'url'  => $this->authorURL($comment['from']),
-          ),
-          'when'    => array(
-            'time'       => strtotime($comment['created_time']),
-            'delta'      => self::relativeTime($comment['created_time']),
-            'shortDelta' => self::relativeTime($comment['created_time'], true),
-          ),
-        );
+        $comments[] = $this->formatComment($comment);
       }
     }
     
     return $comments;
   }
   
+  //
+  // Likes
+  //
+  
+  public function like($objectId) {
+    $results = $this->graphQuery('likes', $objectId, 'POST');
+  }
+  
+  public function unlike($objectId) {
+    $results = $this->graphQuery('likes', $objectId, 'DELETE');
+  }
+  
   public function getLikes($objectId) {
-    $results = $this->graphQuery($objectId.'/likes');
+    $results = $this->graphQuery('likes', $objectId);
         
     return isset($results['data']) ? $results['data'] : array();
   }
-
-  private function getGroupDetails() {
-    return $this->getObjectDetails('group', $this->groupId);
-  }
-  private function getPostDetails($objectId) {
-    return $this->getObjectDetails('post', $objectId);
-  }
-  private function getPhotoDetails($objectId) {
-    return $this->getObjectDetails('photo', $objectId);
-  }
-  private function getVideoDetails($objectId) {
-    return $this->getObjectDetails('video', $objectId);
-  }
-  private function getObjectDetails($type, $objectId) {
-    $args = array();
-    if (isset($this->queryFields[$type])) {
-      $args['fields'] = implode(',', $this->queryFields[$type]);
-    }
   
-    return $this->graphQuery($objectId, $args);
-  }
-
-  private function getGroupPosts() {
-    return $this->graphQuery($this->groupId.'/feed', array('limit' => 1000));
+  
+  //
+  // Post Order
+  //
+  
+  
+  public function getGroupPhotoOrder() {
+    return $this->getGroupPostOrder('photo');
   }
   
+  public function getGroupVideoOrder() {
+    return $this->getGroupPostOrder('video');
+  }
+
   private function getGroupPostOrder($type=null) {
-    $results = $this->fqlQuery("SELECT post_id,actor_id,attachment FROM stream WHERE source_id={$this->groupId} LIMIT 1000");
+    $results = $this->fqlQuery(
+      'feedOrder', 
+      "SELECT post_id,actor_id,attachment FROM stream WHERE source_id={$this->groupId} LIMIT 1000", 
+      $this->groupId);
     //error_log(print_r($results, true));
     
     $posts = array();
@@ -284,6 +344,18 @@ class FacebookGroup {
 
     return $posts;
   }
+  
+  //
+  // Photos
+  //
+  
+  private function getPhotoDetails($objectId) {
+    return $this->graphQuery('photo', $objectId);
+  }  
+
+  //
+  // Formatting
+  //
 
   private function formatPost($post) {
     $formatted = array();
@@ -309,7 +381,7 @@ class FacebookGroup {
       $formatted['message'] = $post['message'];
     }
     if (isset($post['picture'])) {
-      $formatted['thumbnail'] = $post['picture'];
+      $formatted['thumbnail'] = $post['picture']; // only in group feed
     }
     
     return $formatted ? $formatted : false;
@@ -346,48 +418,26 @@ class FacebookGroup {
     return $formatted ? $formatted : false;
   }
   
-  private static function commentSort($a, $b) {
-    return intval($a['when']['time']) - intval($b['when']['time']);
-  }
-  
-  private static function positionSort($a, $b) {
-    return intval($a['position']) - intval($b['position']);
+  private function formatComment($comment) {
+    return array(
+      'id'      => $comment['id'],
+      'message' => $comment['message'],
+      'author'  => array(
+        'name' => $comment['from']['name'],
+        'id'   => $comment['from']['id'],
+        'url'  => $this->authorURL($comment['from']),
+      ),
+      'when'    => array(
+        'time'       => strtotime($comment['created_time']),
+        'delta'      => self::relativeTime($comment['created_time']),
+        'shortDelta' => self::relativeTime($comment['created_time'], true),
+      ),
+    );
   }
   
   private function authorURL($from) {
     return self::AUTHOR_URL.$from['id'];
   }
-  
-  private function graphQuery($path, $method='GET', $params=array()) {
-    try {
-      if (is_array($method) && empty($params)) {
-        $params = $method;
-        $method = 'GET';
-      }
-      $params['cacheName'] = "graph_{$path}";
-      
-      $results = $this->facebook->api($path, $method, $params);
-      
-    } catch (FacebookApiException $e) {
-      error_log("Got Facebook graph API error: ".print_r($e->getResult(), true));
-      return array();
-    }
-    
-    return $results;
-  }
-  
-  private function fqlQuery($query) {
-    try {
-      $results = $this->facebook->fql($query);
-      
-    } catch (FacebookApiException $e) {
-      error_log("Got Facebook FQL error: ".print_r($e->getResult(), true));
-      return array();
-    }
-    
-    return $results;
-  }
-  
   
   public static function relativeTime($time=null, $shortFormat=false, $limit=86400) {
     if (empty($time) || (!is_string($time) && !is_numeric($time))) {
@@ -455,6 +505,135 @@ class FacebookGroup {
     
     return $html;
   }
+  
+  //
+  // Query utility functions
+  //
+
+  private function getCacheForQuery($type) {
+    if (!$this->queryConfig[$type]['cache'] && $this->queryConfig[$type]['cacheLifetime'] > 0) {
+      $this->queryConfig[$type]['cache'] = new DiskCache(
+        CACHE_DIR."/Facebook", $this->queryConfig[$type]['cacheLifetime'], TRUE);
+    }
+    
+    return $this->queryConfig[$type]['cache'];
+  }
+  
+  private function getExceptionMessage($e) {
+    $message = $e->getMessage();
+    if (get_class($e) == 'FacebookApiException') {
+      $message = print_r($e->getResult(), true);
+    }      
+    return $message;
+  }
+  
+  private function applyQueryParameters($type, &$params) {
+    if (isset($this->queryConfig[$type]['fields'])) {
+      $params['fields'] = implode(',', $this->queryConfig[$type]['fields']);
+    }
+  }
+  
+  private function shouldCacheResultsForQuery($type, $results) {
+    switch ($type) {
+      case 'group':
+      case 'feed':
+      case 'comments':
+      case 'likes':
+        return isset($results, $results['data']) && is_array($results['data']) && count($results['data']);
+      
+      case 'user':
+      case 'post':
+      case 'photo':
+      case 'video':
+        return isset($results, $results['id']) && $results['id'];
+        
+      case 'feedOrder':
+        return is_array($results) && count($results);
+    }
+    
+    return isset($results) && $results;
+  }
+
+  //
+  // Queries
+  // 
+  
+  private function graphQuery($type, $id, $method='GET', $params=array()) {
+    if (is_array($method) && empty($params)) {
+      $params = $method;
+      $method = 'GET';
+    }
+
+    $cache = $this->getCacheForQuery($type);
+
+    $path = $id.$this->queryConfig[$type]['suffix'];
+    $cacheName = $type.'_'.$id;
+
+    $shouldCache = $cache && $method == 'GET';
+    $invalidateCache = $cache && $method != 'GET';
+    
+    if ($shouldCache && $cache->isFresh($cacheName)) {
+      $results = $cache->read($cacheName);
+    
+    } else {
+      try {
+        $this->applyQueryParameters($type, &$params);
+        
+        $results = $this->facebook->api($path, $method, $params);
+        
+        if ($shouldCache) {
+          if ($this->shouldCacheResultsForQuery($type, $results)) {
+            $cache->write($results, $cacheName);
+          } else {
+            error_log("Facebook Graph API request for $type '{$id}' returned empty data");
+          }
+          
+        } else if ($invalidateCache) {
+          $cacheFile = $cache->getFullPath($cacheName);
+          if (file_exists($cacheFile)) {
+            error_log("Removing invalidated cache file '$cacheFile'");
+            @unlink($cacheFile);
+          }
+        }
+        
+      } catch (FacebookApiException $e) {
+        error_log("Error while making Facebook Graph API request: ".$this->getExceptionMessage($e));
+        $results = $shouldCache ? $cache->read($cacheName) : array();
+      }
+    }
+    
+    return $results;
+  }
+  
+  private function fqlQuery($type, $query, $cacheSuffix='') {
+    $cache = $this->getCacheForQuery($type);
+    $cacheName = $type.'_'.($cacheSuffix ? $cacheSuffix : md5($query));
+    
+    if ($cache->isFresh($cacheName)) {
+      $results = $cache->read($cacheName);
+    
+    } else {
+      try {
+        $results = $this->facebook->api(array(
+          'method' => 'fql.query',
+          'query'  => $query,
+          'format' => 'json',
+        ));
+        if ($this->shouldCacheResultsForQuery($type, $results)) {
+          $cache->write($results, $cacheName);
+        } else {
+          error_log("Facebook FQL request for '$path' returned empty data");
+        }
+        
+      } catch (Exception $e) {
+        error_log("Error while making Facebook FQL request: ".$this->getExceptionMessage($e));
+        
+        $results = $cache->read($cacheName);
+      }
+    }
+    
+    return $results;
+  }  
 }
 
 class ReunionFacebook extends Facebook {
@@ -507,33 +686,8 @@ class ReunionFacebook extends Facebook {
       'next' => $loginURL,
     ));
   }
-
-  public function fql($query) {
-    $results = json_decode($this->_oauthRequest($this->getUrl('api', 'method/fql.query'), array(
-      'query'     => $query,
-      'format'    => 'json',
-      'cacheName' => 'fql_'.md5($query),
-    )), true);
-    
-    if (is_array($results) && isset($results['error_code'])) {
-      $e = new FacebookApiException($results);
-      switch ($e->getType()) {
-        // OAuth 2.0 Draft 00 style
-        case 'OAuthException':
-        // OAuth 2.0 Draft 10 style
-        case 'invalid_token':
-          $this->setSession(null);
-      }
-      throw $e;
-      
-    } else if (!is_array($results)) {
-      $results = array();
-    }
-    
-    return $results;
-  }
   
-  // Override to cache responses from the server
+  // Override to get a new session on demand
   protected function makeRequest($url, $params, $ch=null) {
     // Check if logged in:
     if (!$this->getSession()) {
@@ -542,42 +696,8 @@ class ReunionFacebook extends Facebook {
       header("Location: $loginURL");
     }
         
-    if (!$this->cache) {
-      $this->cache = new DiskCache(CACHE_DIR."/Facebook", $this->cacheLifetime, TRUE);
-      $this->cache->setSuffix('.json');
-      $this->cache->preserveFormat();
-    }
-    
-    $shouldCache = false;
-    $cacheName = isset($params['cacheName']) ? $params['cacheName'] : '';
-    if ($cacheName) {
-      $method = isset($params['method']) ? $params['method'] : 'GET';
-      if ($method == 'GET') {
-        $shouldCache = true;  
-      } else {
-        // destroy cache
-        $cacheFile = $this->cache->getFullPath($cacheName);
-        if (file_exists($cacheFile)) {
-          error_log("Removing stale cache file '$cacheFile'");
-          @unlink($cacheFile);
-        }
-      }
-    }
-    unset($params['cacheName']); // Don't send this to facebook
-    
-    if ($shouldCache && $this->cache->isFresh($cacheName)) {
-      $results = $this->cache->read($cacheName);
-      
-    } else {
-      error_log("Requesting {$url}?".http_build_query($params));
-      $results = parent::makeRequest($url, $params, $ch);
-    
-      if ($shouldCache) {
-        $this->cache->write($results, $cacheName);
-      }
-    }
-    
-    return $results;
+    error_log("Requesting {$url}?".http_build_query($params));
+    return parent::makeRequest($url, $params, $ch);
   }
 
   // Override to fix bug when logging in as a different user

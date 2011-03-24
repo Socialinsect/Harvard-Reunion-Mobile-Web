@@ -1,4 +1,4 @@
-{include file="findInclude:common/templates/header.tpl"}
+{include file="findInclude:common/templates/header.tpl" scalable=false}
 
 {if $needsLogin}
   {include file="findInclude:common/templates/needslogin.tpl" service=$service}
@@ -9,7 +9,7 @@
 {else}
   {capture name="postHTML" assign="postHTML"}
     {if $video['embedHTML']}
-      <div class="video">
+      <div class="video" id="videoWrapper">
         {$video['embedHTML']}
       </div>
     {else}

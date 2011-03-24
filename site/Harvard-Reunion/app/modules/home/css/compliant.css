@@ -176,7 +176,7 @@ li {
   overflow: hidden;
 }
 form textarea {
-  width: 99%;
+  width: 98%;
   line-height: normal;
 }
 form input[type=submit] {
@@ -218,4 +218,3 @@ form input[type=submit] {
   display: block;
   padding-left: 30px;
 }
-

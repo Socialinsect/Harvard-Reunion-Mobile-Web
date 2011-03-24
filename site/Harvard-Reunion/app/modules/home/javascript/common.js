@@ -87,3 +87,11 @@ function updateMessageList() {
   httpRequest.open("GET", MESSAGE_LIST_AJAX_URL, true);
   httpRequest.send(null);
 }
+
+function validateTextInputForm(textId, message) {
+    if(document.getElementById(textId).value=="") {
+        alert(message);
+        return false;
+    }
+    return true;
+}
