@@ -13,7 +13,7 @@ class SiteHomeAPIModule extends APIModule {
     switch ($this->command) {
       case 'recent':
         $response = array();
-      
+        
         // Only grab posts if logged in
         $posts = $facebook->getMyId() ? $facebook->getGroupStatusMessages() : array();
         $tweets = $twitter->getRecentTweets();

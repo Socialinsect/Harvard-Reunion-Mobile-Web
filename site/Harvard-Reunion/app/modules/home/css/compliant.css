@@ -158,14 +158,13 @@
 #social .recent .chatbubble .info {
   color: #43484c;
   font-size: 85.7%;
-  padding-top: 0.2em;
   max-height: 20px;
   overflow: hidden;
 }
 
 #social .recent .chatbubble .message {
   max-height: 56px;
-  padding-bottom: 2px;
+  margin-bottom: 2px;
   overflow: hidden;
 }
 
@@ -190,6 +189,13 @@ form input[type=submit] {
   background: none;
 }
 
+#listHeader a {
+  background: none;
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
 .tweetButton {
   display: block;
   float: right;
@@ -208,3 +214,8 @@ form input[type=submit] {
   background-size: 24px;
   line-height: 30px;
 }
+.fbpostsLink + .smallprint {
+  display: block;
+  padding-left: 30px;
+}
+

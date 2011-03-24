@@ -1,10 +1,10 @@
-.staticContentBody .phone {
-  white-space: nowrap;
-  background: none;
-  padding: 0;
+.nonfocal {
+  margin-top: 1em;
+  margin-bottom: 6px;
 }
-
-.nav strong {
-  display: block;
-  padding-bottom: .25em;
+.nonfocal + .nav {
+  margin-top: 0;
+}
+h3 {
+  margin: 0;
 }

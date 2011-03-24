@@ -1,9 +1,17 @@
 <div class="nonfocal" id="navbar2">
-  {if $post['prevURL']}<a id="prev" href="{$post['prevURL']}">Prev</a>{/if}
-  <a id="comment" href="#commentscrolldown">Comment</a> | 
-  <a id="bookmark" onclick="toggleBookmark('{$cookieName}', '{$post['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}')">Bookmark</a> | 
-  <a id="like" href="{$post['likeURL']}">{if $post['liked']}Unlike{else}Like{/if}</a>  
-  {if $post['nextURL']}<a id="next" href="{$post['nextURL']}">Next</a>{/if}
+  {if $post['prevURL']}
+    <a id="prev" href="{$post['prevURL']}"><span>Prev</span></a>
+    <span class="separator"> | </span>
+  {/if}
+  <a id="comment" href="#commentscrolldown"><span>Comment</span></a>
+  <span class="separator"> | </span>
+  <a id="bookmark" class="{$bookmarkStatus}" href="{$post['bookmarkURL']}" onclick="toggleBookmark('{$cookieName}', '{$post['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}'); return false;"><span>Bookmark</span></a>
+  <span class="separator"> | </span>
+  <a id="like" class="{if $post['liked']}liked{/if}" href="{$post['likeURL']}"><span>{if $post['liked']}Unlike{else}Like{/if}</span></a>  
+  {if $post['nextURL']}
+    <span class="separator"> | </span>
+    <a id="next" href="{$post['nextURL']}"><span>| Next</span></a>
+  {/if}
 </div>
 
 {$post['html']}
@@ -18,9 +26,6 @@
 
 {foreach $post['comments'] as $i => $comment}
   {capture name="title" assign="title"}
-    {* if $comment['removeURL']}
-      <a class="removeLink" href="{$comment['removeURL']}">X</a>
-    {/if *}
     &ldquo;{$comment['message']}&rdquo; 
     <span class="smallprint"> -&nbsp;{$comment['author']['name']}, {$comment['when']['delta']}
     </span>
@@ -31,7 +36,7 @@
 {capture name="addCommentHTML" assign="addCommentHTML"}
   <form method="get" action="comment">
     <a class="scrolllink" name="commentscrolldown"> </a>
-    <textarea rows="2" name="message" placeholder="Add a comment"></textarea>
+    <textarea rows="3" name="message" placeholder="Add a comment"></textarea>
     <input type="submit" value="Submit" />
     <input type="hidden" name="id" value="{$post['id']|escape:'url'}" />
     <input type="hidden" name="view" value="{$currentView}" />

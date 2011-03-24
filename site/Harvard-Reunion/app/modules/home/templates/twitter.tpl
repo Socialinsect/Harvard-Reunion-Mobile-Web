@@ -14,11 +14,11 @@
 {/foreach}
 
 {$more = array()}
-{$more['title'] = '<span id="listFooter" class="tweetLink">More results at twitter.com</span>'}
+{$more['title'] = '<span id="listFooter" class="tweetLink">More results...</span>'}
 {$more['class'] = 'external'}
 {$more['url'] = $twitterURL}
 {$posts[] = $more}
 
-{include file="findInclude:common/templates/results.tpl" results=$posts resultslistID="listContainer"}
+{include file="findInclude:common/templates/navlist.tpl" navlistItems=$posts navlistID="listContainer"}
 
 {include file="findInclude:common/templates/footer.tpl"}

@@ -36,13 +36,13 @@
   
   
   {$more = array()}
-  {$more['title'] = '<span id="listFooter" class="fbpostsLink">More results at facebook.com</span>'}
+  {$more['title'] = '<span id="listFooter" class="fbpostsLink">More results...</span>'}
   {$more['url'] = $groupURL}
   {$more['class'] = 'external'}
   {$posts[] = $more}
 
   
-  {include file="findInclude:common/templates/results.tpl" results=$posts resultslistID="listContainer"}
+  {include file="findInclude:common/templates/navlist.tpl" navlistItems=$posts navlistID="listContainer"}
   
   <div class="nonfocal">
     <span class="smallprint">Signed in as {$user} (<a href="{$switchUserURL}">change</a>)</span>
