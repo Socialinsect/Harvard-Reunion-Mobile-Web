@@ -7,7 +7,8 @@ Note that all EventIDs and Classes are strings, because we can have things like
 1961R (Radcliffe) or events that are actually not really existant in Harris, but
 tracked anyway (like hr50-01).
 """
-# Right now these are just the ones for class of 2001
+# Right now these are just the ones for class of 2001 -- should become a dict
+# for each class later.
 NON_HARRIS_EVENTS = { 'h01-1' : 'Commencement Exercises', 
                       'h01-2' : 'Annual Meeting of the Harvard Alumni Association',
                       'h01-3' : 'Radcliffe Day Program & Luncheon' }
