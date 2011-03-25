@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """
-Use: processevents.py input_file
-
 Python 2.6 is required.
 
 It automatically generates:
@@ -27,16 +25,19 @@ from itertools import izip
 from csvcolumns import ColumnGroup
 from csvcolumns.transform import MethodTransform
 
-def main(infile_name, outfile_base):
+import eventmappings
+
+def main(class_year, infile_name, outfile_base):
     all_cols = parse_doc(infile_name)
     
-    # Extract the cols we care about, sort the event cols by their event ID
+    # Basic user info like name, graduating year, email
     user_cols = select_user_cols(all_cols)
+    # Extract event cols, keep the Event ID, strip Event Name, sort cols by ID
     event_cols = select_event_cols(all_cols).sort_columns()
 
-    # Pull the user cols and event cols together, sort by email (the first col)
-    # This is a little ugly because if you change the column order, it changes
-    # the sort order. TODO: Have this take args for what fields to sort by.
+    # Pull the user cols and event cols together, sort rows by email (the first 
+    # col) This is a little ugly because if you change the column order, it 
+    # changes the sort order. TODO: Have this take args for what to sort by.
     sorted_by_email = (user_cols + event_cols).sort_rows()
 
     # Filter out the Voided status rows
@@ -47,10 +48,14 @@ def main(infile_name, outfile_base):
     # that records to be merged are grouped together -- we're sorted by email)
     merged = active.merge_rows(lambda row: row["email"], merge_func=merge_rows)
 
+    # Account for package deals where signing up for one event actually means
+    # you're attending multiple ones
+    packages_added = add_packages(merged, class_year)
+
     # By this point, we've more or less got a clean data file. Now we start to
     # transform it to what we need for our SQL tables. The CSV files are just
     # for debugging purposes.
-    merged.write(outfile_base + "-filtered.csv")
+    packages_added.write(outfile_base + "-filtered.csv")
 
     dbconn = sqlite3.connect(outfile_base + ".db")
 
@@ -108,7 +113,8 @@ def select_event_cols(col_grp):
     come first."""
     def _reformat_event_name(event_name):
         name, event_id = event_name.split("#")
-        return event_id.strip() + ":" + name.strip()
+        return event_id.strip()
+        # return event_id.strip() + ":" + name.strip()
 
     return col_grp.selectf(lambda col_name: "#" in col_name, 
                            change_name_func=_reformat_event_name)
@@ -140,10 +146,27 @@ def merge_rows(row1, row2):
     return new_row
 
 
-#################### Massaging Data Quirks ####################
+#################### Massaging Data ####################
 
-def make_non_harris_event_cols(ids_to_names):
+def append_non_harris_event_cols(ids_to_names):
     pass
+
+def add_packages(src_col_grp, class_year):
+    """Return a new ColumnGroup that has the row values filled out for all 
+    users attending events that are covered by package events. So if package
+    event 100 maps to regular events 101, 102hr, 103; then the value for 
+    row['100'] should be copied to row['101'], row['102hr'], and row['103']"""
+    package_events = eventmappings.mappings_for(class_year)
+    
+    def _new_row(old_row):
+        row = old_row.copy()
+        for package_event_id, event_ids in package_events.items():
+            for event_id in event_ids:
+                row[event_id] = row[package_event_id]
+        return row
+    
+    return src_col_grp.transform_rows(_new_row)
+    
 
 #################### Write to CSV files ####################
 
@@ -155,8 +178,7 @@ def make_events_table(event_names):
 
 def make_users_events_table(all_cols):
     # Grab event columns, but make the column names just the IDs, no description
-    event_cols = all_cols.selectf(lambda name: ":" in name,
-                                  change_name_func=lambda s: s.split(":")[0])
+    event_cols = all_cols.selectf(lambda name: name.isdigit())
     rows = iterate_user_events(all_cols.user_id, event_cols)
     return ColumnGroup.from_rows(["user_id", "event_id", "value"], rows)
 
@@ -175,12 +197,18 @@ def iterate_user_events(user_id_col, event_cols):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print "Usage: processevents.py [Harris input file] [output file base]\n" \
+    # We're passing in class_year explicitly instead of deriving it from the 
+    # data file because of cases like Harvard and Radcliffe differntiating their
+    # Harvard and Radcliffe grads (like 1961R), which doesn't come through in 
+    # the Harris feed.
+    if len(sys.argv) != 4:
+        print "Usage: processevents.py [class_year] [Harris input file] " \
+              "[output file base]\n" \
               "  Example: processevents.py harris25th.txt 1975_35th\n\n" \
               "  Will create: 1975_35th.db, 1975_35th-events.csv, etc."
 
-    infile_name = sys.argv[1]
-    outfile_base = sys.argv[2]
+    class_year = sys.argv[1]
+    infile_name = sys.argv[2]
+    outfile_base = sys.argv[3]
 
-    main(infile_name, outfile_base)
+    main(class_year, infile_name, outfile_base)

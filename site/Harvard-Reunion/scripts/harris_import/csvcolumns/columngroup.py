@@ -262,13 +262,17 @@ class ColumnGroup(object):
     # FIXME:
     #    * can use chardet to guess the encoding
     
+    def transform_rows(self, row_change_f):
+        return ColumnGroup.from_rows(self.column_names,
+                                     (self.row_from_dict(row_change_f(row))
+                                      for row in self.iter_dict_rows()))
+    
     @classmethod
     def from_rows(cls, column_names, rows):
         # force it to a list so that we can tell if it's empty (generators will
         # return true even if they're empty). Memory inefficient kludge, but we
         # don't care about memory as much any longer. :-/
         rows = list(rows)
-                          
         if not rows: # no rows because it's None or an empty list (just a header)
             return cls([(cn, DataColumn.EMPTY) for cn in column_names])
         else:
