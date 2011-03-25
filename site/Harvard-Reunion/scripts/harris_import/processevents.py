@@ -24,8 +24,8 @@ import string
 import sys
 from itertools import izip
 
-from datadance import ColumnGroup
-from datadance.transform import MethodTransform
+from csvcolumns import ColumnGroup
+from csvcolumns.transform import MethodTransform
 
 def main(infile_name, outfile_base):
     all_cols = parse_doc(infile_name)
