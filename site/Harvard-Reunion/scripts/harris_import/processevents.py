@@ -29,13 +29,13 @@ from csvcolumns.transform import MethodTransform
 import config
 
 def main(class_year, infile_name, outfile_base):
-    all_cols = parse_doc(infile_name)
+    infile_cols = parse_doc(infile_name)
+    all_cols = infile_cols + non_harris_event_cols(infile_cols.num_rows)
     
     # Basic user info like name, graduating year, email
     user_cols = select_user_cols(all_cols)
     # Extract event cols, keep the Event ID, strip Event Name, sort cols by ID
-    event_cols = ( select_event_cols(all_cols) + 
-                   non_harris_event_cols(all_cols.num_rows) ).sort_columns()
+    event_cols = select_event_cols(all_cols).sort_columns()
 
     # Pull the user cols and event cols together, sort rows by email (the first 
     # col) This is a little ugly because if you change the column order, it 
@@ -62,7 +62,7 @@ def main(class_year, infile_name, outfile_base):
     dbconn = sqlite3.connect(outfile_base + ".db")
 
     # Write our EVENTS table
-    events_table = make_events_table(event_cols.column_names)
+    events_table = make_events_table(all_cols.column_names)
     events_table.write(outfile_base + "-events.csv")
     events_table.write_db_table(dbconn, "events", primary_key="event_id")
 
@@ -75,7 +75,7 @@ def main(class_year, infile_name, outfile_base):
                                indexes=["email", "status", "first_name", "last_name"])
 
     # Write our USERS_EVENTS table
-    users_events_table = make_users_events_table(merged)
+    users_events_table = make_users_events_table(event_cols.column_names, final)
     users_events_table.write(outfile_base + "-users_events.csv")
     users_events_table.write_db_table(dbconn, "users_events", 
                                       indexes=["user_id", "event_id", "value"])
@@ -113,12 +113,11 @@ def select_event_cols(col_grp):
     line items in the Harris order form. The ColumnGroup we return changes the
     format of the events to look like "2131230:Special Dinner", so that the IDs
     come first."""
-    def _reformat_event_name(event_name):
-        name, event_id = event_name.split("#")
-        return event_id.strip()
-        # return event_id.strip() + ":" + name.strip()
+    def _reformat_event_name(event_header):
+        event_id, event_name = parse_event_header(event_header)
+        return event_id
 
-    return col_grp.selectf(lambda col_name: "#" in col_name, 
+    return col_grp.selectf(is_event_header, 
                            change_name_func=_reformat_event_name)
 
 #################### Merge Records ####################
@@ -149,10 +148,22 @@ def merge_rows(row1, row2):
 
 
 #################### Massaging Data (based on config) ####################
+def is_event_header(s):
+    return "#" in s
+
+def parse_event_header(s):
+    """return event_id, event_name tuple"""
+    event_name, event_id = s.split("#")
+    return event_id.strip(), event_name.strip()
+
+def format_as_event_header(event_id, event_name):
+    return "%s #%s" % (event_name, event_id)
 
 def non_harris_event_cols(num_rows):
-    return ColumnGroup([(event_id, DataColumn.init_with(num_rows, ''))
-                        for event_id in config.NON_HARRIS_EVENTS])
+    return ColumnGroup([(format_as_event_header(event_id, event_name),
+                         DataColumn.init_with(num_rows, ''))
+                        for event_id, event_name
+                        in config.NON_HARRIS_EVENTS.items()])
 
 def add_packages(src_col_grp, class_year):
     """Return a new ColumnGroup that has the row values filled out for all 
@@ -173,15 +184,20 @@ def add_packages(src_col_grp, class_year):
 
 #################### Write to CSV files ####################
 
-def make_events_table(event_names):
-    """The column names are of the format "4324123:Friday Dinner". We want to 
+def make_events_table(event_headers):
+    """The column names are of the format "Friday Dinner #123123". We want to 
     take all the column names and make a table of event ids and descriptions"""
     return ColumnGroup.from_rows(["event_id", "name"],
-                                 (name.split(":") for name in event_names))
+                                 (parse_event_header(header) 
+                                  for header in event_headers
+                                  if is_event_header(header)))
 
-def make_users_events_table(all_cols):
-    # Grab event columns, but make the column names just the IDs, no description
-    event_cols = all_cols.selectf(lambda name: name.isdigit())
+
+def make_users_events_table(event_col_names, all_cols):
+    """event_col_names is a list of all the column names that represent events
+    (these can be alpha or numeric). This function assumes that all_cols has 
+    already been sorted, merged, had voided records excluded, etc."""
+    event_cols = all_cols.select(*event_col_names)
     rows = iterate_user_events(all_cols.user_id, event_cols)
     return ColumnGroup.from_rows(["user_id", "event_id", "value"], rows)
 

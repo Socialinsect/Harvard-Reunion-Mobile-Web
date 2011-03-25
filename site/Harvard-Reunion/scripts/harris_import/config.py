@@ -8,7 +8,9 @@ Note that all EventIDs and Classes are strings, because we can have things like
 tracked anyway (like hr50-01).
 """
 # Right now these are just the ones for class of 2001
-NON_HARRIS_EVENTS = ['h01-1', 'h01-2', 'h01-3']
+NON_HARRIS_EVENTS = { 'h01-1' : 'Commencement Exercises', 
+                      'h01-2' : 'Annual Meeting of the Harvard Alumni Association',
+                      'h01-3' : 'Radcliffe Day Program & Luncheon' }
 
 CLASSES_TO_MAPPINGS = {
     '2001' : {
