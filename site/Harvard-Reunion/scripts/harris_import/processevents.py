@@ -84,7 +84,6 @@ def main(class_year, infile_name, outfile_base):
     dbconn.close()
 
 #################### Parse and Extract ####################
-
 def parse_doc(infile_name):
     with open(infile_name) as infile:
         full_doc = ColumnGroup.from_csv(infile, 
@@ -173,14 +172,22 @@ def add_packages(src_col_grp, class_year):
     """Return a new ColumnGroup that has the row values filled out for all 
     users attending events that are covered by package events. So if package
     event 100 maps to regular events 101, 102hr, 103; then the value for 
-    row['100'] should be copied to row['101'], row['102hr'], and row['103']"""
+    row['100'] should be copied to row['101'], row['102hr'], and row['103']
+    
+    However, it's possible that row['101'] already has a value that indicates
+    something *about* the event (like "What House am I staying at?"), in which
+    case, we want to keep what's there. We only replace it with what's in the
+    package if what's in the specific event is blank. Anything non-blank is
+    assumed to mean that they're attending.
+    """
     package_events = config.CLASSES_TO_MAPPINGS[class_year]
     
     def _new_row(old_row):
         row = old_row.copy()
         for package_event_id, event_ids in package_events.items():
             for event_id in event_ids:
-                row[event_id] = row[package_event_id]
+                if not row[event_id]:
+                    row[event_id] = row[package_event_id]
         return row
     
     return src_col_grp.transform_rows(_new_row)
