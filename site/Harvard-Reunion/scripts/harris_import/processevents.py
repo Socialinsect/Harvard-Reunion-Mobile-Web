@@ -85,7 +85,7 @@ def main(class_year, infile_name, outfile_base):
 
 #################### Parse and Extract ####################
 def parse_doc(infile_name):
-    with open(infile_name) as infile:
+    with open(infile_name, "U") as infile:
         full_doc = ColumnGroup.from_csv(infile, 
                                         delimiter="\t",
                                         force_unique_col_names=True,
