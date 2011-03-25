@@ -26,6 +26,10 @@ class HarvardReunionUser extends User
       $collegeIndex = $this->getUserData('collegeIndex');
       return isset($collegeIndex) ? $collegeIndex : 0;  // default to Harvard
     }
+    
+    public function clearCollegeIndex() {
+      $this->setUserData('collegeIndex', null);
+    }
 
     protected function standardAttributes() {
         return array('class_year');

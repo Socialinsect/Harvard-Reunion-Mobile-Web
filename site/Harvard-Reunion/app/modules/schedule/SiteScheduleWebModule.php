@@ -173,11 +173,10 @@ class SiteScheduleWebModule extends WebModule {
     }
   }
   
-  private function detailURL($scheduleId, $iCalEvent, $addBreadcrumb=true, $noBreadcrumbs=false) {
+  private function detailURL($iCalEvent, $addBreadcrumb=true, $noBreadcrumbs=false) {
     $args = array(
-      'scheduleId' => $scheduleId,
-      'eventId'    => $iCalEvent->get_uid(),
-      'start'      => $iCalEvent->get_start()
+      'eventId' => $iCalEvent->get_uid(),
+      'start'   => $iCalEvent->get_start()
     );
   
     if ($noBreadcrumbs) {
@@ -193,13 +192,14 @@ class SiteScheduleWebModule extends WebModule {
   }
 
   protected function initializeForPage() {    
+    $scheduleId = $this->schedule->getScheduleId());
+
     switch ($this->page) {
       case 'help':
         break;
 
       case 'index':
         $day  = $this->getArg('day', 'all');
-        $scheduleId = $this->getArg('scheduleId', $this->schedule->getScheduleId());
         
         $feed = $this->schedule->getEventFeed();
         
@@ -223,7 +223,7 @@ class SiteScheduleWebModule extends WebModule {
           
           if ($showThisDate) {
             $event = array(
-              'url'      => $this->detailURL($scheduleId, $iCalEvent),
+              'url'      => $this->detailURL($iCalEvent),
               'title'    => $iCalEvent->get_summary(),
               'subtitle' => $this->timeText($iCalEvent, true),
             );
@@ -241,7 +241,6 @@ class SiteScheduleWebModule extends WebModule {
         break;
               
       case 'detail':
-        $scheduleId = $this->getArg('scheduleId', $this->schedule->getScheduleId());
         $eventId    = $this->getArg('eventId');
         $start      = $this->getArg('start', time());
         

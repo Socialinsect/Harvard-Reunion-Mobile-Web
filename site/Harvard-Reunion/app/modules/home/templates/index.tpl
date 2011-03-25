@@ -11,7 +11,7 @@
     {else}
       <h2>{$scheduleInfo['title']}</h2>
     {/if}
-    <p><a href="/login/logout?authority={$userInfo['authority']}" onclick="return confirmLogout()">Sign out &gt;</a></p>
+    <p><a href="/login/logout?authority={$userInfo['authority']}&hard=1" onclick="return confirmLogout()">Sign out &gt;</a></p>
   </div>
 {/capture}
 

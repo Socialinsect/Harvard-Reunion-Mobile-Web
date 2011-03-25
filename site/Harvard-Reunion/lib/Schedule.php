@@ -13,6 +13,8 @@ class Schedule {
   private $timezone = null;
   private $facebook = null;
   private $twitter = null;
+  
+  const ID_SEPARATOR = ':';
 
   static private function getScheduleConfigFile() {
     static $configFile = null;
@@ -30,10 +32,10 @@ class Schedule {
     return $configFile ? $configFile->getSectionVars() : array();
   }
   
-  static private function getScheduleConfig($year) {
+  static private function getScheduleConfig($scheduleId) {
     $configFile = self::getScheduleConfigFile();
     if ($configFile) {
-      $config = $configFile->getSection($year);
+      $config = $configFile->getSection($scheduleId);
       if ($config) {
         return $config;
       }
@@ -47,20 +49,14 @@ class Schedule {
   
     
     $this->attendee = $user;
-    $this->scheduleId = $this->attendee->getGraduationClass();
+    $this->scheduleId = self::getScheduleIdFromYearAndCollegeIndex(
+      $this->attendee->getGraduationClass(), $this->attendee->getCollegeIndex());
 
     $scheduleConfig = self::getScheduleConfig($this->scheduleId);
     
     if ($scheduleConfig) {
       $this->scheduleConfig = $scheduleConfig;
-      
-      $collegeIndex = $this->attendee->getCollegeIndex();
-      foreach ($this->scheduleConfig as $key => $value) {
-        if (is_array($value) && isset($value[$collegeIndex])) {
-          $this->scheduleConfig[$key] = $value[$collegeIndex];
-        }
-      }
-      
+
       $this->startDate = $this->getDateTimeForDate($this->getConfigValue('START_DATE', ''));
       $this->endDate   = $this->getDateTimeForDate($this->getConfigValue('END_DATE', ''));
     }
@@ -78,25 +74,40 @@ class Schedule {
   // Config settings
   //
   
+  static private function getYearAndCollegeIndexFromId($scheduleId) {
+    return explode(self::ID_SEPARATOR, $scheduleId);
+  }
+  
+  static private function getScheduleIdFromYearAndCollegeIndex($year, $collegeIndex=0) {
+    return $year.self::ID_SEPARATOR.$collegeIndex;
+  }
+  
+  
   static public function getAllReunionYears() {
     $scheduleConfigs = self::getScheduleConfigs();
     
     $reunionYears = array();
-    foreach ($scheduleConfigs as $year => $config) {
-      $reunionYears[] = array(
-        'year'     => $year,
-        'number'   => $config['REUNION_NUMBER'],
-        'separate' => is_array($config['REUNION_TITLE']),
-      );
+    foreach ($scheduleConfigs as $scheduleId => $config) {
+      list($year, $collegeIndex) = self::getYearAndCollegeIndexFromId($scheduleId);
+      
+      if (isset($reunionYears[$year])) {
+        $reunionYears[$year]['separate'] = true;
+      } else {
+        $reunionYears[$year] = array(
+          'year'     => $year,
+          'number'   => $config['REUNION_NUMBER'],
+          'separate' => false,
+        );
+      }
     }
     
-    return $reunionYears;
+    return array_values($reunionYears);
   }
   
   static public function reunionClassesAreSeparate($year) {
     $scheduleConfigs = self::getScheduleConfigs();
     
-    return isset($scheduleConfigs[$year]) && is_array($scheduleConfigs[$year]['REUNION_TITLE']);
+    return isset($scheduleConfigs[$year.self::ID_SEPARATOR.'1']);
   }
 
   public function getScheduleId() {

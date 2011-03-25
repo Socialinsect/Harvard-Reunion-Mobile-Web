@@ -61,6 +61,8 @@ class SiteLoginWebModule extends LoginWebModule
             $session->setRemainLoggedIn($this->getArg('remainLoggedIn', 0));
             
             $this->assign('authority', $authorityIndex);
+            $this->assign('cancelURL', $this->buildURL('logout', array('authority'=>$authorityIndex)));
+            $this->assign('url', $url);
 
             if ($this->isLoggedIn($authorityIndex)) {
                 $user = $this->getUser($authorityIndex);
@@ -71,7 +73,6 @@ class SiteLoginWebModule extends LoginWebModule
                 
                 if ($authorityIndex == 'harris' && $user->needsCollegeIndex()) {
                     $this->setTemplatePage('college');
-                    $this->assign('url', $url);
                 } else {
                     $this->redirectTo('index', $options);
                 }
@@ -93,8 +94,6 @@ class SiteLoginWebModule extends LoginWebModule
                         $user = $this->getUser($authorityIndex);
                         if ($authorityIndex == 'harris' && $user->needsCollegeIndex()) {
                             $this->setTemplatePage('college');
-                            $this->assign('url', $url);
-                            
                         } else {
                           if ($url) {
                               header("Location: $url");

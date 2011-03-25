@@ -10,13 +10,18 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
         if ($this->testing) {
             $user = $this->getUser($login);
             
-            if ($login == 'jane.doe@post.harvard.edu' && $password != 'janedoe') {
-              return AUTH_FAILED;
-            }
-            if ($login == 'john.smith@post.harvard.edu' && $password != 'johnsmith') {
-              return AUTH_FAILED;
-            }
+            $testUsers = array(
+              'john.smith'    => 'johnsmith',
+              'jason.park'    => 'jasonpark',
+              'janet.leary'   => 'janetleary',
+              'janice.fisher' => 'janicefisher',
+              'jane.doe'      => 'janedoe',
+            );
             
+            if (isset($testUsers[$login])) {
+              return $testUsers[$login] == $password ? AUTH_OK : AUTH_FAILED;
+            }
+                        
             return $user ? AUTH_OK: AUTH_FAILED;
         }
     
@@ -43,7 +48,6 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_COOKIEJAR      => CACHE_DIR . "/Harris/cookie.txt", // need cookies for it to work
             CURLOPT_COOKIEFILE     => CACHE_DIR . "/Harris/cookie.txt",
-            CURLOPT_SSL_VERIFYPEER => false //to make MAMP work. TODO make this a parameter
         );
 
         curl_setopt_array($curl, $opts);
@@ -96,6 +100,19 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
 
     public function getGroup($group) {
         return false;
+    }
+    
+    public function logout(Session $session, $hard=false)
+    {
+        if ($hard) {
+          // On hard logout flush the user's college selection
+          $user = $session->getUser($this);
+          if ($user) {
+            $user->clearCollegeIndex();
+          }
+        }
+
+        parent::logout($session, $hard);
     }
 }
 
