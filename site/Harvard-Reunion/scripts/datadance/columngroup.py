@@ -159,6 +159,7 @@ class ColumnGroup(object):
     def __getitem__(self, index):
         """Get column at this index if it's a number, or this column name if
         it's a String."""
+        # print sorted(self._name_to_col.keys())
         if isinstance(index, int):
             return self._columns[index]
         elif isinstance(index, basestring):
@@ -263,8 +264,16 @@ class ColumnGroup(object):
     
     @classmethod
     def from_rows(cls, column_names, rows):
-        cols = [DataColumn(col) for col in zip(*rows)]
-        return cls(zip(column_names, cols))
+        # force it to a list so that we can tell if it's empty (generators will
+        # return true even if they're empty). Memory inefficient kludge, but we
+        # don't care about memory as much any longer. :-/
+        rows = list(rows)
+                          
+        if not rows: # no rows because it's None or an empty list (just a header)
+            return cls([(cn, DataColumn.EMPTY) for cn in column_names])
+        else:
+            cols = [DataColumn(col) for col in zip(*rows)]
+            return cls(zip(column_names, cols))
     
     @classmethod
     def from_csv(cls, csv_input, strip_spaces=True, skip_blank_lines=True,
@@ -327,6 +336,7 @@ class ColumnGroup(object):
         #   [ DataColumn(["David", "John"]), DataColumn(["Ormsbee", "Doe"]) ]
         return ColumnGroup(zip(column_headers, cols))
 
+
     def write(self, filename, show_row_nums=False, encoding="utf-8"):
         with open(filename, "wb") as outfile:
             self.to_csv(outfile, show_row_nums=show_row_nums, encoding=encoding)
@@ -345,6 +355,7 @@ class ColumnGroup(object):
         drop_table_sql = "drop table if exists %s" % table_name
         create_table_sql = "create table %s(%s)" % \
                            (table_name, ", ".join(_iter_cols_sql()))
+
         cur.execute(drop_table_sql)
         cur.execute(create_table_sql)
 
@@ -356,10 +367,11 @@ class ColumnGroup(object):
                         (index_name, table_name, index_col))
 
         # Now add our data
-        col_placeholders = ",".join(list("?" * self.num_cols))
-        insert_sql = u"insert into %s values (%s)" % \
-                     (table_name, col_placeholders)
-        cur.executemany(insert_sql, self.iter_rows())
+        if self.num_rows > 0:
+            col_placeholders = ",".join(list("?" * self.num_cols))
+            insert_sql = u"insert into %s values (%s)" % \
+                         (table_name, col_placeholders)
+            cur.executemany(insert_sql, self.iter_rows())
 
         conn.commit()
         cur.close()

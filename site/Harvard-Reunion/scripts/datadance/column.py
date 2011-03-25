@@ -378,4 +378,6 @@ class LazyColumn(Column):
         else:
             err_msg = "attribute %s not found in LazyColumn or DataColumn" % name
             raise AttributeError(err_msg)
-                  
+
+DataColumn.EMPTY = DataColumn([])
+

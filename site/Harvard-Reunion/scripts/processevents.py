@@ -38,7 +38,7 @@ def main(infile_name, outfile_base):
     # This is a little ugly because if you change the column order, it changes
     # the sort order. TODO: Have this take args for what fields to sort by.
     sorted_by_email = (user_cols + event_cols).sort_rows()
-    
+
     # Filter out the Voided status rows
     active = sorted_by_email.reject_rows_by_value("status", "Voided")
 
@@ -139,6 +139,11 @@ def merge_rows(row1, row2):
 
     return new_row
 
+
+#################### Massaging Data Quirks ####################
+
+def make_non_harris_event_cols(ids_to_names):
+    pass
 
 #################### Write to CSV files ####################
 
