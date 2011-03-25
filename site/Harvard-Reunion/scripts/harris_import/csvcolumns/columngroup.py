@@ -39,7 +39,7 @@ class ColumnGroup(object):
             if len(pair) != 2:
                 raise ValueError("Pair %s does not have 2 elements" %
                                  (repr(pair)))
-            
+        
         self._name_to_col = dict(name_col_pairs)
         self._column_names, self._columns = zip(*name_col_pairs)
 
@@ -349,7 +349,7 @@ class ColumnGroup(object):
         def _iter_cols_sql():
             for col_name in self.column_names:
                 if col_name == primary_key:
-                    yield "%s integer primary key" % col_name
+                    yield "%s varchar primary key" % col_name
                 else:
                     yield "%s varchar" % col_name
 

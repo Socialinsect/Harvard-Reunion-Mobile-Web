@@ -22,10 +22,11 @@ import string
 import sys
 from itertools import izip
 
-from csvcolumns import ColumnGroup
+from csvcolumns.columngroup import ColumnGroup
+from csvcolumns.column import DataColumn
 from csvcolumns.transform import MethodTransform
 
-import eventmappings
+import config
 
 def main(class_year, infile_name, outfile_base):
     all_cols = parse_doc(infile_name)
@@ -33,7 +34,8 @@ def main(class_year, infile_name, outfile_base):
     # Basic user info like name, graduating year, email
     user_cols = select_user_cols(all_cols)
     # Extract event cols, keep the Event ID, strip Event Name, sort cols by ID
-    event_cols = select_event_cols(all_cols).sort_columns()
+    event_cols = ( select_event_cols(all_cols) + 
+                   non_harris_event_cols(all_cols.num_rows) ).sort_columns()
 
     # Pull the user cols and event cols together, sort rows by email (the first 
     # col) This is a little ugly because if you change the column order, it 
@@ -50,12 +52,12 @@ def main(class_year, infile_name, outfile_base):
 
     # Account for package deals where signing up for one event actually means
     # you're attending multiple ones
-    packages_added = add_packages(merged, class_year)
+    final = add_packages(merged, class_year)
 
     # By this point, we've more or less got a clean data file. Now we start to
     # transform it to what we need for our SQL tables. The CSV files are just
     # for debugging purposes.
-    packages_added.write(outfile_base + "-filtered.csv")
+    final.write(outfile_base + "-filtered.csv")
 
     dbconn = sqlite3.connect(outfile_base + ".db")
 
@@ -146,17 +148,18 @@ def merge_rows(row1, row2):
     return new_row
 
 
-#################### Massaging Data ####################
+#################### Massaging Data (based on config) ####################
 
-def append_non_harris_event_cols(ids_to_names):
-    pass
+def non_harris_event_cols(num_rows):
+    return ColumnGroup([(event_id, DataColumn.init_with(num_rows, ''))
+                        for event_id in config.NON_HARRIS_EVENTS])
 
 def add_packages(src_col_grp, class_year):
     """Return a new ColumnGroup that has the row values filled out for all 
     users attending events that are covered by package events. So if package
     event 100 maps to regular events 101, 102hr, 103; then the value for 
     row['100'] should be copied to row['101'], row['102hr'], and row['103']"""
-    package_events = eventmappings.mappings_for(class_year)
+    package_events = config.CLASSES_TO_MAPPINGS[class_year]
     
     def _new_row(old_row):
         row = old_row.copy()

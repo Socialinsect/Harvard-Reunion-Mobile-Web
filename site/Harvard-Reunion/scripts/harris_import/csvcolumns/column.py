@@ -123,6 +123,10 @@ class DataColumn(Column):
         # set to None, and we will compute the hash when it's requested.
         self._value_hash = explicit_hash
 
+    @classmethod
+    def init_with(cls, num_rows, value=''):
+        return cls(['' for i in range(num_rows)])
+
     @property
     def identity_hash(self):
         """Return a hash that uniquely identifies us.  For DataColumns, this is
