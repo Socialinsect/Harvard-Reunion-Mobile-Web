@@ -198,11 +198,9 @@ def add_packages(src_col_grp, class_year):
 def make_events_table(event_headers):
     """The column names are of the format "Friday Dinner #123123". We want to 
     take all the column names and make a table of event ids and descriptions"""
-    return ColumnGroup.from_rows(["event_id", "name"],
-                                 (parse_event_header(header) 
-                                  for header in event_headers
-                                  if is_event_header(header)))
-
+    events = [parse_event_header(header) 
+              for header in event_headers if is_event_header(header)]
+    return ColumnGroup.from_rows(["event_id", "name"], sorted(events))
 
 def make_users_events_table(event_col_names, all_cols):
     """event_col_names is a list of all the column names that represent events
