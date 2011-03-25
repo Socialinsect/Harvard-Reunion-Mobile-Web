@@ -34,6 +34,7 @@ def main(class_year, infile_name, outfile_base):
     
     # Basic user info like name, graduating year, email
     user_cols = select_user_cols(all_cols)
+
     # Extract event cols, keep the Event ID, strip Event Name, sort cols by ID
     event_cols = select_event_cols(all_cols).sort_columns()
 
@@ -51,7 +52,7 @@ def main(class_year, infile_name, outfile_base):
     merged = active.merge_rows(lambda row: row["email"], merge_func=merge_rows)
 
     # Account for package deals where signing up for one event actually means
-    # you're attending multiple ones
+    # you're attending multiple ones -- even some that aren't in Harris
     final = add_packages(merged, class_year)
 
     # By this point, we've more or less got a clean data file. Now we start to
@@ -160,6 +161,9 @@ def format_as_event_header(event_id, event_name):
     return "%s #%s" % (event_name, event_id)
 
 def non_harris_event_cols(num_rows):
+    """Add columns for non-Harris events. These can be auto-populated if Harris
+    package events include them (look in config.py). They are initialized to all
+    blank."""
     return ColumnGroup([(format_as_event_header(event_id, event_name),
                          DataColumn.init_with(num_rows, ''))
                         for event_id, event_name
