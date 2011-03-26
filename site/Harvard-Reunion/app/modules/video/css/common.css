@@ -7,18 +7,18 @@
   margin-top: 0;
 }
 
-.results li.video {
+.results li.videoListing {
   margin: 0;
   padding: 0;
 }
 
-.results li.video a {
+.results li.videoListing a {
   overflow: hidden;
   margin: 0;
   padding-left: 99px;
   -webkit-border-radius: 0px;
   position: relative;
-  min-height: 72px;
+  min-height: 80px;
 }
 
 .results .thumbnail {
@@ -31,6 +31,7 @@
   text-align: center;
   line-height: 86px;
   background-color: black;
+  margin: 1px;
 }
 .results .thumbnail img {
   max-width: 90px;
@@ -47,14 +48,6 @@ div.message {
 
 div.when {
   padding-top: .25em;
-}
-
-div.video {
-  text-align: center;
-}
-
-div.videoInfo {
-  text-align: center;
 }
 
 li {

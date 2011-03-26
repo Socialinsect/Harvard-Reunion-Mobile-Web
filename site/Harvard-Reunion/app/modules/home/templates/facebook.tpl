@@ -32,7 +32,7 @@
   {/foreach}  
   
   {$more = array()}
-  {$more['title'] = '<span id="listFooter" class="fbpostsLink">More results...</span>'}
+  {$more['title'] = '<span id="listFooter" class="fbpostsLink">View at facebook.com</span>'}
   {$more['url'] = $groupURL}
   {$more['class'] = 'external'}
   {$posts[] = $more}

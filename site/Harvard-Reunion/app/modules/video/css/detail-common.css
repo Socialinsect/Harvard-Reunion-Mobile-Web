@@ -1,4 +1,4 @@
-div.video {
+div.videoWrapper {
   max-width: 100%;
   overflow: hidden;
 }
@@ -27,4 +27,12 @@ div.video {
 }
 .nav li form {
   margin-top: 0;
+}
+
+div.videoWrapper {
+  text-align: center;
+}
+
+div.videoInfo {
+  text-align: center;
 }

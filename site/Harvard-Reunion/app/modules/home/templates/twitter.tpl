@@ -14,7 +14,7 @@
 {/foreach}
 
 {$more = array()}
-{$more['title'] = '<span id="listFooter" class="tweetLink">More results...</span>'}
+{$more['title'] = '<span id="listFooter" class="tweetLink">View at twitter.com</span>'}
 {$more['class'] = 'external'}
 {$more['url'] = $twitterURL}
 {$posts[] = $more}

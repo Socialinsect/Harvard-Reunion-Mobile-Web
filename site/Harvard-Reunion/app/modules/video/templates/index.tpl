@@ -28,7 +28,7 @@
   
   <ul class="results">
     {foreach $videos as $video}
-      <li class="video">
+      <li class="videoListing">
         <a href="{$video['url']}">
           <div class="thumbnail"><img src="{$video['thumbnail']}" /></div>
           <div class="message">{$video['message']}</div>
