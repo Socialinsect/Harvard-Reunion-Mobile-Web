@@ -192,7 +192,7 @@ class SiteScheduleWebModule extends WebModule {
   }
 
   protected function initializeForPage() {    
-    $scheduleId = $this->schedule->getScheduleId());
+    $scheduleId = $this->schedule->getScheduleId();
 
     switch ($this->page) {
       case 'help':
