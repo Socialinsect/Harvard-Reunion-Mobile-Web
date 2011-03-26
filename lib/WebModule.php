@@ -176,10 +176,7 @@ abstract class WebModule extends Module {
   //
   // Minify URLs
   //
-  private function getMinifyUrls($pageOnly=false) {
-    $page = preg_replace('/[\s-]+/', '+', $this->page);
-    $minKey = "{$this->id}-{$page}-{$this->pagetype}-{$this->platform}-".md5(SITE_DIR);
-    
+  private function getMinifyArgString($pageOnly=false) {
     $minifyArgs = array();
     if (Kurogo::getSiteVar('MINIFY_DEBUG')) {
       $minifyArgs['debug'] = 1;
@@ -189,9 +186,16 @@ abstract class WebModule extends Module {
     }
     $minifyArgString = http_build_query($minifyArgs);
     
+    return ($minifyArgString ? "&$minifyArgString" : '');
+  }
+  
+  private function getMinifyUrls($pageOnly=false) {
+    $page = preg_replace('/[\s-]+/', '+', $this->page);
+    $minKey = "{$this->id}-{$page}-{$this->pagetype}-{$this->platform}-".md5(SITE_DIR);
+    
     return array(
-      'css' => "/min/g=css-$minKey".($minifyArgString ? "&$minifyArgString" : ''),
-      'js'  => "/min/g=js-$minKey". ($minifyArgString ? "&$minifyArgString" : ''),
+      'css' => "/min/g=css-$minKey".$this->getMinifyArgString($pageOnly),
+      'js'  => "/min/g=js-$minKey".$this->getMinifyArgString($pageOnly),
     );
   }
 
@@ -289,112 +293,6 @@ abstract class WebModule extends Module {
     exit;
   }
     
-  public function hasFeeds() {
-     return $this->hasFeeds;
-  }
-  
-  public function getFeedFields() {
-     return $this->feedFields;
-  }
-  
-  public function removeFeed($index) {
-       $feedData = $this->loadFeedData();
-       if (isset($feedData[$index])) {
-           unset($feedData[$index]);
-           if (is_numeric($index)) {
-              $feedData = array_values($feedData);
-           }
-           
-           $this->saveConfig(array('feeds'=>$feedData), 'feeds');
-       }
-  }
-  
-  public function addFeed($newFeedData, &$error=null) {
-       $feedData = $this->loadFeedData();
-       if (!isset($newFeedData['TITLE']) || empty($newFeedData['TITLE'])) {
-         $error = "Feed Title cannot be blank";
-         return false;
-       }
-
-       if (isset($newFeedData['BASE_URL']) && empty($newFeedData['BASE_URL'])) {
-         $error = "Feed URL cannot be blank";
-         return false;
-       }
-       
-       if (isset($newFeedData['LABEL'])) {
-          $label = $newFeedData['LABEL'];
-          unset($newFeedData['LABEL']);
-          $feedData[$label] = $newFeedData;
-       } else {
-          $feedData[] = $newFeedData;
-       }
-       
-       return $this->saveConfig(array('feeds'=>$feedData), 'feeds');
-  }
-  
-  //
-  // Admin Methods
-  //
-  //
-  
-  protected function prepareAdminForSection($section, $adminModule) {
-    switch ($section)
-    {
-        case 'strings':
-            $strings = $this->getOptionalModuleSection('strings');
-            $formListItems = array();
-            foreach ($strings as $string=>$value) {
-                $item = array(
-                    'label'=>implode(" ", array_map("ucfirst", explode("_", strtolower($section)))),
-                    'name'=>"moduleData[strings][$string]",
-                    'typename'=>"moduleData][strings][$string",
-                    'value'=>is_array($value) ? implode("\n\n", $value) : $value,
-                    'type'=>is_array($value) ? 'paragraph' : 'text'
-                );
-                
-                $formListItems[] = $item;
-            }
-            $adminModule->assign('formListItems' ,$formListItems);
-            break;
-    }
-  }
-  
-  protected function saveConfig($moduleData, $section=null) {
-        switch ($section)
-        {
-            case 'feeds':
-            case 'nav':
-                $type = $section;
-                break;
-            default:
-                $type = 'module';
-                break;
-        }
-
-        $moduleConfigFile = ModuleConfigFile::factory($this->configModule, $type, ConfigFile::OPTION_CREATE_EMPTY);
-        
-        switch ($section)
-        {
-            case 'feeds':
-            case 'nav':
-                $moduleData = $moduleData[$section];
-                // clear out empty values
-                foreach ($moduleData as $feed=>$feedData) {
-                    foreach ($feedData as $var=>$value) {
-                        if (strlen($value)==0) {
-                            unset($moduleData[$feed][$var]);
-                        }
-                    }
-                }
-                $moduleConfigFile->setSectionVars($moduleData);
-                break;
-            default:
-                $moduleConfigFile->addSectionVars($moduleData, !$section);
-        }
-        
-        $moduleConfigFile->saveFile();
-  }
-  
   protected function unauthorizedAccess() {
         if ($this->isLoggedIn()) {  
             $this->redirectToModule('error', '', array('url'=>$_SERVER['REQUEST_URI'], 'code'=>'protected'));
@@ -547,6 +445,18 @@ abstract class WebModule extends Module {
     $this->redirectToModule('error', '', array('code'=>'disabled', 'url'=>$_SERVER['REQUEST_URI']));
   }
   
+    public static function getAllThemes() {
+        $themes = array();
+        $d = dir(SITE_DIR . "/themes");
+        while (false !== ($entry = $d->read())) {
+            if ($entry[0]!='.' && is_dir(SITE_DIR . "/themes/$entry")) {
+                $themes[$entry] = $entry;
+            }
+        }
+        $d->close();
+        return $themes;
+    }
+    
     protected function secureModule() {
         $secure_host = Kurogo::getOptionalSiteVar('SECURE_HOST', $_SERVER['SERVER_NAME']);
         if (empty($secure_host)) {
@@ -565,6 +475,15 @@ abstract class WebModule extends Module {
   //
   // Module control functions
   //
+    public static function getAllModuleNames() {
+        $modules = array();
+        foreach (self::getAllModules() as $module) {
+            $modules[$module->getConfigModule()] = $module->getModuleName();
+        }
+        
+        return $modules;
+    }
+  
   protected function getAllModules() {
     $dirs = array(MODULES_DIR, SITE_MODULES_DIR);
     $modules = array();
@@ -700,7 +619,7 @@ abstract class WebModule extends Module {
     $this->inlineCSSBlocks[] = $inlineCSS;
   }
   protected function addInternalCSS($path) {
-    $this->cssURLs[] = '/min/g='.MIN_FILE_PREFIX.$path;
+    $this->cssURLs[] = '/min/g='.MIN_FILE_PREFIX.$path.$this->getMinifyArgString();
   }
   protected function addExternalCSS($url) {
     $this->cssURLs[] = $url;
@@ -718,7 +637,7 @@ abstract class WebModule extends Module {
     $this->onLoadBlocks[] = $onLoad;
   }
   protected function addInternalJavascript($path) {
-    $path = '/min/g='.MIN_FILE_PREFIX.$path;
+    $path = '/min/g='.MIN_FILE_PREFIX.$path.$this->getMinifyArgString();
     if (!in_array($path, $this->javascriptURLs)) {
         $this->javascriptURLs[] = $path;
     }
