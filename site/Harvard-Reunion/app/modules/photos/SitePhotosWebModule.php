@@ -102,7 +102,7 @@ class SitePhotosWebModule extends WebModule {
         'type'  => 'facebook',
         'name'  => 'Facebook',
         'url'   => $facebook->getNeedsLoginURL(),
-        'items' => 'posts',
+        'items' => 'photos',
       ));
       return false;
       

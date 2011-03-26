@@ -104,6 +104,8 @@ class SiteHomeWebModule extends HomeWebModule {
           
         } else if (!$facebook->isMemberOfGroup()) {
           $this->assign('needsJoinGroup', true);
+          $this->assign('groupURL', $facebook->getGroupURL());
+          $this->assign('groupName', $facebook->getGroupFullName());
           
         } else {
           $this->addInlineJavascript(
@@ -114,10 +116,8 @@ class SiteHomeWebModule extends HomeWebModule {
           $this->assign('groupName',     $facebook->getGroupFullName());
           $this->assign('switchUserURL', $facebook->getSwitchUserURL());
           $this->assign('posts',         $facebook->getGroupStatusMessages());
+          $this->assign('groupURL', $facebook->getGroupURL());
         }
-        
-        $this->assign('groupName', $facebook->getGroupFullName());
-        $this->assign('groupURL', $facebook->getGroupURL());
         break;
       
       case 'twitter':
