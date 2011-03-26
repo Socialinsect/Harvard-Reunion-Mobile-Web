@@ -11,6 +11,10 @@
   text-decoration: none;
 }
 
+.banner a span {
+  text-decoration: underline;
+}
+
 .banner p {
   font-size: 88%;
   line-height: 1.2em;

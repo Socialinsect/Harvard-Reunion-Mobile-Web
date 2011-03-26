@@ -84,6 +84,16 @@ class SiteHomeWebModule extends HomeWebModule {
         $this->addInlineJavascript(
           'var RECENT_MESSAGE_AJAX_URL = "'.URL_BASE.API_URL_PREFIX.'/{$this->id}/recent"');
         
+        $logoutArgs = array(
+          'authority' => $userInfo['authority'],
+          'hard'      => 1,
+        );
+        if ($userInfo['authority'] == 'anonymous') {
+          $logoutArgs['url'] = URL_PREFIX.'/login/?authority=harris';
+        }
+        $logoutURL = $this->buildURLForModule('login', 'logout', $logoutArgs);
+        
+        $this->assign('logoutURL',    $logoutURL);
         $this->assign('userInfo',     $userInfo);
         $this->assign('scheduleInfo', $scheduleInfo);
         $this->assign('socialInfo',   $socialInfo);
