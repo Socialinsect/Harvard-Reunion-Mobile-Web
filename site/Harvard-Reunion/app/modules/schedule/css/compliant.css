@@ -53,10 +53,10 @@
   margin-top: -12px;
   height: 20px;
   width: 20px;
-  background: transparent url('/modules/schedule/images/badge-register.png') no-repeat left;
+  background: transparent url('/common/images/badge-register.png') no-repeat left;
   background-size: 20px;
 }
 
 .nav li .register .confirmed {
-  background-image: url('/modules/schedule/images/badge-confirmed.png'); 
+  background-image: url('/common/images/badge-confirmed.png'); 
 }
