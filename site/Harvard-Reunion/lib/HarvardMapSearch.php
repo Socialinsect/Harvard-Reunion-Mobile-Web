@@ -35,7 +35,7 @@ class HarvardMapSearch extends MapSearch {
             'fmt' => 'json',
             );
     
-        $url = $GLOBALS['siteConfig']->getVar('MAP_SEARCH_URL').'?'.http_build_query($params);
+        $url = Kurogo::getSiteVar('MAP_SEARCH_URL').'?'.http_build_query($params);
         $rawContent = file_get_contents($url);
         $content = json_decode($rawContent, true);
     
@@ -67,7 +67,7 @@ class HarvardMapSearch extends MapSearch {
             $this->searchController = MapDataController::factory(
                 $this->searchFeedData['CONTROLLER_CLASS'],
                 $this->searchFeedData);
-            $this->searchController->setDebugMode($GLOBALS['siteConfig']->getVar('DATA_DEBUG'));
+            $this->searchController->setDebugMode(Kurogo::getSiteVar('DATA_DEBUG'));
         }
     	return $this->searchController;
 	}
@@ -83,7 +83,7 @@ class HarvardMapSearch extends MapSearch {
             'loc' => 'course',
             );
 
-        $url = $GLOBALS['siteConfig']->getVar('MAP_SEARCH_URL').'?'.http_build_query($params);
+        $url = Kurogo::getSiteVar('MAP_SEARCH_URL').'?'.http_build_query($params);
         $rawContent = file_get_contents($url);
         $content = json_decode($rawContent, true);
 

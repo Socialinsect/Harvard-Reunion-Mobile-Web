@@ -5,11 +5,13 @@
 includePackage('Calendar');
 
 class Schedule {
+  private $user = null;
+  private $year = 'error';
+  private $collegeIndex = 0;
   private $scheduleId = '';
   private $scheduleConfig = array();
   private $startDate = null;
   private $endDate = null;
-  private $attendee = null;
   private $timezone = null;
   private $facebook = null;
   private $twitter = null;
@@ -33,24 +35,41 @@ class Schedule {
   }
   
   static private function getScheduleConfig($scheduleId) {
+    $config = array();
+
     $configFile = self::getScheduleConfigFile();
     if ($configFile) {
-      $config = $configFile->getSection($scheduleId);
-      if ($config) {
-        return $config;
+      
+      $defaultConfig = $configFile->getSection('default');
+      if ($defaultConfig) {
+        $config = array_merge($config, $defaultConfig);
+      }
+    
+      $scheduleConfig = $configFile->getSection($scheduleId);
+      if ($scheduleConfig) {
+        $config = array_merge($config, $scheduleConfig);
       }
     }
     
-    return array();
+    return $config;
   }
 
-  function __construct($user) {
-    $this->timezone = new DateTimeZone($GLOBALS['siteConfig']->getVar('LOCAL_TIMEZONE'));
-  
+  // Can take either a user object or a year and college index
+  function __construct(/* polymorphic */) {
+    $args = func_get_args();
+    if (is_object($args[0])) {
+      $this->user = $args[0];
+      $this->year = $this->user->getGraduationClass();
+      $this->collegeIndex = $this->user->getCollegeIndex();
+      
+    } else {
+      $this->year = $args[0];
+      $this->collegeIndex = intval($args[1]);
+    }
     
-    $this->attendee = $user;
-    $this->scheduleId = self::getScheduleIdFromYearAndCollegeIndex(
-      $this->attendee->getGraduationClass(), $this->attendee->getCollegeIndex());
+    $this->timezone = new DateTimeZone(Kurogo::getSiteVar('LOCAL_TIMEZONE'));
+    
+    $this->scheduleId = self::getScheduleIdFromYearAndCollegeIndex($this->year, $this->collegeIndex);
 
     $scheduleConfig = self::getScheduleConfig($this->scheduleId);
     
@@ -66,8 +85,12 @@ class Schedule {
     return new DateTime($date.' 00:00:00', $this->timezone);
   }
   
+  private static function argVal($array, $key, $default=null) {
+    return isset($array[$key]) ? $array[$key] : $default;
+  }
+  
   private function getConfigValue($key, $default=null) {
-    return isset($this->scheduleConfig[$key]) ? $this->scheduleConfig[$key] : $default;
+    return self::argVal($this->scheduleConfig, $key, $default);
   }
 
   //
@@ -78,7 +101,7 @@ class Schedule {
     return explode(self::ID_SEPARATOR, $scheduleId);
   }
   
-  static private function getScheduleIdFromYearAndCollegeIndex($year, $collegeIndex=0) {
+  static public function getScheduleIdFromYearAndCollegeIndex($year, $collegeIndex=0) {
     return $year.self::ID_SEPARATOR.$collegeIndex;
   }
   
@@ -112,10 +135,6 @@ class Schedule {
 
   public function getScheduleId() {
     return $this->scheduleId;
-  }
-  
-  public function getAttendee() {
-    return $this->attendee;
   }
   
   public function getReunionNumber() {
@@ -169,17 +188,170 @@ class Schedule {
   // Feeds
   //
   
+  public function getInfo() {
+    $info = array(
+      'paragraphs' => $this->getConfigValue('ABOUT_TEXT', array()),
+      'sections'   => array(),
+    );
+    
+    $sectionKeys   = $this->getConfigValue('SECTION_KEYS',   array());
+    $sectionTitles = $this->getConfigValue('SECTION_TITLES', array());
+    foreach ($sectionKeys as $i => $key) {
+      $title =  isset($sectionTitles[$i]) ? $sectionTitles[$i] : '';
+      if ($key && $title) {
+        $info['sections'][$key] = array(
+          'title' => $title,
+          'links' => array(),
+        );
+      }
+    }
+    
+    $linkArrays = array(
+      'title'    => $this->getConfigValue('LINKS_TITLES',    array()),
+      'subtitle' => $this->getConfigValue('LINKS_SUBTITLES', array()),
+      'url'      => $this->getConfigValue('LINKS_URLS',      array()),
+      'class'    => $this->getConfigValue('LINKS_CLASSES',   array()),
+    );
+    $sections = $this->getConfigValue('LINKS_SECTION', array());
+    
+    foreach ($linkArrays['title'] as $index => $title) {
+      $link = array();
+      foreach (array_keys($linkArrays) as $key) {
+        if (isset($linkArrays[$key][$index]) && $linkArrays[$key][$index]) {
+          $value = $linkArrays[$key][$index];
+          
+          $test = $this->getConfigValue($value, false);
+          if ($test) {
+            $link[$key] = $test;
+          } else {
+            $link[$key] = $value;
+          }
+        }
+      }
+      
+      if ($link && isset($sections[$index], $info['sections'][$sections[$index]])) {
+        $info['sections'][$sections[$index]]['links'][] = $link;
+      }
+    }
+    $info['sections'] = array_values($info['sections']);
+    
+    return $info;
+  }
+  
   public function getEventFeed() {
     $controllerClass = $this->getConfigValue('CONTROLLER_CLASS', 'CalendarDataController');
     
     $controller = CalendarDataController::factory($controllerClass, $this->scheduleConfig);
-    $controller->setDebugMode($GLOBALS['siteConfig']->getVar('DATA_DEBUG'));
+    $controller->setDebugMode(Kurogo::getSiteVar('DATA_DEBUG'));
 
     $endDate = new DateTime($this->endDate->format('Y-m-d').' 00:00:00 +1 day', $this->timezone);
     $controller->setStartDate($this->startDate);
     $controller->setEndDate($endDate);
     
     return $controller;
+  }
+  
+  public function isRegisteredForEvent($event) {
+    $registered = false;
+    if (is_object($this->user) && get_class($this->user) == 'HarrisReunionUser') {
+      
+    }
+    
+    return $registered;
+  }
+  
+  public function getEventInfo($event) {
+    $info = array();
+    
+    //
+    // Simple fields
+    //
+    $simpleFields = array(
+      'title'       => 'summary',
+      'datetime'    => 'datetime',
+      'categories'  => 'categories',
+      'description' => 'Details',
+      'url'         => 'url',
+      'phone'       => 'Phone',
+      'email'       => 'Email',
+    );
+    foreach ($simpleFields as $key => $attribute) {
+      $value = $event->get_attribute($attribute);
+      if ($value) {
+        $info[$key] = $value;
+      } else {
+        $info[$key] = null;
+      }
+    }
+    
+    //
+    // Location
+    //
+    $location = array();
+    $locationTitle = $event->get_attribute('Location Name');
+    if ($locationTitle) {
+      $location['title'] = $locationTitle;
+    }
+    $locationBuildingID = $event->get_attribute('Building ID');
+    if ($locationBuildingID) {
+      $location['building'] = $locationBuildingID;
+      
+      $mapModule = WebModule::factory('map');
+      
+      $address = array();
+      $buildingInfo = $mapModule->getBuildingDataById($locationBuildingID);
+      if (isset($buildingInfo['attributes'], $buildingInfo['attributes']['Address'])) {
+        $address['street'] = mb_convert_case($buildingInfo['attributes']['Address'], MB_CASE_TITLE);
+        
+        if (isset($buildingInfo['attributes']['City'])) {
+          $address['city'] = mb_convert_case($buildingInfo['attributes']['City'], MB_CASE_TITLE);
+        }
+        if (isset($buildingInfo['attributes']['State'])) {
+          $address['state'] = $buildingInfo['attributes']['State'];
+        }
+      }
+      if ($address) {
+        $location['address'] = $address;
+      }
+      //error_log(print_r($buildingInfo, true));
+    }
+    $trumbaLocation = $event->get_attribute('location');
+    if ($trumbaLocation) {
+      if (preg_match('/^([\-\.0-9]+),([\-\.0-9]+)$/', $trumbaLocation, $matches)) {
+        $location['latlon'] = array($matches[1], $matches[2]);
+      }
+    }
+    $multipleLocations = $event->get_attribute('Multiple Locations');
+    if (strtolower($multipleLocations) == 'yes') {
+      $location['multiple'] = true;
+    }
+    if ($location) {
+      $info['location'] = $location;
+    } else {
+      $info['location'] = null;
+    }
+    
+    //
+    // Registration
+    //
+    $registrationRequired = $event->get_attribute('Registration Required');
+    if (strtolower($registrationRequired) == 'yes') {
+      $info['registration'] = array(
+        'url' => 'http://alumni.harvard.edu/',
+      );
+      $fee = $event->get_attribute('Registration Fee');
+      if ($fee) {
+        $info['registration']['fee'] = $fee;
+      }
+      $url = $event->get_attribute('Registration URL');
+      if ($url) {
+        $info['registration']['url'] = $url;
+      }
+    } else {
+      $info['registration'] = null;
+    }
+    
+    return $info;
   }
 
   public function getFacebookFeed() {

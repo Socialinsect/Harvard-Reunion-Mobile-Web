@@ -68,48 +68,46 @@ class SiteScheduleWebModule extends WebModule {
   
     switch ($type) {
       case 'datetime':
-        if ($value instanceOf DayRange) {
-          $valueForType = strval($value);
-        } else {
-          $valueForType = date("l, F j", $value->get_start());
-          if ($value->get_end() && $value->get_end() != $value->get_start()) {
-            $startDate = intval(date('Ymd', $value->get_start()));
-            $endDate = intval(date('Ymd', $value->get_end()));
-            
-            $sameDay = $startDate == $endDate;
-            if (!$sameDay) {
-              $valueForType .= ', ';
-              $endIsMidnight = intval(date('His', $value->get_end())) == 0;
-              if ($endIsMidnight && ($endDate - $startDate == 1)) {
-                $sameDay = true;
-              }
-            }
-            
-            $sameAMPM = date('a', $value->get_start()) == date('a', $value->get_end());
+        $allDay = $value instanceOf DayRange;
+        $sameAMPM = date('a', $value->get_start()) == date('a', $value->get_end());
+        $sameDay = false;
+        if ($value->get_end() && $value->get_end() != $value->get_start()) {
+          $startDate = intval(date('Ymd', $value->get_start()));
+          $endDate = intval(date('Ymd', $value->get_end()));
           
-            $valueForType .= ($sameDay ? '<br/>' : ', ').date('g:i', $value->get_start());
-            if (!$sameAMPM) {
-              $valueForType .= date('a', $value->get_start());
-            }
-
-            if (!$sameDay) {
-              $valueForType .= date(" - l, F j, ", $value->get_end());
-            } else if ($sameAMPM) {
-              $valueForType .= '-';
-            } else {
-              $valueForType .= ' - ';
+          $sameDay = $startDate == $endDate;
+          if (!$sameDay) {
+            $endIsBefore5am = intval(date('H', $value->get_end())) < 5;
+            if ($endIsBefore5am && ($endDate - $startDate == 1)) {
+              $sameDay = true;
             }
           }
-          $valueForType .= date("</br>g:ia", $value->get_end());
         }
-        
+        $valueForType = date("l, F j", $value->get_start());
+        if ($allDay) {
+          if (!$sameDay) {
+            $valueForType .= date(" - l, F j", $value->get_end());
+          }
+        } else {
+          $valueForType .= ($sameDay ? '<br/>' : ', ').date('g:i', $value->get_start());
+          if (!$sameAMPM) {
+            $valueForType .= date('a', $value->get_start());
+          }
+          if (!$sameDay) {
+            $valueForType .= date(" - l, F j, ", $value->get_end());
+          } else if ($sameAMPM) {
+            $valueForType .= '-';
+          } else {
+            $valueForType .= ' - ';
+          }
+          $valueForType .= date("g:ia", $value->get_end());
+        }
         break;
 
       case 'url':
-        $valueForType = str_replace("http://http://", "http://", $value);
-        if (strlen($valueForType) && !preg_match('/^http\:\/\//', $valueForType)) {
-          $valueForType = 'http://'.$valueForType;
-        }
+        $valueForType = preg_replace(
+          array(';http://([^/]+)/$;', ';http://;'), 
+          array('\1',                 ''), $value);
         break;
         
       case 'phone':
@@ -192,7 +190,7 @@ class SiteScheduleWebModule extends WebModule {
   }
 
   protected function initializeForPage() {    
-    $scheduleId = $this->schedule->getScheduleId());
+    $scheduleId = $this->schedule->getScheduleId();
 
     switch ($this->page) {
       case 'help':
@@ -246,156 +244,120 @@ class SiteScheduleWebModule extends WebModule {
         
         $this->checkToggleBookmark($scheduleId, $eventId);
         
-        $feed = $this->schedule->getEventFeed();       
+        $feed = $this->schedule->getEventFeed();      
         $event = $feed->getItem($eventId, $start);
         if (!$event) {
           throw new Exception("Event not found");
         }
         //error_log(print_r($event, true));
-        
-        // build the list of attributes
-        $fieldConfig = $this->loadPageConfigFile('detail', 'detailFields');
-        $allKeys = array_keys($fieldConfig);
+        $info = $this->schedule->getEventInfo($event);
+        $registered = $this->schedule->isRegisteredForEvent($event);
+        //error_log(print_r($info, true));
+
         $sections = array();
-        foreach ($fieldConfig as $key => $info) {
-          $field = array(
-            'key' => $key,
+        
+        // Info
+        $locationSection = array();
+        if ($info['location']) {
+          $location = array(
+            'title' => self::argVal($info['location'], 'title', ''),
+          );
+          if (strtoupper($location['title']) == 'TBA') {
+            $location['title'] = 'Location '.$location['title'];
+          }
+          if (isset($info['location']['address'])) {
+            $parts = array();
+            if (isset($info['location']['address']['street'])) {
+              $parts[] = $info['location']['address']['street'];
+            }
+            if (isset($info['location']['address']['city'])) {
+              $parts[] = $info['location']['address']['city'];
+            }
+            if (isset($info['location']['address']['state'])) {
+              $parts[] = $info['location']['address']['state'];
+            }
+            if ($parts) {
+              $location['subtitle'] = implode(', ', $parts);
+            }
+          }
+          if (isset($info['location']['building']) || isset($info['location']['latlon'])) {
+            $location['url'] = $this->buildURLForModule('map', 'detail', array(
+              'eventId' => $eventId,
+              'start'   => $start,
+            ));
+            $location['class'] = 'map';
+          }
+          $locationSection[] = $location;
+        }
+        if ($locationSection) {
+          $sections['location'] = $locationSection; 
+        }
+        
+        $registrationSection = array();
+        if ($info['registration']) {
+          $registration = array(
+            'title' => '<div class="icon"></div>Registration Required',
+            'class' => 'external register',
           );
           
-          $value = $event->get_attribute($key);
-          if (empty($value)) { continue; }
-
-          if (isset($info['conditionalField'], $info['conditionalValue'])) {
-            $condKey = $info['conditionalField'];
-            $condValue = $event->get_attribute($condKey);
-            
-            if ($condValue != $info['conditionalValue']) {
-              continue;
-            }
-          }
-
-          if (isset($info['label'])) {
-            $field['title'] = $info['label'];
-          }
-          
-          if (isset($info['class'])) {
-            $field['class'] = $info['class'];
-          }
-          
-          if (!$value && isset($info['emptyValue'])) {
-            $title = $info['emptyValue'];
+          if ($registered) {
+            $registration['title'] = '<div class="icon confirmed"></div>Registration Confirmed';
             
           } else {
-            $title = '';
-            if (isset($info['prefix'])) {
-              $title .= $info['prefix'];
+            if (isset($info['registration']['url'])) {
+              $printableURL = preg_replace(
+                array(';http://([^/]+)/$;', ';http://;'), 
+                array('\1',                 ''), $info['registration']['url']);
+    
+              $registration['url'] = $info['registration']['url'];
+              $registration['subtitle'] = 'Register online at '.$printableURL;
             }
-            
-            if (is_array($value)) {		
-              $fieldValues = array();
-              foreach ($value as $item) {
-                $fieldValue = '';
-                $fieldValueUrl = null;
-                
-                if (isset($info['type'])) {
-                  $fieldValue  = $this->valueForType($info['type'], $item);
-                  $fieldValueUrl = $this->urlForType($info['type'], $item);
-                } else {
-                  $fieldValue = $item;
-                }
-                
-                if (isset($fieldValueUrl)) {
-                  $fieldValue = '<a href="'.$fieldValueUrl.'">'.$fieldValue.'</a>';
-                }
-                
-                $fieldValues[] = $fieldValue;
-              }
-              $title .= implode(', ', $fieldValues);
-            
-            } else {
-              if (isset($info['type'])) {
-                $title .= $this->valueForType($info['type'], $value);
-                $field['url'] = $this->urlForType($info['type'], $value);
-              } else {
-                $title .= nl2br($value);
-              }
-            }
-            
-            if (isset($info['suffix'])) {
-              $title .= $info['suffix'];
+            if (isset($info['registration']['fee'])) {
+              $registration['title'] .= ' ('.$info['registration']['fee'].')';
             }
           }
-          
-          $hasMultipleLocations = false;
-          if (isset($info['multipleLocationsField'])) {
-            $hasMultipleLocations = $event->get_attribute($info['multipleLocationsField']) == 'yes';
-          } 
-          
-          if ($hasMultipleLocations) {
-            $title .= ' (multiple locations)';
-          
-          } else if (isset($info['trumbaWebLinkField']) || isset($info['buildingIDField'])) {
-            $validQuery = false;
-            $args = array(
-              'title' => $event->get_attribute('summary'),
-              'address' => str_replace('<br/>', ' ', $this->valueForType('datetime', $event->get_attribute('datetime')))."<br/>{$title}",
-            );
-            
-            if (isset($info['trumbaWebLinkField'])) {
-              // parse the doohickey
-              $weblink = $event->get_attribute($info['trumbaWebLinkField']);
-              $parts = explode(',', $weblink);
-              if (count($parts) == 2) {
-                $args['lat'] = $parts[0];
-                $args['lon'] = $parts[1];
-                $validQuery = true;
-              }
-            }
-            
-            if (isset($info['buildingIDField'])) {
-              $args['building'] = $event->get_attribute($info['buildingIDField']);
-              
-              $buildingInfo = HarvardMapDataController::getBldgDataByNumber($args['building']);
-              if (isset($buildingInfo['attributes'], $buildingInfo['attributes']['Address'])) {
-                $field['subtitle'] = mb_convert_case($buildingInfo['attributes']['Address'], MB_CASE_TITLE);
-                
-                if (isset($buildingInfo['attributes']['City'])) {
-                  $field['subtitle'] .= ', '.mb_convert_case($buildingInfo['attributes']['City'], MB_CASE_TITLE);
-                }
-                if (isset($buildingInfo['attributes']['State'])) {
-                  $field['subtitle'] .= ', '.$buildingInfo['attributes']['State'];
-                }
-              }
-              //error_log(print_r($buildingInfo, true));
-              
-              $validQuery = true;
-            }
-            
-            if ($validQuery) {
-              $field['url'] = $this->buildURLForModule('map', 'detail', $args);
-            }
-          }
-                    
-          if (isset($field['title'])) {
-            $field['subtitle'] = $title;
-          } else {
-            $field['title'] = $title;
-          }
-          
-          if (!isset($field['subtitle']) && isset($info['subtitle'])) {
-            $field['subtitle'] = $info['subtitle'];
-          }
-          
-          if (!isset($field['url']) && isset($info['url'])) {
-            $field['url'] = $info['url'];
-          }
-
-          if (!isset($sections[$info['section']])) {
-            $sections[$info['section']] = array();
-          }
-          
-          $sections[$info['section']][] = $field;
+          $registrationSection[] = $registration;
         }
+        if ($registrationSection) {
+          $sections['registration'] = $registrationSection; 
+        }
+        
+        // Other fields
+        $fieldConfig = $this->loadPageConfigFile('detail', 'detailFields');
+        foreach ($fieldConfig as $key => $fieldInfo) {
+          if (isset($info[$key])) {
+            $type = self::argVal($fieldInfo, 'type', 'text');
+            $section = self::argVal($fieldInfo, 'section', 'misc');
+            $label = self::argVal($fieldInfo, 'label', '');
+            $class = self::argVal($fieldInfo, 'class', '');
+            
+            $title = $this->valueForType($type, $info[$key]);
+            $url = $this->urlForType($type, $info[$key]);
+
+            $item = array();
+
+            if ($label) {
+              $item['title'] = $label;
+              $item['subtitle'] = $title;
+            } else {
+              $item['title'] = $title;
+            }
+
+            if ($url) {
+              $item['url'] = $url;
+            }
+
+            if ($class) {
+              $item['class'] = $class;
+            }
+            
+            if (!isset($sections[$section])) {
+              $sections[$section] = array();
+            }
+            $sections[$section][] = $item;
+          }          
+        }
+        //error_log(print_r($sections, true));
         
         $cookieName = $this->getCookieNameForEvent($scheduleId);
         $this->addInlineJavascript(
@@ -404,9 +366,11 @@ class SiteScheduleWebModule extends WebModule {
         $this->addOnLoad("setBookmarkStates('$cookieName', '$eventId');");
 
         $this->assign('eventId',    $eventId);
+        $this->assign('eventTitle', $info['title']);
+        $this->assign('eventDate',  $this->valueForType('datetime', $info['datetime']));
+        $this->assign('sections',   $sections);
         $this->assign('bookmarked', $this->isBookmarked($scheduleId, $eventId));
         $this->assign('cookieName', $this->getCookieNameForEvent($scheduleId));
-        $this->assign('sections',   $sections);
         //error_log(print_r($sections, true));
         break;
     }

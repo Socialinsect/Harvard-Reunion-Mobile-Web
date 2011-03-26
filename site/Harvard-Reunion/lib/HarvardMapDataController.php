@@ -61,7 +61,7 @@ class HarvardMapDataController extends ArcGISDataController
     }
     
     private static function getSupplementaryFeatureData($bldgId, $searchField, $queryBase, $layerId=0) {
-        $directory = $GLOBALS['siteConfig']->getVar('ARCGIS_FEATURE_CACHE') .'/'. crc32($queryBase);
+        $directory = Kurogo::getSiteVar('ARCGIS_FEATURE_CACHE') .'/'. crc32($queryBase);
         $featureCache = new DiskCache($directory, 86400*7, true);
         if (!$featureCache->isFresh($bldgId)) {
             $query = http_build_query(array(
@@ -106,7 +106,7 @@ class HarvardMapDataController extends ArcGISDataController
     
     public function getFeatureByField($searchField, $value) {
         if (!$this->returnsGeometry) {
-            $queryBase = $GLOBALS['siteConfig']->getVar('ARCGIS_FEATURE_SERVER');
+            $queryBase = Kurogo::getSiteVar('ARCGIS_FEATURE_SERVER');
         } else {
             $queryBase = $this->baseURL;
         }
@@ -119,7 +119,7 @@ class HarvardMapDataController extends ArcGISDataController
 
     private function queryFeatureServer($feature) {
         if (!$this->returnsGeometry) {
-            $queryBase = $GLOBALS['siteConfig']->getVar('ARCGIS_FEATURE_SERVER');
+            $queryBase = Kurogo::getSiteVar('ARCGIS_FEATURE_SERVER');
         } else {
             $queryBase = $this->baseURL;
         }
@@ -136,7 +136,7 @@ class HarvardMapDataController extends ArcGISDataController
     }
     
     public static function getBldgDataByNumber($bldgId) {
-        $queryBase = $GLOBALS['siteConfig']->getVar('ARCGIS_FEATURE_SERVER');
+        $queryBase = Kurogo::getSiteVar('ARCGIS_FEATURE_SERVER');
         return self::getSupplementaryFeatureData($bldgId, 'Building Number', $queryBase);
     }
     

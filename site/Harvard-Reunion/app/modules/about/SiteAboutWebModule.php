@@ -4,20 +4,15 @@
   * @subpackage About
   */
 
-require_once('SiteAboutAPIModule.php');
-
 class SiteAboutWebModule extends AboutWebModule {
 
   protected function initializeForPage() {
     $user = $this->getUser('HarvardReunionUser');
+    $schedule = new Schedule($user);
     
     switch ($this->page) {
       case 'index':
-        $feeds = $this->loadFeedData();
-        $year = $user->getGraduationClass();
-        $collegeIndex = $user->getCollegeIndex();
-        
-        $this->assign('info', SiteAboutAPIModule::getInfoForUser($feeds, $year, $collegeIndex));
+        $this->assign('info', $schedule->getInfo());
         break;
     }
   }

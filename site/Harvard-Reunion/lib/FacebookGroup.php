@@ -79,8 +79,8 @@ class FacebookGroup {
     
   function __construct($groupId, $isOldGroup) {
     $this->facebook = new ReunionFacebook(array(
-      'appId'  => $GLOBALS['siteConfig']->getVar('FACEBOOK_APP_ID'),
-      'secret' => $GLOBALS['siteConfig']->getVar('FACEBOOK_APP_SECRET'),
+      'appId'  => Kurogo::getSiteVar('FACEBOOK_APP_ID'),
+      'secret' => Kurogo::getSiteVar('FACEBOOK_APP_SECRET'),
       'cookie' => true,
     ));
 
