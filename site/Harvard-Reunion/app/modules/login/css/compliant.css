@@ -1,11 +1,12 @@
 .reunionHeader {
-	background: url(/common/images/signin-logo.png) no-repeat left;
-	padding-left: 60px;
-	font-size: 150%;
+	background: url(/modules/login/images/shields.png) no-repeat left;
+	padding-left: 106px;
+	font-size: 23px;
 	line-height: 1.2em;
-	min-height: 60px;
+	min-height: 58px;
 	color: #fff;
-	margin: 4px 0 20px -2px;
+	padding-top: 2px;
+	margin: 6px 0 20px -2px;
   	text-shadow: #333 0 1px 1px;
 }
 
@@ -33,17 +34,17 @@ h2 {
 .ribbon a,
 .ribbon a:visited {
 	display: block;
-	padding: 6px 22px 7px 10px;
+	padding: 5px 22px 7px 10px;
 	text-decoration: none;
 	color: #fff;
-	font-size: 94.1%;
+	font-size: 100%;
 	line-height: 1.2em;
 	font-weight: bold;
 	background: url(/common/images/signin-ribbon-actionarrow.png) no-repeat right;
 }
 
 .ribbon a .smallprint {
-	font-size: 87.5%;
+	font-size: 82.35%;
 	font-weight: normal;
 	color: #d8aaaa;
 }

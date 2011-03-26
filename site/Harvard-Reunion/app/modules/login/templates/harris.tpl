@@ -7,7 +7,7 @@
 	{if $authFailed}
 		<p>We're sorry, but there was a problem with your login. Please check your user ID and password (the same login you use at alumni.harvard.edu) and try again.</p>
 	{else}
-		<h3>Sign in with your alumni login:</h3>
+		<h3>Sign in using your alumni login:</h3>
 	{/if}
 
 	<form id="signin" name="signin" action="login" method="POST">
