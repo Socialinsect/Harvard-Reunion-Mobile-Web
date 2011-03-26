@@ -142,12 +142,20 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 #navbar2, #category-switcher {
 	background: #9c0820 url(/common/images/navback2.png) top left repeat-x;
   	color: #fff;
+	padding-left: 8px;
+	padding-right: 8px;
 }
 
 #navbar2 select, #category-switcher select {
-	background-color: #a9050f;
+	background: #a9050f url(/common/images/dropdown-arrow.png) no-repeat right;
 	color: #fff;  
-	border-color: #700d15;
+	border: 1px solid #860810;
+	border-top: 1px solid #c7575f;
+	border-bottom: 1px solid #6e060c;
+	border-radius: 6px;
+	-webkit-box-shadow: 0px 0px 2px #4a0206;
+	-moz-box-shadow: 0px 0px 2px #4a0206;
+	box-shadow: 0px 0px 2px #4a0206;
 }
 
 #navbar2 a#bookmark {
@@ -155,6 +163,7 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
   text-decoration: underline;
   cursor: pointer;
 }
+
 #navbar2 a#bookmark.on:before {
   content: 'Un-';
 }

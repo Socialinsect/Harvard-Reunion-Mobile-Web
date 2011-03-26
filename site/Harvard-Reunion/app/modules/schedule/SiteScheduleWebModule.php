@@ -155,26 +155,26 @@ class SiteScheduleWebModule extends WebModule {
     return $urlForType;
   }
 
-  private function timeText($iCalEvent, $timeOnly=false) {
+  private function timeText($event, $timeOnly=false) {
     if ($timeOnly) {
-      $sameAMPM = date('a', $iCalEvent->get_start()) == date('a', $iCalEvent->get_end());
+      $sameAMPM = date('a', $event->get_start()) == date('a', $event->get_end());
     
-      $timeString = date(' g:i', $iCalEvent->get_start());
+      $timeString = date(' g:i', $event->get_start());
       if (!$sameAMPM) {
-        $timeString .= date('a', $iCalEvent->get_start());
+        $timeString .= date('a', $event->get_start());
       }
-      $timeString .= ($sameAMPM ? '-' : ' - ').date("g:ia", $iCalEvent->get_end());
+      $timeString .= ($sameAMPM ? '-' : ' - ').date("g:ia", $event->get_end());
       
       return $timeString;
     } else {
-      return strval($iCalEvent->get_range());
+      return strval($event->get_range());
     }
   }
   
-  private function detailURL($iCalEvent, $addBreadcrumb=true, $noBreadcrumbs=false) {
+  private function detailURL($event, $addBreadcrumb=true, $noBreadcrumbs=false) {
     $args = array(
-      'eventId' => $iCalEvent->get_uid(),
-      'start'   => $iCalEvent->get_start()
+      'eventId' => $event->get_uid(),
+      'start'   => $event->get_start()
     );
   
     if ($noBreadcrumbs) {
@@ -191,7 +191,9 @@ class SiteScheduleWebModule extends WebModule {
   
   protected function eventMatchesCategory($category, $event) {
     if ($category == 'mine') {
-      return $this->isBookmarked($this->schedule->getScheduleId(), $event->get_uid());
+      return 
+        $this->isBookmarked($this->schedule->getScheduleId(), $event->get_uid()) ||
+        $this->schedule->isRegisteredForEvent($event);
     }
     
     $trumbaCategories = $event->get_attribute('categories');
@@ -223,7 +225,7 @@ class SiteScheduleWebModule extends WebModule {
         
         $feed = $this->schedule->getEventFeed();
         
-        $iCalEvents = $feed->items(0);
+        $events = $feed->items(0);
         
         $categories = array(
           'reunion'  => $this->schedule->getReunionNumber().'th Reunion Events',
@@ -236,29 +238,33 @@ class SiteScheduleWebModule extends WebModule {
         $hasChildrensEvents = false;
 
         $eventDays = array();
-        foreach($iCalEvents as $iCalEvent) {
-          $date = date('Y-m-d', $iCalEvent->get_start());
+        foreach($events as $event) {
+          $date = date('Y-m-d', $event->get_start());
           
-          $showThisEvent = $this->eventMatchesCategory($category, $iCalEvent);
+          $showThisEvent = $this->eventMatchesCategory($category, $event);
           
           if ($showThisEvent) {
             if (!isset($eventDays[$date])) {
               $eventDays[$date] = array(
-                'title'      => date('l, F j, Y', $iCalEvent->get_start()),
+                'title'      => date('l, F j, Y', $event->get_start()),
                 'events'     => array(),
               );
             }
             
-            $event = array(
-              'url'      => $this->detailURL($iCalEvent),
-              'title'    => $iCalEvent->get_summary(),
-              'subtitle' => $this->timeText($iCalEvent, true),
+            $eventInfo = array(
+              'url'      => $this->detailURL($event),
+              'title'    => $event->get_summary(),
+              'subtitle' => $this->timeText($event, true),
             );
-            if ($this->isBookmarked($scheduleId, $iCalEvent->get_uid())) {
-              $event['class'] = 'bookmarked';
-            }            
+            if ($this->isBookmarked($scheduleId, $event->get_uid())) {
+              $eventInfo['class'] = 'bookmarked';
+            }         
             
-            $eventDays[$date]['events'][] = $event;
+            if ($this->schedule->isRegisteredForEvent($event)) {
+              $eventInfo['class'] = 'bookmarked';
+            }
+            
+            $eventDays[$date]['events'][] = $eventInfo;
           }
         }
         
@@ -281,6 +287,7 @@ class SiteScheduleWebModule extends WebModule {
         //error_log(print_r($event, true));
         $info = $this->schedule->getEventInfo($event);
         $registered = $this->schedule->isRegisteredForEvent($event);
+        $bookmarked = $this->isBookmarked($scheduleId, $eventId);
         //error_log(print_r($info, true));
 
         $sections = array();
@@ -330,7 +337,8 @@ class SiteScheduleWebModule extends WebModule {
           );
           
           if ($registered) {
-            $registration['title'] = '<div class="icon confirmed"></div>Registration Confirmed';
+            // No a tag so we need to wrap in a div
+            $registration['title'] = '<div class="register"><div class="icon confirmed"></div>Registration Confirmed</div>';
             
           } else {
             if (isset($info['registration']['url'])) {
@@ -398,7 +406,8 @@ class SiteScheduleWebModule extends WebModule {
         $this->assign('eventTitle', $info['title']);
         $this->assign('eventDate',  $this->valueForType('datetime', $info['datetime']));
         $this->assign('sections',   $sections);
-        $this->assign('bookmarked', $this->isBookmarked($scheduleId, $eventId));
+        $this->assign('bookmarked', $bookmarked);
+        $this->assign('registered', $registered);
         $this->assign('cookieName', $this->getCookieNameForEvent($scheduleId));
         //error_log(print_r($sections, true));
         break;
