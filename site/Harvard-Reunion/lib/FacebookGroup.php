@@ -577,7 +577,7 @@ class FacebookGroup {
     
     } else {
       try {
-        $this->applyQueryParameters($type, &$params);
+        $this->applyQueryParameters($type, $params);
         
         $results = $this->facebook->api($path, $method, $params);
         
