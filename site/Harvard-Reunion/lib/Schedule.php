@@ -77,6 +77,9 @@ class Schedule {
 
       $this->startDate = $this->getDateTimeForDate($this->getConfigValue('START_DATE', ''));
       $this->endDate   = $this->getDateTimeForDate($this->getConfigValue('END_DATE', ''));
+
+      $dbFile = $this->getConfigValue("ATTENDANCE_DB");
+      $this->attendanceDb = new db(array('DB_TYPE'=>'sqlite', 'DB_FILE'=>$dbFile));
     }
   }
   
@@ -263,11 +266,9 @@ class Schedule {
       return $this->registeredEvents;
     }
     
-    $dbFile = $this->getConfigValue("ATTENDANCE_DB");
-    $db = new db(array('DB_TYPE'=>'sqlite', 'DB_FILE'=>$dbFile));
     $sql = "SELECT users_events.event_id FROM users, users_events WHERE " .
            "users.user_id=users_events.user_id AND users.email=?";
-    $result = $db->query($sql, array($this->user->getEmail()));
+    $result = $this->attendanceDb->query($sql, array($this->user->getEmail()));
 
     $eventIds = array();
     foreach($result->fetchAll() as $eventInfo) {
@@ -275,20 +276,36 @@ class Schedule {
     }
     $this->registeredEvents = $eventIds;
 
-    $db = null;
-
     return $this->registeredEvents;
   }
-
+  
+  private function isLoggedInAsHarrisUser() {
+    return (is_object($this->user) && get_class($this->user) == 'HarrisReunionUser');
+  }
   
   public function isRegisteredForEvent($event) {
-    if (is_object($this->user) && get_class($this->user) == 'HarrisReunionUser') {
+    if ($this->isLoggedInAsHarrisUser()) {
       $harrisEventID = $event->get_attribute("Event ID");
       
       return in_array($harrisEventID, $this->getRegisteredEvents());
     }
     
     return false;
+  }
+  
+  public function othersRegistered($event) {
+    if (!$this->isLoggedInAsHarrisUser()) {
+      return array();
+    }
+    
+    $sql = "SELECT u.prefix, u.first_name, u.last_name, u.suffix, u.class_year ".
+           "FROM users u, users_events ue WHERE u.user_id=ue.user_id AND " .
+           "ue.event_id=? AND u.email<>? order by u.first_name, u.last_name";
+    $harrisEventID = $event->get_attribute("Event ID");
+    $email = $this->user->getEmail();
+    $result = $this->attendanceDb->query($sql, array($harrisEventID, $email));
+    
+    return $result->fetchAll();
   }
   
   public function getEventInfo($event) {
