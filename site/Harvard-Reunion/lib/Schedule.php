@@ -54,6 +54,30 @@ class Schedule {
     return $config;
   }
 
+  // Takes a User object and returns an array of Harris or Harvard event IDs.
+  private function getRegisteredEvents() {
+    if (!isset($this->user) || !isset($this->scheduleConfig)) {
+      return array();
+    }
+    
+    $dbFile = $this->getConfigValue("ATTENDANCE_DB");
+    // error_log(print_r($dbFile, true));
+    $db = new db(array('DB_TYPE'=>'sqlite', 'DB_FILE'=>$dbFile));
+    $sql = "SELECT users_events.event_id FROM users, users_events WHERE " .
+           "users.user_id=users_events.user_id AND users.email=?";
+    // error_log(print_r($sql, true));
+    // error_log(print_r($this->user->getEmail(), true));
+    $result = $db->query($sql, array($this->user->getEmail()));
+    $eventIds = array();
+    foreach($result->fetchAll() as $eventInfo) {
+      $eventIds[] = $eventInfo['event_id'];
+    }
+    // error_log(print_r($eventIds, true));
+    
+    $db = null;
+    return $eventIds;
+  }
+
   // Can take either a user object or a year and college index
   function __construct(/* polymorphic */) {
     $args = func_get_args();
@@ -61,7 +85,6 @@ class Schedule {
       $this->user = $args[0];
       $this->year = $this->user->getGraduationClass();
       $this->collegeIndex = $this->user->getCollegeIndex();
-      
     } else {
       $this->year = $args[0];
       $this->collegeIndex = intval($args[1]);
@@ -79,6 +102,8 @@ class Schedule {
       $this->startDate = $this->getDateTimeForDate($this->getConfigValue('START_DATE', ''));
       $this->endDate   = $this->getDateTimeForDate($this->getConfigValue('END_DATE', ''));
     }
+    
+    $this->registeredEvents = $this->getRegisteredEvents();
   }
   
   private function getDateTimeForDate($date) {
@@ -254,12 +279,14 @@ class Schedule {
   }
   
   public function isRegisteredForEvent($event) {
-    $registered = false;
     if (is_object($this->user) && get_class($this->user) == 'HarrisReunionUser') {
+      $harrisEventID = $event->get_attribute("Event ID");
+      error_log(print_r($harrisEventID, true));
       
+      return in_array($harrisEventID, $this->registeredEvents);
     }
     
-    return $registered;
+    return false;
   }
   
   public function getEventInfo($event) {
