@@ -293,7 +293,7 @@ class Schedule {
     return false;
   }
   
-  public function othersRegistered($event) {
+  public function othersRegisteredForEvent($event) {
     if (!$this->isLoggedInAsHarrisUser()) {
       return array();
     }
