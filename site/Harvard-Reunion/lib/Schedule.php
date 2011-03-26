@@ -111,6 +111,8 @@ class Schedule {
     
     $reunionYears = array();
     foreach ($scheduleConfigs as $scheduleId => $config) {
+      if ($scheduleId == 'default') { continue; }
+      
       list($year, $collegeIndex) = self::getYearAndCollegeIndexFromId($scheduleId);
       
       if (isset($reunionYears[$year])) {
