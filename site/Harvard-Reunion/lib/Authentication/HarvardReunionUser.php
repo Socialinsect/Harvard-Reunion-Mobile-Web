@@ -30,6 +30,22 @@ class HarvardReunionUser extends User
     public function clearCollegeIndex() {
       $this->setUserData('collegeIndex', null);
     }
+    
+    public function setShowHomeTwitterStream($show) {
+      $this->setUserData('showHomeTwitterStream', $show ? true : false);
+    }
+    public function getShowHomeTwitterStream() {
+      $show = $this->getUserData('showHomeTwitterStream');
+      return isset($show) ? $show : true;  // default to true
+    }
+    
+    public function setShowHomeFacebookPosts($show) {
+      $this->setUserData('showHomeFacebookPosts', $show ? true : false);
+    }
+    public function getShowHomeFacebookPosts() {
+      $show = $this->getUserData('showHomeFacebookPosts');
+      return isset($show) ? $show : true;  // default to true
+    }
 
     protected function standardAttributes() {
         return array('class_year');

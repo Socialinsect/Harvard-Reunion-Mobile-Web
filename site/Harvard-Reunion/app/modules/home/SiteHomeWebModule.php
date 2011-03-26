@@ -57,11 +57,11 @@ class SiteHomeWebModule extends HomeWebModule {
         
         $recent = false;
         $recentType = false;
-        if (count($posts)) {
+        if (count($posts) && $user->getShowHomeFacebookPosts()) {
           $recent = reset($posts);
           $recentType = 'facebook';
         }
-        if (count($tweets)) {
+        if (count($tweets) && $user->getShowHomeTwitterStream()) {
           $tweet = reset($tweets);
           if (!$recent || 
               (intval($tweet['when']['time']) > intval($recent['when']['time']))) {
@@ -126,7 +126,7 @@ class SiteHomeWebModule extends HomeWebModule {
           $this->assign('groupName',     $facebook->getGroupFullName());
           $this->assign('switchUserURL', $facebook->getSwitchUserURL());
           $this->assign('posts',         $facebook->getGroupStatusMessages());
-          $this->assign('groupURL', $facebook->getGroupURL());
+          $this->assign('groupURL',      $facebook->getGroupURL());
         }
         break;
       
@@ -158,6 +158,14 @@ class SiteHomeWebModule extends HomeWebModule {
           $this->redirectTo('index');
         }
         break;
+        
+      case 'fbLogout':
+        $next = $this->getArg('next', FULL_URL_PREFIX.'home/');
+        $facebook->expireSession('null');
+        $redirect = $facebook->getLogoutRedirect($next);
+        
+        header("Location: $redirect");
+        exit();
     }
     
     parent::initializeForPage();

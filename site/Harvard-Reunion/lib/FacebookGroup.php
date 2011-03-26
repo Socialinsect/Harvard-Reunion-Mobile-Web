@@ -76,7 +76,17 @@ class FacebookGroup {
   const AUTHOR_URL    = 'http://m.facebook.com/profile.php?id=';
   const OLD_GROUP_URL = 'http://m.facebook.com/group.php?gid=';
   const NEW_GROUP_URL = 'http://m.facebook.com/home.php?sk=group_';
+  
+  public static function appLogout() {
+    $facebook = new ReunionFacebook(array(
+      'appId'  => Kurogo::getSiteVar('FACEBOOK_APP_ID'),
+      'secret' => Kurogo::getSiteVar('FACEBOOK_APP_SECRET'),
+      'cookie' => true,
+    ));
     
+    $facebook->expireSession();
+  }
+  
   function __construct($groupId, $isOldGroup) {
     $this->facebook = new ReunionFacebook(array(
       'appId'  => Kurogo::getSiteVar('FACEBOOK_APP_ID'),
@@ -88,7 +98,7 @@ class FacebookGroup {
   }
   
   public function needsLogin() {
-    return !$this->facebook->getSession();
+    return $this->facebook->getSession() == null;
   }
   
   public function getNeedsLoginURL() {
@@ -99,6 +109,18 @@ class FacebookGroup {
     return $this->facebook->getSwitchUserURL();
   }
   
+  public function getLogoutURL() {
+    return $this->facebook->getLogoutUrl();
+  }
+  
+  public function getLogoutRedirect($redirectURL) {
+    return $this->facebook->getLogoutRedirect($redirectURL);
+  }
+  
+  public function expireSession() {
+    return $this->facebook->expireSession();
+  }
+
   public function getMyId() {
     return $this->facebook->getUser();
   }
@@ -651,20 +673,23 @@ class ReunionFacebook extends Facebook {
   protected $cache;
   protected $cacheLifetime = 60;
   
-  
   public function __construct($config) {
     parent::__construct($config);
 
     self::$CURL_OPTS[CURLOPT_CONNECTTIMEOUT] = 20;
     //self::$CURL_OPTS[CURLOPT_SSL_VERIFYPEER] = false;
     //self::$CURL_OPTS[CURLOPT_SSL_VERIFYHOST] = 2;
+    
+    $hostnameParts = explode('.', $_SERVER['HTTP_HOST']);
+    array_shift($hostnameParts);
+    $domain = implode('.', $hostnameParts);
+    $this->setBaseDomain($domain);
   }
   
   // Override to always use touch display
   public function getLoginUrl($params=array()) {
     $params['display'] = 'touch';
     return parent::getLoginUrl($params);
-    $currentUrl = $this->getCurrentUrl();
   }
 
   public function getNeedsLoginURL($needsLoginURL='') {
@@ -676,15 +701,35 @@ class ReunionFacebook extends Facebook {
   }
    
   public function getSwitchUserURL($needsLoginURL='') {
-    $loginURL = $this->getLoginURL(array(
+    $loginURL = $this->getLoginUrl(array(
       'next'       => $this->getCurrentUrl(),
       'cancel_url' => $this->getCurrentUrl(),
       'req_perms'  => implode(',', $this->perms),
     ));
     
-    return $this->getLogoutURL(array(
+    return $this->getLogoutUrl(array(
       'next' => $loginURL,
     ));
+  }
+
+  // Do not set access_token or Facebook won't log you out
+  public function getLogoutUrl($params=array()) {
+    return FULL_URL_PREFIX.'home/fbLogout?'.http_build_query(
+      array_merge(array(
+        'next' => $this->getCurrentUrl(),
+      ), $params));
+  }
+  
+  public function getLogoutRedirect($redirectURL) {
+    return $this->getUrl(
+      'www',
+      'logout.php',
+      array('next' => $redirectURL)
+    );
+  }
+  
+  public function expireSession() {
+    $this->setSession(null);
   }
   
   // Override to get a new session on demand
