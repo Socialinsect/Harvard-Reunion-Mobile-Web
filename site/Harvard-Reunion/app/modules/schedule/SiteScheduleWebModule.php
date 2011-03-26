@@ -197,29 +197,35 @@ class SiteScheduleWebModule extends WebModule {
         break;
 
       case 'index':
-        $day  = $this->getArg('day', 'all');
+        $category  = $this->getArg('category', 'reunion');
         
         $feed = $this->schedule->getEventFeed();
         
         $iCalEvents = $feed->items(0);
         
+        $categories = array(
+          'reunion'  => $this->schedule->getReunionNumber().'th Reunion Events',
+          'other'    => 'Other Events',
+          'children' => 'Children\'s Events',
+          'mine'     => 'My Schedule',
+        );
+
         $eventDays = array();
-        $days = array();
         foreach($iCalEvents as $iCalEvent) {
           $date = date('Y-m-d', $iCalEvent->get_start());
-          $showThisDate = $day == 'all' || $day == $date;
+          $showThisEvent = true;  // FIXME
+          if ($category == 'mine') {
+            $showThisEvent = $this->isBookmarked($scheduleId, $iCalEvent->get_uid());
+          }
           
-          if (!isset($eventDays[$date])) {
-            if ($showThisDate) {
+          if ($showThisEvent) {
+            if (!isset($eventDays[$date])) {
               $eventDays[$date] = array(
                 'title'      => date('l, F j, Y', $iCalEvent->get_start()),
                 'events'     => array(),
               );
             }
-            $days[$date] = date('l, M j', $iCalEvent->get_start());
-          }
-          
-          if ($showThisDate) {
+            
             $event = array(
               'url'      => $this->detailURL($iCalEvent),
               'title'    => $iCalEvent->get_summary(),
@@ -233,9 +239,9 @@ class SiteScheduleWebModule extends WebModule {
           }
         }
         
-        $this->assign('day',       $day);        
-        $this->assign('days',      $days);        
-        $this->assign('eventDays', $eventDays);        
+        $this->assign('category',   $category);        
+        $this->assign('categories', $categories);        
+        $this->assign('eventDays',  $eventDays);        
         break;
               
       case 'detail':

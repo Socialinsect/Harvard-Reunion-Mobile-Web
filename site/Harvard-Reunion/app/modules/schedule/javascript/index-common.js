@@ -1,3 +1,3 @@
-function loadDays(select) {
-  window.location = "./?day="+select.value;
+function loadCategory(select) {
+  window.location = "./?category="+select.value;
 }

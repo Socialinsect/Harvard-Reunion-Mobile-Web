@@ -1,7 +1,7 @@
 {include file="findInclude:common/templates/header.tpl" customHeader=''}
 
 <div class="nonfocal">
-	<h1>Harvard/Radcliffe College Reunions</h1>
+	<h1 class="reunionHeader">Harvard/Radcliffe College&nbsp;Reunions</h1>
 	
 	<h3>This graduation class has separate reunions for Harvard and Radcliffe.	Please select which reunion you will be attending:</h3>
 	
@@ -26,4 +26,4 @@
 	<div class="clear"></div>
 </div>
 
-{include file="findInclude:modules/login/templates/footer.tpl"}
+{include file="findInclude:common/templates/footer.tpl"}

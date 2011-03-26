@@ -102,7 +102,7 @@ class SitePhotosWebModule extends WebModule {
         'type'  => 'facebook',
         'name'  => 'Facebook',
         'url'   => $facebook->getNeedsLoginURL(),
-        'items' => 'posts',
+        'items' => 'photos',
       ));
       return false;
       
@@ -219,6 +219,13 @@ class SitePhotosWebModule extends WebModule {
             break;
           }
         }
+        
+        $commentURL = URL_BASE.API_URL_PREFIX."/home/comments?".http_build_query(array(
+          'id' => $postId,
+        ));
+        $this->addInternalJavascript('/common/javascript/lib/messagelist.js');
+        $this->addInlineJavascript('var MESSAGE_LIST_AJAX_URL = "'.$commentURL.'"');
+        $this->addOnLoad('initMessageList();');
 
         $this->assign('photo', $postDetails);
         break;

@@ -44,7 +44,12 @@ class SiteLoginWebModule extends LoginWebModule
                 $result = $session->logout($authority, $hard);
             }
             
-            $this->redirectTo('index', array());
+            if (isset($this->args['url'])) {
+              header("Location: $url");
+              exit();
+            } else {
+              $this->redirectTo('index', array());
+            }
             break;
             
         case 'login':
@@ -95,12 +100,8 @@ class SiteLoginWebModule extends LoginWebModule
                         if ($authorityIndex == 'harris' && $user->needsCollegeIndex()) {
                             $this->setTemplatePage('college');
                         } else {
-                          if ($url) {
-                              header("Location: $url");
-                              exit();
-                          }
-                          $this->setTemplatePage('message');
-                          $this->assign('message', 'Login Successful');
+                            header("Location: $url");
+                            exit();
                         }
                         break;
     
@@ -119,36 +120,8 @@ class SiteLoginWebModule extends LoginWebModule
             
         case 'index':
             if ($this->isLoggedIn()) {
-                if ($url) {
-                    header("Location: $url");
-                    exit();
-                }
-
-                $sessionUsers = $session->getUsers();
-                $users = array();
-
-                foreach ($sessionUsers as $authority=>$user) {
-                    $users[] = array(
-                        'title'    => sprintf("%s", $user->getFullName()),
-                        'subtitle' => $user->getAuthenticationAuthorityIndex(),
-                        'url'      => $this->buildBreadcrumbURL('logoutConfirm', array(
-                            'authority'=>$user->getAuthenticationAuthorityIndex()
-                        ), false)
-                    );
-                    if (isset($authenticationAuthorities[$authority])) {
-                        unset($authenticationAuthorities[$authority]);
-                    }
-
-                    if (isset($authenticationAuthorityLinks[$authority])) {
-                        unset($authenticationAuthorityLinks[$authority]);
-                    }
-                }
-
-                $this->assign('users', $users);
-                $this->assign('authenticationAuthorities', $authenticationAuthorities);
-                $this->assign('authenticationAuthorityLinks', $authenticationAuthorityLinks);
-
-                $this->setTemplatePage('loggedin');
+                header("Location: $url");
+                exit();
             
             } elseif ($authority = $this->getArg('authority')) {
                 if ($authority == 'anonymous') {

@@ -1,7 +1,7 @@
 {include file="findInclude:common/templates/header.tpl" isModuleHome=true}
 
 <div class="nonfocal">
-  <a class="tweetButton" href="{$tweetURL}" target="reunionTweet"><span class="tweetLink">tweet</span></a>
+  <a class="tweetButton" href="{$tweetURL}"><span class="tweetLink">tweet</span></a>
   <h2>{$hashtag}</h2>
 </div>
 
@@ -13,12 +13,16 @@
   {$posts[$i]['title'] = $title}
 {/foreach}
 
-{$more = array()}
-{$more['title'] = '<span id="listFooter" class="tweetLink">View at twitter.com</span>'}
-{$more['class'] = 'external'}
-{$more['url'] = $twitterURL}
-{$posts[] = $more}
+{if !count($posts)}
+  {$empty = array()}
+  {$empty['title'] = 'No tweets for '|cat:$hashtag}
+  {$posts[] = $empty}
+{/if}
 
 {include file="findInclude:common/templates/navlist.tpl" navlistItems=$posts navlistID="listContainer"}
+
+<div class="nonfocal">
+  <span class="smallprint">View tweets for {$hashtag} at <a href="{$twitterURL}">twitter.com</a></span>
+</div>
 
 {include file="findInclude:common/templates/footer.tpl"}

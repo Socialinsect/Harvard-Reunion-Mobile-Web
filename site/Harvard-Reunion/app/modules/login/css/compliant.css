@@ -1,4 +1,4 @@
-#container h1 {
+.reunionHeader {
 	background: url(/common/images/signin-logo.png) no-repeat left;
 	padding-left: 60px;
 	font-size: 150%;
