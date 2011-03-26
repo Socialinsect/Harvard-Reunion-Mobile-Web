@@ -14,7 +14,9 @@
 	<div class="ribbon"><a href="{$anonymousURL}">Select your graduation year<br/>
 	<span class="smallprint">Some features will be unavailable to you.</span></a></div>
 	
-	<div id="download"><a href="http://itunes.apple.com/us/app/harvard-mobile/id389199460"><img src="common/images/signin-appstore.png" width="124" height="46" alt="Download">Get the free Harvard Reunion iPhone app</a></div>
+  {if $platform == 'iphone' || $plaform == 'ipad'}
+    <div id="download"><a href="http://itunes.apple.com/us/app/harvard-mobile/id389199460"><img src="common/images/signin-appstore.png" width="124" height="46" alt="Download">Get the free Harvard Reunion iPhone app</a></div>
+  {/if}
 
 </div>
 
