@@ -31,7 +31,7 @@
     {if $category == 'mine'}
       There are no events in my schedule
     {else}
-      There are no {$categories[$category]|lower}
+      There are no {$categories[$category]|lower} for this reunion
     {/if}
   </div>
 {/if}

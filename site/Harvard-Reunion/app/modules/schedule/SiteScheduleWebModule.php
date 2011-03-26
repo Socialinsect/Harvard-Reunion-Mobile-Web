@@ -188,6 +188,28 @@ class SiteScheduleWebModule extends WebModule {
     $user = $this->getUser('HarvardReunionUser');
     $this->schedule = new Schedule($user);
   }
+  
+  protected function eventMatchesCategory($category, $event) {
+    if ($category == 'mine') {
+      return $this->isBookmarked($this->schedule->getScheduleId(), $event->get_uid());
+    }
+    
+    $trumbaCategories = $event->get_attribute('categories');
+    
+    $eventCategory = 'reunion';
+    foreach ($trumbaCategories as $trumbaCategory) {
+      if (stripos($trumbaCategory, 'Other') !== false) {
+        $eventCategory = 'other';
+        break;
+      }
+      if (stripos($trumbaCategory, 'Children') !== false) {
+        $eventCategory = 'children';
+        break;
+      }
+    }
+    
+    return $category == $eventCategory;
+  }
 
   protected function initializeForPage() {    
     $scheduleId = $this->schedule->getScheduleId();
@@ -209,14 +231,15 @@ class SiteScheduleWebModule extends WebModule {
           'children' => 'Children\'s Events',
           'mine'     => 'My Schedule',
         );
+        
+        $hasOtherEvents = false;
+        $hasChildrensEvents = false;
 
         $eventDays = array();
         foreach($iCalEvents as $iCalEvent) {
           $date = date('Y-m-d', $iCalEvent->get_start());
-          $showThisEvent = true;  // FIXME
-          if ($category == 'mine') {
-            $showThisEvent = $this->isBookmarked($scheduleId, $iCalEvent->get_uid());
-          }
+          
+          $showThisEvent = $this->eventMatchesCategory($category, $iCalEvent);
           
           if ($showThisEvent) {
             if (!isset($eventDays[$date])) {
