@@ -308,6 +308,18 @@ class Schedule {
     return $result->fetchAll();
   }
   
+  public function allAttendees() {
+    if (!$this->isLoggedInAsHarrisUser()) {
+      return array();
+    }
+    
+    $sql = "SELECT u.prefix, u.first_name, u.last_name, u.suffix, u.class_year ".
+           "FROM users u order by u.first_name, u.last_name";
+    $result = $this->attendanceDb->query($sql);
+    
+    return $result->fetchAll();
+  }  
+  
   public function getEventInfo($event) {
     $info = array();
     
