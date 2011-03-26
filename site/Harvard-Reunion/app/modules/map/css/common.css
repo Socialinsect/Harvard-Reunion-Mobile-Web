@@ -8,15 +8,15 @@
 
 .tabbody .nested {
   border-radius: 8px;
-  --webkit-border-radius: 8px;
+  -webkit-border-radius: 8px;
 }
 
 #eventTab p.register {
-  padding-left: 22px;
-  background: transparent url('/common/images/warning.png') no-repeat 2px center;
-  background-size: 17px;
+  padding-left: 23px;
+  background: transparent url('/common/images/badge-register.png') no-repeat left;
+  background-size: 20px;
 }
 
 #eventTab p.confirmed {
-  background-image: url('/common/images/ok.png'); 
+  background-image: url('/common/images/badge-confirmed.png'); 
 }

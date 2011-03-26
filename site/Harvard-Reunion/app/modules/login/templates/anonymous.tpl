@@ -2,7 +2,7 @@
 
 <div class="nonfocal">
 	<h1 class="reunionHeader">Harvard/Radcliffe College&nbsp;Reunions</h1>
-	<h2>Enter anonymously by selecting your graduation year:</h2>
+	<h3>Enter anonymously by selecting your graduation year:</h3>
 
 	<form id="signin" name="signin" action="login" method="POST" onsubmit="return validateAnonymousForm()">
 		<input type="hidden" name="authority" value="anonymous" />
