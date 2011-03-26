@@ -49,6 +49,13 @@ class SiteHomeAPIModule extends APIModule {
         $this->setResponse($facebook->getGroupStatusMessages());
         $this->setResponseVersion(1);
         break;
+
+      case 'comments':
+        $postId = $this->getArg('id');
+        
+        $this->setResponse($facebook->getComments($postId));
+        $this->setResponseVersion(1);
+        break;
         
       case 'twitter':
         $this->setResponse($twitter->getRecentTweets());

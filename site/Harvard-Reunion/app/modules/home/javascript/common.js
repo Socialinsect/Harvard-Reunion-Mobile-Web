@@ -36,7 +36,7 @@ function confirmLogout() {
 }
 
 function initMessageList() {
-  // twitter cache updates approximately every 20 seconds
+  // cache updates approximately every 20 seconds
   setInterval(updateMessageList, 20000);
 }
 
@@ -48,19 +48,8 @@ function updateMessageList() {
       
       if (json.response && json.response.length) {
         var listContainer = document.getElementById('listContainer');
-        var listHeader = document.getElementById('listHeader');
-        var listFooter = document.getElementById('listFooter');
         
         var newInnerHTML = '';
-        
-        if (listHeader) {
-          while (listHeader.nodeName != 'LI' && listHeader.nodeName != 'BODY') {
-            listHeader = listHeader.parentNode;
-          }
-          if (listHeader.nodeName == 'LI') {
-            newInnerHTML += '<li>'+listHeader.innerHTML+'</li>';
-          }
-        }
         
         for (var i = 0; i < json.response.length; i++) {
           entry = json.response[i];
@@ -69,14 +58,6 @@ function updateMessageList() {
             newInnerHTML += '<li>&ldquo;'+(entry.message ? entry.message : '')
               +'&rdquo; <span class="smallprint"> - '+
               entry.author.name+', '+entry.when.delta+'</span></li>';
-          }
-        }
-        if (listFooter) {
-          while (listFooter.nodeName != 'LI' && listFooter.nodeName != 'BODY') {
-            listFooter = listFooter.parentNode;
-          }
-          if (listFooter.nodeName == 'LI') {
-            newInnerHTML += '<li>'+listFooter.innerHTML+'</li>';
           }
         }
 

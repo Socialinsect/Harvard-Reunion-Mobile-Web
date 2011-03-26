@@ -33,7 +33,9 @@
   {$post['comments'][$i]['title'] = $title}
 {/foreach}
 
-{capture name="addCommentHTML" assign="addCommentHTML"}
+{include file="findInclude:common/templates/navlist.tpl" navlistItems=$post['comments'] navlistID="listContainer"}
+  
+<div class="focal fbPostForm">
   <form method="get" action="comment">
     <a class="scrolllink" name="commentscrolldown"> </a>
     <textarea rows="3" name="message" id="messageText" placeholder="Add a comment"></textarea>
@@ -45,9 +47,4 @@
       <input type="hidden" name="{$arg}" value="{$value}" />
     {/foreach}
   </form>
-{/capture}
-{$addComment = array()}
-{$addComment['title'] = $addCommentHTML}
-{$post['comments'][] = $addComment}
-
-{include file="findInclude:common/templates/navlist.tpl" navlistItems=$post['comments']}
+</div>

@@ -2,6 +2,10 @@
 .nonfocal a:visited {
   color: #DCDAD9;
 }
+#navbar2 {
+  line-height: 33px;
+}
+
 
 #navbar2 + .results {
   margin-top: 0;

@@ -204,21 +204,18 @@ form input[type=submit] {
   display: block;
   float: right;
 }
-.tweetLink {
+.tweetLink,
+.fbpostsLink {
   display: inline-block;
   padding-left: 30px;
   background: transparent url('/common/images/button-twitter.png') no-repeat left center;
   background-size: 24px;
-  line-height: 30px;
+  line-height: 24px;
 }
 .fbpostsLink {
-  display: inline-block;
-  padding-left: 30px;
   background: transparent url('/common/images/button-facebook.png') no-repeat left center;
-  background-size: 24px;
-  line-height: 30px;
 }
-.fbpostsLink + .smallprint {
-  display: block;
-  padding-left: 30px;
+
+.fbPostForm {
+  overflow: hidden;
 }

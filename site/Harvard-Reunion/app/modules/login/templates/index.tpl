@@ -20,4 +20,4 @@
 
 </div>
 
-{include file="findInclude:modules/login/templates/footer.tpl"}
+{include file="findInclude:common/templates/footer.tpl"}
