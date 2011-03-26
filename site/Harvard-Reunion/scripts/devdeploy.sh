@@ -18,9 +18,9 @@ else
   git clone git@github.com:modolabs/$REPO_NAME.git
   cp $REPO_DIR/config/site-config-default.ini $REPO_DIR/config/site-config.ini
   cp $REPO_DIR/config/site-strings-default.ini $REPO_DIR/config/site-strings.ini
-
-  sed -e 's!Universitas!Harvard-Reunion!' $REPO_DIR/config/config-default.ini > $REPO_DIR/config/config.ini
 fi
+
+sed -e 's!Universitas!Harvard-Reunion!' $REPO_DIR/config/kurogo-default.ini > $REPO_DIR/config/kurogo.ini
 
 mkdir -p $REPO_DIR/site/Harvard-Reunion/cache
 cp -r $REPO_DIR/site/Harvard-Reunion/copy-to-Cache/* $REPO_DIR/site/Harvard-Reunion/cache
