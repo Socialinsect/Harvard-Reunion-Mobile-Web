@@ -42,6 +42,12 @@ class SiteLoginWebModule extends LoginWebModule
             if ($this->isLoggedIn($authorityIndex) && 
                 $authority = AuthenticationAuthority::getAuthenticationAuthority($authorityIndex)) {
                 $result = $session->logout($authority, $hard);
+                
+                // The following flushes facebook cookies so that the next
+                // time the user logs in it will go back to facebook to check
+                // if the app is still authorized.  We do not log the user 
+                // completely out of facebook, just the app session.
+                FacebookGroup::appLogout(); 
             }
             
             if (isset($this->args['url'])) {

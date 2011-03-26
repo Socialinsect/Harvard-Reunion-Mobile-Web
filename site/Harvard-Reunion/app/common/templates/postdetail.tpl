@@ -33,7 +33,7 @@
   {$post['comments'][$i]['title'] = $title}
 {/foreach}
 
-{include file="findInclude:common/templates/navlist.tpl" navlistItems=$post['comments'] navlistID="listContainer"}
+{include file="findInclude:common/templates/navlist.tpl" navlistItems=$post['comments'] navlistID="listContainer" accessKey=false}
   
 <div class="focal fbPostForm">
   <form method="get" action="comment">

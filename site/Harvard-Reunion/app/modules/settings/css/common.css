@@ -1,0 +1,15 @@
+h3,
+.nonfocal {
+  margin-top: 1em;
+  margin-bottom: .25em;
+}
+.nonfocal + .nav {
+  margin-top: .25em;
+}
+
+.loggedin {
+  color: green;
+}
+.loggedout {
+  color: red;
+}

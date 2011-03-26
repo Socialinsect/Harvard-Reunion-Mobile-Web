@@ -20,11 +20,11 @@ class SiteHomeAPIModule extends APIModule {
         
         $recent = false;
         $recentType = false;
-        if (count($posts)) {
+        if (count($posts) && $user->getShowHomeFacebookPosts()) {
           $recent = reset($posts);
           $recentType = 'facebook';
         }
-        if (count($tweets)) {
+        if (count($tweets) && $user->getShowHomeTwitterStream()) {
           $tweet = reset($tweets);
           if (!$recent || 
               (intval($tweet['when']['time']) > intval($recent['when']['time']))) {
