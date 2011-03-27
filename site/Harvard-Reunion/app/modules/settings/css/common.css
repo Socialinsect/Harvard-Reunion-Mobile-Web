@@ -13,3 +13,10 @@ h3,
 .loggedout {
   color: red;
 }
+
+.nav li label {
+  display: inline-block;
+}
+.nav li input[type=checkbox] {
+  vertical-align: top;
+}

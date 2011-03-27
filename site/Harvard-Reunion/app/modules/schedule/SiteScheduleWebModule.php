@@ -439,20 +439,10 @@ class SiteScheduleWebModule extends WebModule {
         usort($info['attendees'], array(get_class($this), 'attendeeSort'));
         
         foreach ($info['attendees'] as $attendee) {
-          $parts = array();
-          if (isset($attendee['first_name'])) {
-            $parts[] = $attendee['first_name'];
-          }
-          if (isset($attendee['last_name'])) {
-            $parts[] = $attendee['last_name'];
-          }
-          if (isset($attendee['suffix'])) {
-            $parts[] = $attendee['suffix'];
-          }
-          
-          if (count($parts)) {
+          $name = $this->schedule->formatAttendeeName($attendee);
+          if ($name) {
             $attendees[] = array(
-              'title' => implode(' ', $parts),
+              'title' => $name,
             );
           }
         }
