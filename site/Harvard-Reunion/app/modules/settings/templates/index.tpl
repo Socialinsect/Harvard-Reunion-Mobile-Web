@@ -34,7 +34,7 @@
 {$item = array()}
 {capture name="title" assign="title"}
   <input type="checkbox" name="showTwitter" id="showTwitter" value="1" onchange="settingChanged(this)" {if $info['twitter']['showHome']}checked {/if}/> 
-  <label for="twitterToggle">Twitter Stream</label> 
+  <label for="showTwitter">Twitter Stream</label> 
   <span class="smallprint">({$info['twitter']['hashtag']})</span>
 {/capture}
 {$item['title'] = $title}
@@ -42,10 +42,11 @@
 {$item = array()}
 {capture name="title" assign="title"}
   <input type="checkbox" name="showFacebook" id="showFacebook" value="1" onchange="settingChanged(this)" {if $info['facebook']['showHome']}checked {/if}/> 
-  <label for="facebookToggle">Updates from Facebook Group</label>
+  <label for="showFacebook">
+    Updates from Facebook Group <div class="smallprint">({$info['facebook']['groupName']})</siv>
+  </label>
 {/capture}
 {$item['title'] = $title}
-{$item['subtitle'] = "({$info['facebook']['groupName']})"}
 {$list[] = $item}
 
 <form method="get" action="change">
