@@ -19,3 +19,10 @@
 	font-size: 60%;
 	vertical-align: baseline;
 }
+
+#social .links .facebookLink .wrapper {
+  background-image: url('/common/images/button-facebook24.png');
+}
+#social .links .twitterLink .wrapper {
+  background-image: url('/common/images/button-twitter24.png');
+}
