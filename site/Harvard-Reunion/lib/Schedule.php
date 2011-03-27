@@ -293,17 +293,16 @@ class Schedule {
     return false;
   }
   
-  public function getOthersRegisteredForEvent($event) {
+  public function getAttendeesRegisteredForEvent($event) {
     if (!$this->isAuthenticatedUser()) {
       return array();
     }
     
     $sql = "SELECT u.prefix, u.first_name, u.last_name, u.suffix, u.class_year ".
            "FROM users u, users_events ue WHERE u.user_id=ue.user_id AND " .
-           "ue.event_id=? AND u.email<>? order by u.first_name, u.last_name";
+           "ue.event_id=? order by u.first_name, u.last_name";
     $harrisEventID = $event->get_attribute("Event ID");
-    $email = $this->user->getEmail();
-    $result = $this->attendanceDb->query($sql, array($harrisEventID, $email));
+    $result = $this->attendanceDb->query($sql, array($harrisEventID));
     
     return $result->fetchAll();
   }
@@ -426,9 +425,9 @@ class Schedule {
       $info['registration'] = null;
     }
     
-    $info['other_attendees'] = array();
+    $info['attendees'] = array();
     if ($event->get_attribute('Event ID')) {
-      $info['other_attendees'] =  $this->getOthersRegisteredForEvent($event);
+      $info['attendees'] =  $this->getAttendeesRegisteredForEvent($event);
     }
     
     return $info;

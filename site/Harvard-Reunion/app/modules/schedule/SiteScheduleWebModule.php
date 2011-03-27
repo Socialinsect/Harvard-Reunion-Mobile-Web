@@ -355,8 +355,8 @@ class SiteScheduleWebModule extends WebModule {
           }
           $registrationSection[] = $registration;
         }
-        if (isset($info['other_attendees']) && count($info['other_attendees'])) {
-          $otherAttendeeCount = count($info['other_attendees']);
+        if (isset($info['attendees']) && count($info['attendees'])) {
+          $otherAttendeeCount = count($info['attendees']) - 1;
           $registrationSection[] = array(
             'title' => "$otherAttendeeCount others attending",
             'url'   => $this->buildBreadcrumbURL('attendees', array(
@@ -436,7 +436,7 @@ class SiteScheduleWebModule extends WebModule {
         
         $attendees = array();
         
-        foreach ($info['other_attendees'] as $attendee) {
+        foreach ($info['attendees'] as $attendee) {
           $name = $this->schedule->formatAttendeeName($attendee);
           if ($name) {
             $attendees[] = array(
