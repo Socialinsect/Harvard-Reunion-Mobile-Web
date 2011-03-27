@@ -436,9 +436,6 @@ class SiteScheduleWebModule extends WebModule {
         
         $attendees = array();
         
-        // Currently a first name sort
-        usort($info['other_attendees'], array(get_class($this), 'attendeeSort'));
-        
         foreach ($info['other_attendees'] as $attendee) {
           $name = $this->schedule->formatAttendeeName($attendee);
           if ($name) {
@@ -456,10 +453,4 @@ class SiteScheduleWebModule extends WebModule {
     }
   }
   
-  private function attendeeSort($a, $b) {
-    $al = self::argVal($a, 'first_name', self::argVal($a, 'first_name', ''));
-    $bl = self::argVal($b, 'first_name', self::argVal($b, 'first_name', ''));
-  
-    return strcasecmp($al, $bl);
-  }
 }
