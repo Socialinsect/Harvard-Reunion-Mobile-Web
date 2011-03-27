@@ -163,7 +163,7 @@ class SiteHomeWebModule extends HomeWebModule {
         $next = $this->getArg('next', FULL_URL_PREFIX.'home/');
         $facebook->expireSession('null');
         $redirect = $facebook->getLogoutRedirect($next);
-        
+        error_log("Redirecting to $redirect");
         header("Location: $redirect");
         exit();
     }

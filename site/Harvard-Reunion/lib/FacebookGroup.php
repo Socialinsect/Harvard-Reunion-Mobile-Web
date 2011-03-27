@@ -581,6 +581,8 @@ class FacebookGroup {
   // 
   
   private function graphQuery($type, $id, $method='GET', $params=array()) {
+    $results = array();
+  
     if (is_array($method) && empty($params)) {
       $params = $method;
       $method = 'GET';
@@ -624,10 +626,12 @@ class FacebookGroup {
       }
     }
     
-    return $results;
+    return $results ? $results : array();
   }
   
   private function fqlQuery($type, $query, $cacheSuffix='') {
+    $results = array();
+  
     $cache = $this->getCacheForQuery($type);
     $cacheName = $type.'_'.($cacheSuffix ? $cacheSuffix : md5($query));
     
@@ -636,11 +640,8 @@ class FacebookGroup {
     
     } else {
       try {
-        $results = $this->facebook->api(array(
-          'method' => 'fql.query',
-          'query'  => $query,
-          'format' => 'json',
-        ));
+        $results = $this->facebook->fql($query);
+        
         if ($this->shouldCacheResultsForQuery($type, $results)) {
           $cache->write($results, $cacheName);
         } else {
@@ -654,7 +655,7 @@ class FacebookGroup {
       }
     }
     
-    return $results;
+    return $results ? $results : array();
   }  
 }
 
@@ -724,12 +725,39 @@ class ReunionFacebook extends Facebook {
     return $this->getUrl(
       'www',
       'logout.php',
-      array('next' => $redirectURL)
+      array(
+        'api_key' => $this->getAppId(),
+        'next'    => $redirectURL,
+      )
     );
   }
   
   public function expireSession() {
     $this->setSession(null);
+  }
+  
+  public function fql($query, $format='json') {
+    $result = json_decode($this->_oauthRequest(
+      'https://api.facebook.com/method/fql.query', array(
+        'query'  => $query,
+        'format' => 'json',
+      )
+    ), true);
+
+    // results are returned, errors are thrown
+    if (is_array($result) && isset($result['error_code'])) {
+      $e = new FacebookApiException($result);
+      switch ($e->getType()) {
+        // OAuth 2.0 Draft 00 style
+        case 'OAuthException':
+        // OAuth 2.0 Draft 10 style
+        case 'invalid_token':
+          $this->setSession(null);
+      }
+      throw $e;
+    }
+
+    return $result;
   }
   
   // Override to get a new session on demand
