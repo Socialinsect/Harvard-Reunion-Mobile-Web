@@ -293,7 +293,7 @@ class Schedule {
     return false;
   }
   
-  public function othersRegisteredForEvent($event) {
+  public function getOthersRegisteredForEvent($event) {
     if (!$this->isAuthenticatedUser()) {
       return array();
     }
@@ -308,7 +308,7 @@ class Schedule {
     return $result->fetchAll();
   }
   
-  public function allAttendees() {
+  public function getAllAttendees() {
     if (!$this->isAuthenticatedUser()) {
       return array();
     }

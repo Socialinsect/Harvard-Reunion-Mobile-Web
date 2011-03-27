@@ -6,6 +6,6 @@ class AttendeesWebModule extends WebModule
   protected function initializeForPage() {
     $user = $this->getUser('HarvardReunionUser');
     $schedule = new Schedule($user);
-    $this->assign('attendees', $schedule->allAttendees());
+    $this->assign('attendees', $schedule->getAllAttendees());
   }
 }
