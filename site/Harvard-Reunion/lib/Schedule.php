@@ -279,12 +279,12 @@ class Schedule {
     return $this->registeredEvents;
   }
   
-  private function isLoggedInAsHarrisUser() {
+  private function isAuthenticatedUser() {
     return (is_object($this->user) && get_class($this->user) == 'HarrisReunionUser');
   }
   
   public function isRegisteredForEvent($event) {
-    if ($this->isLoggedInAsHarrisUser()) {
+    if ($this->isAuthenticatedUser()) {
       $harrisEventID = $event->get_attribute("Event ID");
       
       return in_array($harrisEventID, $this->getRegisteredEvents());
@@ -294,7 +294,7 @@ class Schedule {
   }
   
   public function othersRegisteredForEvent($event) {
-    if (!$this->isLoggedInAsHarrisUser()) {
+    if (!$this->isAuthenticatedUser()) {
       return array();
     }
     
@@ -309,7 +309,7 @@ class Schedule {
   }
   
   public function allAttendees() {
-    if (!$this->isLoggedInAsHarrisUser()) {
+    if (!$this->isAuthenticatedUser()) {
       return array();
     }
     
