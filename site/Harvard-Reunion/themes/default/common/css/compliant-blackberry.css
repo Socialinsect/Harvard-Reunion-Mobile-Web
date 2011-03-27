@@ -39,6 +39,17 @@
 }
 
 
+/* Secondary nav bars */
+
+#navbar2 {
+	background-color: none;
+	background-repeat: repeat-x;
+	height: 42px;
+}
+
+#navbar2 select {
+	line-height: 30px;
+}
 
 a.bookmarked {
 	padding-left: 25px;
