@@ -355,6 +355,15 @@ class SiteScheduleWebModule extends WebModule {
           }
           $registrationSection[] = $registration;
         }
+        if (isset($info['attendees']) && count($info['attendees'])) {
+          $registrationSection[] = array(
+            'title' => 'Attendees',
+            'url'   => $this->buildBreadcrumbURL('attendees', array(
+              'eventId' => $eventId,
+              'start'   => $start,
+            )),
+          );
+        }
         if ($registrationSection) {
           $sections['registration'] = $registrationSection; 
         }
@@ -411,6 +420,55 @@ class SiteScheduleWebModule extends WebModule {
         $this->assign('cookieName', $this->getCookieNameForEvent($scheduleId));
         //error_log(print_r($sections, true));
         break;
+        
+      case 'attendees':
+        $eventId = $this->getArg('eventId');
+        $start   = $this->getArg('start', time());
+        
+        $feed = $this->schedule->getEventFeed();      
+        $event = $feed->getItem($eventId, $start);
+        if (!$event) {
+          throw new Exception("Event not found");
+        }
+        //error_log(print_r($event, true));
+        $info = $this->schedule->getEventInfo($event);
+        
+        $attendees = array();
+        
+        // Currently a first name sort
+        usort($info['attendees'], array(get_class($this), 'attendeeSort'));
+        
+        foreach ($info['attendees'] as $attendee) {
+          $parts = array();
+          if (isset($attendee['first_name'])) {
+            $parts[] = $attendee['first_name'];
+          }
+          if (isset($attendee['last_name'])) {
+            $parts[] = $attendee['last_name'];
+          }
+          if (isset($attendee['suffix'])) {
+            $parts[] = $attendee['suffix'];
+          }
+          
+          if (count($parts)) {
+            $attendees[] = array(
+              'title' => implode(' ', $parts),
+            );
+          }
+        }
+        
+        $this->assign('eventId',    $eventId);
+        $this->assign('eventTitle', $info['title']);
+        $this->assign('eventDate',  $this->valueForType('datetime', $info['datetime']));        
+        $this->assign('attendees',  $attendees);        
+        break;
     }
+  }
+  
+  private function attendeeSort($a, $b) {
+    $al = self::argVal($a, 'first_name', self::argVal($a, 'first_name', ''));
+    $bl = self::argVal($b, 'first_name', self::argVal($b, 'first_name', ''));
+  
+    return strcasecmp($al, $bl);
   }
 }
