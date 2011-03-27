@@ -25,21 +25,16 @@
 }
 
 
-/* Secondary nav bars */
-
-#navbar2 {
-	background-color: none;
-	background-repeat: repeat-x;
-	height: 42px;
-}
-
-#navbar2 select {
-	height: 42px;
-	line-height: 32px;
-}
-
 
 a.bookmarked {
 	padding-left: 25px;
 	background: url(/common/images/ribbon-listitem.png) no-repeat 5px;
+}
+
+
+
+/* Secondary nav bars */
+
+#navbar2, #navbar2 * {
+	font-size: 16px;
 }
