@@ -13,7 +13,7 @@
   {/if}
 {else}
   <div class="nonfocal">
-    <p>In order to see the list of attendees you must have a Harris account.</p>
+    <p>In order to see the list of attendees you must log in.</p>
   </div>
 {/if}
 
