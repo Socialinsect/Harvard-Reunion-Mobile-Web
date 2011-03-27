@@ -39,7 +39,7 @@ class SiteSettingsWebModule extends WebModule {
             'groupName' => $schedule->getFacebookGroupName(),
             'username'  => $facebook->needsLogin() ? null : $facebook->getUserFullName(),
             'fullname'  => $facebook->needsLogin() ? null : $facebook->getUserFullName(),
-            'toggleURL' => $facebook->needsLogin() ? $facebook->getNeedsLoginURL() : $facebook->getLogoutURL(),
+            'toggleURL' => $facebook->needsLogin() ? $facebook->getLoginURL() : $facebook->getLogoutURL(),
             'showHome'  => $user->getShowHomeFacebookPosts(),
           ),
           'foursquare' => array(
