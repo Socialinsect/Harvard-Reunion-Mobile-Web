@@ -318,7 +318,22 @@ class Schedule {
     $result = $this->attendanceDb->query($sql);
     
     return $result->fetchAll();
-  }  
+  }
+  
+  public static function formatAttendeeName($attendee) {
+    $parts = array();
+    if (isset($attendee['first_name'])) {
+      $parts[] = $attendee['first_name'];
+    }
+    if (isset($attendee['last_name'])) {
+      $parts[] = $attendee['last_name'];
+    }
+    if (isset($attendee['suffix'])) {
+      $parts[] = $attendee['suffix'];
+    }
+    
+    return implode(' ', $parts);
+  }
   
   public function getEventInfo($event) {
     $info = array();

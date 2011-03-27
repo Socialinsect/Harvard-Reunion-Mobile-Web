@@ -2,19 +2,28 @@
 
 class AttendeesWebModule extends WebModule
 {
-  protected $id='attendees';
+  protected $id = 'attendees';
+  
   protected function initializeForPage() {
     $user = $this->getUser('HarvardReunionUser');
     $schedule = new Schedule($user);
     
-    $test = array("label" => "John Doe");
-    $attendeeNames = array();
-    foreach($schedule->getAllAttendees() as $attendee) {
-      $name = $attendee['first_name']." ".$attendee['last_name'];
-      $attendeeNames[] = array("title" => $name); 
+    switch ($this->page) {
+      case 'index':
+        $attendeeNames = array();
+        foreach($schedule->getAllAttendees() as $attendee) {
+          $name = $schedule->formatAttendeeName($attendee);
+          if ($name) {
+            $attendeeNames[] = array(
+              'title' => $name,
+            );
+          }
+        }
+    
+        $this->assign('reunionTitle', $schedule->getReunionTitle());
+        $this->assign('authority',    $user->getAuthenticationAuthorityIndex());
+        $this->assign('attendees',    $attendeeNames);
+        break;
     }
-
-    $this->assign('attendees', $attendeeNames);
-
   }
 }
