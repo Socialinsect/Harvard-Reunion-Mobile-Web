@@ -581,6 +581,8 @@ class FacebookGroup {
   // 
   
   private function graphQuery($type, $id, $method='GET', $params=array()) {
+    $results = array();
+  
     if (is_array($method) && empty($params)) {
       $params = $method;
       $method = 'GET';
@@ -624,10 +626,12 @@ class FacebookGroup {
       }
     }
     
-    return $results;
+    return $results ? $results : array();
   }
   
   private function fqlQuery($type, $query, $cacheSuffix='') {
+    $results = array();
+  
     $cache = $this->getCacheForQuery($type);
     $cacheName = $type.'_'.($cacheSuffix ? $cacheSuffix : md5($query));
     
@@ -654,7 +658,7 @@ class FacebookGroup {
       }
     }
     
-    return $results;
+    return $results ? $results : array();
   }  
 }
 
@@ -724,7 +728,10 @@ class ReunionFacebook extends Facebook {
     return $this->getUrl(
       'www',
       'logout.php',
-      array('next' => $redirectURL)
+      array(
+        'api_key' => $this->getAppId(),
+        'next'    => $redirectURL,
+      )
     );
   }
   
