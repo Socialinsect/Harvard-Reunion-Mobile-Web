@@ -258,7 +258,7 @@ class Schedule {
   // Takes a User object and returns an array of Harris or Harvard event IDs.
   public function getRegisteredEvents() {
     // If there's no user, there are no registered events.
-    if (!isset($this->user) || !isset($this->scheduleConfig)) {
+    if (!$this->isAuthenticatedUser()) {
       return array();
     }
     
