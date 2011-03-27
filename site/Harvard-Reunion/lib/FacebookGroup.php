@@ -101,20 +101,24 @@ class FacebookGroup {
     return $this->facebook->getSession() == null;
   }
   
-  public function getNeedsLoginURL() {
-    return $this->facebook->getNeedsLoginURL();
-  }
-  
   public function getSwitchUserURL() {
     return $this->facebook->getSwitchUserURL();
+  }
+  
+  public function getLoginURL() {
+    return $this->facebook->getLoginURL();
+  }
+  
+  public function authorize($redirectURL, $code) {
+    return $this->facebook->authorize($redirectURL, $code);
   }
   
   public function getLogoutURL() {
     return $this->facebook->getLogoutUrl();
   }
   
-  public function getLogoutRedirect($redirectURL) {
-    return $this->facebook->getLogoutRedirect($redirectURL);
+  public function getLogoutRedirectURL($redirectURL) {
+    return $this->facebook->getLogoutRedirectURL($redirectURL);
   }
   
   public function expireSession() {
@@ -687,29 +691,124 @@ class ReunionFacebook extends Facebook {
     $this->setBaseDomain($domain);
   }
   
-  // Override to always use touch display
-  public function getLoginUrl($params=array()) {
-    $params['display'] = 'touch';
-    return parent::getLoginUrl($params);
+  private function getDisplayType() {
+    switch ($GLOBALS['deviceClassifier']->getPageType()) {
+      case 'basic':
+      case 'touch':
+        return 'wap';
+        
+      case 'tablet':
+        return 'page';
+      
+      default:
+        return 'wap';//'touch';  // touch ui currently causing infinite redirects
+    }
   }
-
-  public function getNeedsLoginURL($needsLoginURL='') {
-    return $this->getLoginURL(array(
-      'next'       => $this->getCurrentUrl(),
-      'cancel_url' => $this->getCurrentUrl(),
-      'req_perms'  => implode(',', $this->perms),
-    ));
+  
+  public function getUser() {
+    $session = $this->getSession();
+    
+    if ($session && $session['uid'] == 'me') {
+      try {
+        $userInfo = $this->api('me', array(
+          'fields' => 'id',
+        ));
+      } catch (Exception $e) {
+        error_log("Failed to get user id");
+        $userInfo = null;
+      }
+      
+      if ($userInfo) {
+        $session['uid'] = $userInfo['id'];
+        
+        unset($session['sig']);
+        $session['sig'] = self::generateSignature(
+          $session,
+          $this->getApiSecret()
+        );
+        error_log('Saving session with new uid '.print_r($session, true));
+        $this->setSession($session);
+      }
+    }
+    
+    return $session ? $session['uid'] : null;
   }
-   
+  
   public function getSwitchUserURL($needsLoginURL='') {
-    $loginURL = $this->getLoginUrl(array(
-      'next'       => $this->getCurrentUrl(),
-      'cancel_url' => $this->getCurrentUrl(),
-      'req_perms'  => implode(',', $this->perms),
-    ));
+    $loginURL = $this->getLoginUrl();
     
     return $this->getLogoutUrl(array(
       'next' => $loginURL,
+    ));
+  }
+  
+  // Use new oauth 2.0 dialog for mobile web
+  public function getLoginUrl($params=array()) {
+    $paramRemap = array(
+      'next'      => 'redirect_uri',
+      'req_perms' => 'scope',
+    );
+    foreach ($paramRemap as $old => $new) {
+      if (isset($params[$old]) && !isset($params[$new])) {
+        $params[$new] = $params[$old];
+        unset($params[$old]);
+      }
+    }
+    
+    $redirectURL = $this->getCurrentUrl();
+    if (isset($params['redirect_uri'])) {
+      $redirectURL = $params['redirect_uri'];
+      unset($params['redirect_uri']);
+    }
+    
+    return 'https://www.facebook.com/dialog/oauth?'.http_build_query(
+      array_merge(array(
+        'display'      => $this->getDisplayType(),
+        'client_id'    => $this->getAppId(),
+        'redirect_uri' => $this->authorizeURL($redirectURL),
+        'scope'        => implode(',', $this->perms),
+      ), $params)
+    );
+  }
+  
+  public function authorize($redirectURL, $code) {
+    if ($code) {
+      // must use the same redirect url passed into the first oauth call
+      $url = 'https://graph.facebook.com/oauth/access_token?'.http_build_query(
+        array(
+          'client_id'     => $this->getAppId(),
+          'client_secret' => $this->getApiSecret(),
+          'code'          => $code,
+          'redirect_uri'  => $this->authorizeURL($redirectURL),
+        )
+      );
+      $results = @file_get_contents($url);
+      
+      $parts = array();
+      parse_str($results, $parts);
+      
+      if (isset($parts['access_token'], $parts['expires'])) {
+        // got an access token
+        $session = array(
+          'uid'          => 'me', // Lazy load... see getUser() override
+          'access_token' => $parts['access_token'],
+          'expires'      => time() + $parts['expires'],
+        );
+    
+        // put a real sig, so that validateSignature works
+        $session['sig'] = self::generateSignature(
+          $session,
+          $this->getApiSecret()
+        );
+        error_log('Saving session '.print_r($session, true));
+        $this->setSession($session);
+      }
+    } 
+  }
+  
+  private function authorizeURL($redirectURL) {
+    return FULL_URL_PREFIX.'home/fbLogin?'.http_build_query(array(
+      'url' => $redirectURL
     ));
   }
 
@@ -717,17 +816,18 @@ class ReunionFacebook extends Facebook {
   public function getLogoutUrl($params=array()) {
     return FULL_URL_PREFIX.'home/fbLogout?'.http_build_query(
       array_merge(array(
-        'next' => $this->getCurrentUrl(),
+        'url' => $this->getCurrentUrl(),
       ), $params));
   }
   
-  public function getLogoutRedirect($redirectURL) {
+  public function getLogoutRedirectURL($redirectURL) {
     return $this->getUrl(
       'www',
       'logout.php',
       array(
-        'api_key' => $this->getAppId(),
-        'next'    => $redirectURL,
+        // Do not include access token or api key
+        // We want to log the user completely out
+        'next' => $redirectURL,
       )
     );
   }
@@ -764,7 +864,7 @@ class ReunionFacebook extends Facebook {
   protected function makeRequest($url, $params, $ch=null) {
     // Check if logged in:
     if (!$this->getSession()) {
-      $loginURL = $this->getNeedsLoginURL();
+      $loginURL = $this->getLoginURL();
       
       header("Location: $loginURL");
     }

@@ -108,7 +108,7 @@ class SiteHomeWebModule extends HomeWebModule {
           $this->assign('service', array(
             'type'  => 'facebook',
             'name'  => 'Facebook',
-            'url'   => $facebook->getNeedsLoginURL(),
+            'url'   => $facebook->getLoginURL(),
             'items' => 'posts',
           ));
           
@@ -158,11 +158,25 @@ class SiteHomeWebModule extends HomeWebModule {
           $this->redirectTo('index');
         }
         break;
+
+      case 'fbLogin':
+        $url  = $this->getArg('url', FULL_URL_PREFIX.'home/');
+        $code = $this->getArg('code', false);
+        error_log(print_r($this->args, true));
+        if ($code) {
+          $facebook->authorize($url, $code);
+        }
+        
+        error_log("fbLogin: Redirecting to $url");
+        header("Location: $url");
+        exit();
+        break;
         
       case 'fbLogout':
-        $next = $this->getArg('next', FULL_URL_PREFIX.'home/');
+        $url = $this->getArg('url', FULL_URL_PREFIX.'home/');
+        
         $facebook->expireSession('null');
-        $redirect = $facebook->getLogoutRedirect($next);
+        $redirect = $facebook->getLogoutRedirectURL($url);
         error_log("Redirecting to $redirect");
         header("Location: $redirect");
         exit();
