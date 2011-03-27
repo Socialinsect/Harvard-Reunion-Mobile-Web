@@ -426,9 +426,9 @@ class Schedule {
       $info['registration'] = null;
     }
     
-    $info['attendees'] = array();
+    $info['other_attendees'] = array();
     if ($event->get_attribute('Event ID')) {
-      $info['attendees'] =  $this->getOthersRegisteredForEvent($event);
+      $info['other_attendees'] =  $this->getOthersRegisteredForEvent($event);
     }
     
     return $info;
