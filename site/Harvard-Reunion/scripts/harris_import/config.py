@@ -16,9 +16,10 @@ NON_HARRIS_EVENTS = { 'h01-1' : 'Commencement Exercises',
 CLASSES_TO_MAPPINGS = {
     '2001' : {
         # Full Package
-        '391673' : ['391679', '391674', '391681', '391675', '391709', '391676', '391677',
+        '391673' : ['391679', '391674', '391681', '391675', '391676', '391677',
                     # I'm making up this part:
                     # 'h01-3'
+                    # But this one should be here (taken out for testing)  '391709'
                     ]
     }
 }
