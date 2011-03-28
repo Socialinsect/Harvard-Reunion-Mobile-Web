@@ -1,3 +1,8 @@
+#container {
+	/* Make everything slightly bigger by default for BlackBerries */
+	font-size: 110%;
+}
+
 /* Springboards */
 
 .springboard {
@@ -14,7 +19,7 @@
 
 .springboard div a, .springboard div.utility a {	
 	/* Color and size of text label below each springboard icon; for this device branch, this is the same for primary and utility-class springboard items */
-	font-size: 90%;
+	font-size: 85%;
 	line-height: 1.1em;
 }
 
