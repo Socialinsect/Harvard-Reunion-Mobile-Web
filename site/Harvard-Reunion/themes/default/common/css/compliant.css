@@ -147,15 +147,15 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 }
 
 #navbar2 select, #category-switcher select {
-	background: #a9050f url(/common/images/dropdown-arrow.png) no-repeat right;
+	background: url(/common/images/dropdown-arrow.png) no-repeat right, -webkit-gradient(linear, 0% 0%, 0% 100%, from(#c4161f), to(#790812));
 	color: #fff;  
-	border: 1px solid #860810;
-	border-top: 1px solid #c7575f;
-	border-bottom: 1px solid #6e060c;
+	border: 1px solid #bc2e37;
+	border-top: 1px solid #dc6a72;
+	border-bottom: 1px solid #950b14;
 	border-radius: 6px;
-	-webkit-box-shadow: 0px 0px 2px #4a0206;
-	-moz-box-shadow: 0px 0px 2px #4a0206;
-	box-shadow: 0px 0px 2px #4a0206;
+	-webkit-box-shadow: 0px 1px 3px #3c0104;
+	-moz-box-shadow: 0px 1px 3px #3c0104;
+	box-shadow: 0px 0px 1px #3c0104;
 }
 
 #navbar2 a#bookmark {
