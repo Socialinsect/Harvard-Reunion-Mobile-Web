@@ -57,6 +57,10 @@
   background-size: 20px;
 }
 
-.nav li .register .confirmed {
+.nav li .confirmed {
+  margin-left: -8px;
+}
+
+.nav li .confirmed .icon {
   background: transparent url('/common/images/badge-confirmed.png') no-repeat left;
 }

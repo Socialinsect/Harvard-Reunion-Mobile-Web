@@ -350,7 +350,7 @@ class SiteScheduleWebModule extends WebModule {
           
           if ($registered) {
             // No a tag so we need to wrap in a div
-            $registration['title'] = '<div class="register"><div class="icon confirmed"></div>Registration Confirmed</div>';
+            $registration['title'] = '<div class="register confirmed"><div class="icon"></div>Registration Confirmed</div>';
             
           } else {
             if (isset($info['registration']['url'])) {
