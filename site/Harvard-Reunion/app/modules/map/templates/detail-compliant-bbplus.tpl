@@ -1,1 +1,1 @@
-{extends file="findExtends:modules/$moduleID/templates/detail-compliant-bbplus.tpl"}
+{extends file="findExtends:modules/$moduleID/templates/detail-basic.tpl"}
