@@ -18,9 +18,7 @@ class SiteMapWebModule extends MapWebModule {
     
     switch ($this->pagetype) {
       case 'compliant':
-        if ($this->platform == 'bbplus') {
-          $imageHeight = 100;
-        } else {
+        if ($this->platform != 'bbplus') {
           $imageHeight = 180;
         }
         break;
