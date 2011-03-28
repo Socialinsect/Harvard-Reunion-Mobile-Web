@@ -11,7 +11,6 @@ define('SCHEDULE_BOOKMARKS_COOKIE_DURATION', 160 * 24 * 60 * 60);
 
 class SiteScheduleWebModule extends WebModule {
   protected $id = 'schedule';
-  protected $feeds = null;
   protected $schedule = null;
   protected $bookmarks = array();
 
@@ -201,28 +200,14 @@ class SiteScheduleWebModule extends WebModule {
     $this->schedule = new Schedule($user);
   }
   
-  protected function eventMatchesCategory($category, $event) {
+  protected function eventMatchesCategory($event, $category) {
     if ($category == 'mine') {
       return 
         $this->isBookmarked($this->schedule->getScheduleId(), $event->get_uid()) ||
         $this->schedule->isRegisteredForEvent($event);
+    } else {
+      return $this->schedule->eventMatchesCategory($event, $category);
     }
-    
-    $trumbaCategories = $event->get_attribute('categories');
-    
-    $eventCategory = 'reunion';
-    foreach ($trumbaCategories as $trumbaCategory) {
-      if (stripos($trumbaCategory, 'Other') !== false) {
-        $eventCategory = 'other';
-        break;
-      }
-      if (stripos($trumbaCategory, 'Children') !== false) {
-        $eventCategory = 'children';
-        break;
-      }
-    }
-    
-    return $category == $eventCategory;
   }
 
   protected function initializeForPage() {    
@@ -233,27 +218,20 @@ class SiteScheduleWebModule extends WebModule {
         break;
 
       case 'index':
-        $category  = $this->getArg('category', 'reunion');
+        $category  = $this->getArg('category', $this->schedule->getDefaultCategory());
         
         $feed = $this->schedule->getEventFeed();
         
         $events = $feed->items(0);
         
-        $categories = array(
-          'reunion'  => $this->schedule->getReunionNumber().'th Reunion Events',
-          'other'    => 'Other Events',
-          'children' => 'Children\'s Events',
-          'mine'     => 'My Schedule',
-        );
+        $categories = $this->schedule->getEventCategories();
+        $categories['mine'] = 'My Schedule';
         
-        $hasOtherEvents = false;
-        $hasChildrensEvents = false;
-
         $eventDays = array();
         foreach($events as $event) {
           $date = date('Y-m-d', $event->get_start());
           
-          $showThisEvent = $this->eventMatchesCategory($category, $event);
+          $showThisEvent = $this->eventMatchesCategory($event, $category);
           
           if ($showThisEvent) {
             if (!isset($eventDays[$date])) {
@@ -298,7 +276,7 @@ class SiteScheduleWebModule extends WebModule {
         }
         //error_log(print_r($event, true));
         $info = $this->schedule->getEventInfo($event);
-        $registered = $this->schedule->isRegisteredForEvent($event);
+        $registered = false;
         $bookmarked = $this->isBookmarked($scheduleId, $eventId);
         //error_log(print_r($info, true));
 
@@ -348,7 +326,9 @@ class SiteScheduleWebModule extends WebModule {
             'class' => 'external register',
           );
           
-          if ($registered) {
+          if ($info['registration']['registered']) {
+            $registered = true;
+            
             // No a tag so we need to wrap in a div
             $registration['title'] = '<div class="register confirmed"><div class="icon"></div>Registration Confirmed</div>';
             
@@ -448,12 +428,10 @@ class SiteScheduleWebModule extends WebModule {
         $info = $this->schedule->getEventInfo($event);
         
         $attendees = array();
-        
         foreach ($info['attendees'] as $attendee) {
-          $name = $this->schedule->formatAttendeeName($attendee);
-          if ($name) {
+          if ($attendee['display_name']) {
             $attendees[] = array(
-              'title' => $name,
+              'title' => $attendee['display_name'],
             );
           }
         }

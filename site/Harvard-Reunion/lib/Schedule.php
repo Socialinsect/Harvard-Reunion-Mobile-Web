@@ -241,7 +241,7 @@ class Schedule {
     
     return $info;
   }
-  
+
   public function getEventFeed() {
     $controllerClass = $this->getConfigValue('CONTROLLER_CLASS', 'CalendarDataController');
     
@@ -254,7 +254,37 @@ class Schedule {
     
     return $controller;
   }
-
+  
+  public function getEventCategories() {
+    return array(
+      'reunion'  => $this->getReunionNumber().'th Reunion Events',
+      'other'    => 'Other Events',
+      'children' => 'Children\'s Events',
+    );
+  }
+  
+  public function getDefaultCategory() {
+    return 'reunion';
+  }
+    
+  public function eventMatchesCategory($event, $category) {
+    $trumbaCategories = $event->get_attribute('categories');
+    
+    $eventCategory = 'reunion';
+    foreach ($trumbaCategories as $trumbaCategory) {
+      if (stripos($trumbaCategory, 'Other') !== false) {
+        $eventCategory = 'other';
+        break;
+      }
+      if (stripos($trumbaCategory, 'Children') !== false) {
+        $eventCategory = 'children';
+        break;
+      }
+    }
+    
+    return $category == $eventCategory;
+  }
+  
   // Takes a User object and returns an array of Harris or Harvard event IDs.
   public function getRegisteredEvents() {
     // If there's no user, there are no registered events.
@@ -304,7 +334,13 @@ class Schedule {
     $harrisEventID = $event->get_attribute("Event ID");
     $result = $this->attendanceDb->query($sql, array($harrisEventID));
     
-    return $result->fetchAll();
+    $attendees = $result->fetchAll();
+    
+    foreach ($attendees as $i => $attendee) {
+      $attendees[$i]['display_name'] = $this->formatAttendeeName($attendee);
+    }
+    
+    return $attendees;
   }
 
   public function getAttendeeCountForEvent($event) {
@@ -321,10 +357,16 @@ class Schedule {
            "FROM users u order by u.first_name, u.last_name";
     $result = $this->attendanceDb->query($sql);
     
-    return $result->fetchAll();
+    $attendees = $result->fetchAll();
+    
+    foreach ($attendees as $i => $attendee) {
+      $attendees[$i]['display_name'] = $this->formatAttendeeName($attendee);
+    }
+    
+    return $attendees;
   }
   
-  public static function formatAttendeeName($attendee) {
+  private function formatAttendeeName($attendee) {
     $parts = array();
     if (isset($attendee['first_name'])) {
       $parts[] = $attendee['first_name'];
@@ -340,7 +382,13 @@ class Schedule {
   }
   
   public function getEventInfo($event) {
-    $info = array();
+    $info = array(
+      'id'           => $event->get_uid(),
+      'category'     => null,
+      'location'     => null,
+      'registration' => null,
+      'attendees'    => array(),
+    );
     
     //
     // Simple fields
@@ -348,7 +396,6 @@ class Schedule {
     $simpleFields = array(
       'title'       => 'summary',
       'datetime'    => 'datetime',
-      'categories'  => 'categories',
       'description' => 'Details',
       'url'         => 'url',
       'phone'       => 'Phone',
@@ -364,50 +411,69 @@ class Schedule {
     }
     
     //
+    // Categories
+    //
+    $categories = $this->getEventCategories();
+    foreach ($categories as $category => $title) {
+      if ($this->eventMatchesCategory($event, $category)) {
+        $info['category'] = $category;
+        break;
+      }
+    }
+    
+    //
     // Location
     //
-    $location = array();
     $locationTitle = $event->get_attribute('Location Name');
-    if ($locationTitle) {
-      $location['title'] = $locationTitle;
-    }
     $locationBuildingID = $event->get_attribute('Building ID');
-    if ($locationBuildingID) {
-      $location['building'] = $locationBuildingID;
-      
-      $mapModule = WebModule::factory('map');
-      
-      $address = array();
-      $buildingInfo = $mapModule->getBuildingDataById($locationBuildingID);
-      if (isset($buildingInfo['attributes'], $buildingInfo['attributes']['Address'])) {
-        $address['street'] = mb_convert_case($buildingInfo['attributes']['Address'], MB_CASE_TITLE);
-        
-        if (isset($buildingInfo['attributes']['City'])) {
-          $address['city'] = mb_convert_case($buildingInfo['attributes']['City'], MB_CASE_TITLE);
-        }
-        if (isset($buildingInfo['attributes']['State'])) {
-          $address['state'] = $buildingInfo['attributes']['State'];
-        }
-      }
-      if ($address) {
-        $location['address'] = $address;
-      }
-      //error_log(print_r($buildingInfo, true));
-    }
     $trumbaLocation = $event->get_attribute('location');
-    if ($trumbaLocation) {
-      if (preg_match('/^([\-\.0-9]+),([\-\.0-9]+)$/', $trumbaLocation, $matches)) {
-        $location['latlon'] = array($matches[1], $matches[2]);
+    if ($locationTitle || $locationBuilding || $trumbaLocation) {
+      $location = array(
+        'title'    => null,
+        'building' => null,
+        'latlon'   => null,
+        'address'  => array(
+          'street' => null,
+          'city'   => null,
+          'state'  => null,
+        ),
+        'multiple' => false,
+      )
+      ;
+      if ($locationTitle) {
+        $location['title'] = $locationTitle;
       }
-    }
-    $multipleLocations = $event->get_attribute('Multiple Locations');
-    if (strtolower($multipleLocations) == 'yes') {
-      $location['multiple'] = true;
-    }
-    if ($location) {
+      
+      if ($locationBuildingID) {
+        $location['building'] = $locationBuildingID;
+        
+        $mapModule = WebModule::factory('map');
+        
+        $buildingInfo = $mapModule->getBuildingDataById($locationBuildingID);
+        if (isset($buildingInfo['attributes'], $buildingInfo['attributes']['Address'])) {
+          $location['address']['street'] = mb_convert_case($buildingInfo['attributes']['Address'], MB_CASE_TITLE);
+          
+          if (isset($buildingInfo['attributes']['City'])) {
+            $location['address']['city'] = mb_convert_case($buildingInfo['attributes']['City'], MB_CASE_TITLE);
+          }
+          if (isset($buildingInfo['attributes']['State'])) {
+            $location['address']['state'] = $buildingInfo['attributes']['State'];
+          }
+        }
+        //error_log(print_r($buildingInfo, true));
+      }
+      
+      if ($trumbaLocation) {
+        if (preg_match('/^([\-\.0-9]+),([\-\.0-9]+)$/', $trumbaLocation, $matches)) {
+          $location['latlon'] = array($matches[1], $matches[2]);
+        }
+      }
+      
+      $multipleLocations = $event->get_attribute('Multiple Locations');
+      if (strtolower($multipleLocations) == 'yes') {
+        $location['multiple'] = true;
+      }
       $info['location'] = $location;
-    } else {
-      $info['location'] = null;
     }
     
     //
@@ -416,7 +482,9 @@ class Schedule {
     $registrationRequired = $event->get_attribute('Registration Required');
     if (strtolower($registrationRequired) == 'yes') {
       $info['registration'] = array(
-        'url' => 'http://alumni.harvard.edu/',
+        'url'        => 'http://alumni.harvard.edu/',
+        'fee'        => '',
+        'registered' => $this->isRegisteredForEvent($event),
       );
       $fee = $event->get_attribute('Registration Fee');
       if ($fee) {
@@ -426,8 +494,6 @@ class Schedule {
       if ($url) {
         $info['registration']['url'] = $url;
       }
-    } else {
-      $info['registration'] = null;
     }
     
     $info['attendees'] = array();

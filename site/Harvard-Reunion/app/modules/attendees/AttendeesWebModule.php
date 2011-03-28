@@ -11,11 +11,10 @@ class AttendeesWebModule extends WebModule
     switch ($this->page) {
       case 'index':
         $attendeeNames = array();
-        foreach($schedule->getAllAttendees() as $attendee) {
-          $name = $schedule->formatAttendeeName($attendee);
-          if ($name) {
+        foreach ($schedule->getAllAttendees() as $attendee) {
+          if ($attendee['display_name']) {
             $attendeeNames[] = array(
-              'title' => $name,
+              'title' => $attendee['display_name'],
             );
           }
         }
