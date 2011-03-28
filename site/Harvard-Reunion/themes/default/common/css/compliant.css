@@ -142,16 +142,16 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 #navbar2, #category-switcher {
 	background: #9c0820 url(/common/images/navback2.png) top left repeat-x;
   	color: #fff;
-	padding-left: 8px;
-	padding-right: 8px;
+	padding-left: 9px;
+	padding-right: 9px;
 }
 
 #navbar2 select, #category-switcher select {
-	background: url(/common/images/dropdown-arrow.png) no-repeat right, -webkit-gradient(linear, 0% 0%, 0% 100%, from(#b70d16), to(#7f0712));
+	background: url(/common/images/dropdown-arrow.png) no-repeat right, -webkit-gradient(linear, 0% 0%, 0% 100%, from(#b10a13), to(#870410));
 	color: #fff;  
 	border: 1px solid #bc2e37;
 	border-top: 1px solid #dc6a72;
-	border-bottom: 1px solid #950b14;
+	border-bottom: 1px solid #930811;
 	border-radius: 6px;
 	-webkit-box-shadow: 0px 1px 3px #3c0104;
 	-moz-box-shadow: 0px 1px 3px #3c0104;
