@@ -40,10 +40,20 @@ a.bookmarked {
 
 /* Secondary nav bars */
 
+#navbar2 {
+	height: 34px;
+	border-bottom: 1px solid #444;
+}
+
 #navbar2, #navbar2 * {
-	font-size: 16px;
 }
 
 #navbar2 select {
+	height: 32px;
+	line-height: 1em;
+	padding-top: 3px;
+	padding-bottom: 0;
+	background: #94111d;
 	background-image: none;
+	border-bottom: 1px solid #4a0005;
 }
