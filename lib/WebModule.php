@@ -154,9 +154,9 @@ abstract class WebModule extends Module {
       case 'small':
         return 'body { font-size: 89%; line-height: 1.33em }';
       case 'large':
-        return 'body { font-size: 125%; line-height: 1.33em }';
+        return 'body { font-size: 111.7%; line-height: 1.33em }';
       case 'xlarge':
-        return 'body { font-size: 150%; line-height: 1.33em }';
+        return 'body { font-size: 129.4%; line-height: 1.33em }';
       default:
         return 'body { font-size: 100%; line-height: 1.33em }';
     }

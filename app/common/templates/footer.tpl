@@ -18,7 +18,7 @@
 
   {capture name="loginHTML" assign="loginHTML"}
     {if $session}<div id="loginInfo">{if $session_isLoggedIn}
-    <a href="../login/">Logged in</a>{else}<a href="../login/?url={$request_uri}"><!--Not logged in--></a>{/if}
+    <a href="../login/"><!--Logged in--></a>{else}<a href="../login/?url={$request_uri}"><!--Not logged in--></a>{/if}
     </div>{/if}
   {/capture}
 
