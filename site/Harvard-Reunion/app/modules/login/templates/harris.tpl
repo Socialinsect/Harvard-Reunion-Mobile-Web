@@ -22,10 +22,16 @@
 		<input type="password" id="pwd" name="loginPassword" />
 		</p>
 
-		<div class="signinbuttons">
-			<input class="signinbutton submit" type="submit" name="login_submit" value="Sign In"/>
-			<a class="signinbutton cancel" href="{$cancelURL}">Cancel</a>
-		</div>
+		<table class="signinbuttons">
+		  <tr>
+			<td>
+				<input class="signinbutton submit" type="submit" name="login_submit" value="Sign In"/>
+			</td>
+			<td>
+				<a class="signinbutton cancel" href="{$cancelURL}">Cancel</a>
+			</td>
+		  </tr>
+		</table>
 	</form>
 
 	<div class="clear"></div>
