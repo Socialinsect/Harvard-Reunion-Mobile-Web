@@ -162,7 +162,7 @@ class SiteHomeWebModule extends HomeWebModule {
       case 'fbLogin':
         $url  = $this->getArg('url', FULL_URL_PREFIX.'home/');
         $code = $this->getArg('code', false);
-        error_log(print_r($this->args, true));
+        
         if ($code) {
           $facebook->authorize($url, $code);
         }

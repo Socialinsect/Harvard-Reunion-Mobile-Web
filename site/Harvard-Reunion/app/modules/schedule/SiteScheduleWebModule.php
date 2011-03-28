@@ -399,19 +399,39 @@ class SiteScheduleWebModule extends WebModule {
         }
         //error_log(print_r($sections, true));
         
+        $latitude = 0;
+        $longitude = 0;
+        if (isset($info['location']['latlon'])) {
+          list($latitude, $longitude) = $info['location']['latlon'];
+        }
+        
+        // Checkins
+        if (isset($info['fbPlaceId']) && $latitude && $longitude) {
+          $this->assign('fbCheckinURL', $this->buildBreadcrumbURL('checkin', array(
+            'service'    => 'facebook',
+            'eventURL'   => FULL_URL_PREFIX.ltrim(
+              $this->buildBreadcrumbURL($this->page, $this->args, false), '/'),
+            'eventTitle' => $info['title'],
+            'place'      => $info['fbPlaceId'],
+            'latitude'   => $latitude, 
+            'longitude'  => $longitude
+          ), false));
+        }
+        
+        
         $cookieName = $this->getCookieNameForEvent($scheduleId);
         $this->addInlineJavascript(
           "var COOKIE_PATH = '".COOKIE_PATH."';".
           "var COOKIE_DURATION = '".SCHEDULE_BOOKMARKS_COOKIE_DURATION."';");
         $this->addOnLoad("setBookmarkStates('$cookieName', '$eventId');");
 
-        $this->assign('eventId',    $eventId);
-        $this->assign('eventTitle', $info['title']);
-        $this->assign('eventDate',  $this->valueForType('datetime', $info['datetime']));
-        $this->assign('sections',   $sections);
-        $this->assign('bookmarked', $bookmarked);
-        $this->assign('registered', $registered);
-        $this->assign('cookieName', $this->getCookieNameForEvent($scheduleId));
+        $this->assign('eventId',      $eventId);
+        $this->assign('eventTitle',   $info['title']);
+        $this->assign('eventDate',    $this->valueForType('datetime', $info['datetime']));
+        $this->assign('sections',     $sections);
+        $this->assign('bookmarked',   $bookmarked);
+        $this->assign('registered',   $registered);
+        $this->assign('cookieName',   $this->getCookieNameForEvent($scheduleId));
         //error_log(print_r($sections, true));
         break;
         
@@ -440,6 +460,51 @@ class SiteScheduleWebModule extends WebModule {
         $this->assign('eventTitle', $info['title']);
         $this->assign('eventDate',  $this->valueForType('datetime', $info['datetime']));        
         $this->assign('attendees',  $attendees);        
+        break;
+        
+      case 'checkin':
+        $service = $this->getArg('service');
+        
+        $this->assign('eventTitle', $this->getArg('eventTitle'));
+        $this->assign('service',    $service);
+        $this->assign('hiddenArgs', array(
+          'service'   => $service,
+          'place'     => $this->getArg('place'),
+          'latitude'  => $this->getArg('latitude'),
+          'longitude' => $this->getArg('longitude'),
+          'eventURL'  => $this->getArg('eventURL'),
+        ));
+        break;
+      
+      case 'addCheckin':
+        $service   = $this->getArg('service');
+        $message   = $this->getArg('message');
+        $latitude  = $this->getArg('latitude');
+        $longitude = $this->getArg('longitude');
+        $eventURL  = $this->getArg('eventURL');
+        
+        if ($latitude && $longitude && $message) {
+          if ($service == 'facebook') {
+            $facebook = $this->schedule->getFacebookFeed();
+            if ($facebook->needsLogin()) {
+              $loginURL = $facebook->getLoginURL();
+              header("Location: $loginURL");
+              exit();
+            }
+            
+            $facebook->addCheckin($message, $place, array($latitude, $longitude));
+          
+          } else if ($service == 'foursquare') {
+            
+          }
+        }
+        
+        if ($eventURL) {
+          header("Location: $eventURL");
+          exit();
+        } else {
+          $this->redirectTo('index');
+        }
         break;
     }
   }

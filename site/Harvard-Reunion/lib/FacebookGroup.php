@@ -72,6 +72,11 @@ class FacebookGroup {
       'cacheLifetime' => self::FEED_LIFETIME,
       'suffix'        => '/likes',
     ),
+    'checkins' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::NOCACHE_LIFETIME,
+      'suffix'        => '/checkins',
+    ),
   );
   const AUTHOR_URL    = 'http://m.facebook.com/profile.php?id=';
   const OLD_GROUP_URL = 'http://m.facebook.com/group.php?gid=';
@@ -306,6 +311,22 @@ class FacebookGroup {
     
     return $comments;
   }
+  
+  //
+  // Checkins
+  //
+  
+  public function addCheckin($message, $coords=array(0,0)) {
+    $results = $this->graphQuery('checkins', $this->getMyId(), 'POST', array(
+      'message'     => $message,
+      'place'       => $this->groupId,
+      'coordinates' => json_encode(array(
+        'latitude'  => $coords[0],
+        'longitude' => $coords[1],
+      )),
+    ));
+  }
+  
   
   //
   // Likes
@@ -726,7 +747,7 @@ class ReunionFacebook extends Facebook {
           $session,
           $this->getApiSecret()
         );
-        error_log('Saving session with new uid '.print_r($session, true));
+        //error_log('Saving session with new uid '.print_r($session, true));
         $this->setSession($session);
       }
     }
@@ -800,7 +821,7 @@ class ReunionFacebook extends Facebook {
           $session,
           $this->getApiSecret()
         );
-        error_log('Saving session '.print_r($session, true));
+        //error_log('Saving session '.print_r($session, true));
         $this->setSession($session);
       }
     } 

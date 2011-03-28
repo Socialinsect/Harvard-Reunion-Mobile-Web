@@ -1,16 +1,54 @@
 <?php
 /**
   * @package Module
-  * @subpackage Home
+  * @subpackage Map
   */
 
-/**
-  * @package Module
-  * @subpackage Home
-  */
+includePackage('Maps');
+require_once realpath(LIB_DIR.'/Maps/ArcGISParser.php');
+
 class SiteMapWebModule extends MapWebModule {
   public function getBuildingDataById($buildingId) {
-    return HarvardMapDataController::getBldgDataByNumber($buildingId);
+    $buildingData = array();
+  
+    if (!$this->feeds) {
+      $this->feeds = $this->loadFeedData();
+    }
+    
+    $dataController = null;
+    foreach ($this->feeds as $feedIndex => $feedData) {
+      if ($feedData['TITLE'] == 'Search Results') {
+        $dataController = MapDataController::factory($feedData['CONTROLLER_CLASS'], $feedData);
+        $dataController->setCategory($feedIndex);
+        break;
+      }
+    }
+    
+    if ($dataController) {
+      $feature = $dataController->getFeature($buildingId);
+      
+      $description = $feature->getDescription();
+      $labels = array(
+        'Building Name',
+        'Address',
+        'City',
+        'State',
+      );
+      foreach ($description as $field) {
+        if (in_array($field['label'], $labels)) {
+          $buildingData[$field['label']] = $field['title'];
+        }
+      }
+      
+      $geometry = $feature->getGeometry();
+      $coords = $geometry->getCenterCoordinate();
+      $dataProjection = $dataController->getProjection();
+      $projector = new MapProjector();
+      $projector->setSrcProj($dataProjection);
+      $buildingData['coords'] = $projector->projectPoint($geometry->getCenterCoordinate());
+    }
+    
+    return $buildingData;
   }
 
   protected function staticMapImageDimensions() {

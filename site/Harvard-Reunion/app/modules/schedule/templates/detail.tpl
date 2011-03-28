@@ -10,6 +10,9 @@
   {/if}
   <h2>{$eventTitle}</h2>
   {$eventDate}
+  {if 0 && $fbCheckinURL}
+    <div class="smallprint"><a href="{$fbCheckinURL}">Check in to Facebook</a></div>
+  {/if}
 </div>
 
 {if count($sections)}

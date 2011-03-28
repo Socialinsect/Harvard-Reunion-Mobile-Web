@@ -1,0 +1,13 @@
+form textarea {
+  width: 98%;
+  line-height: normal;
+}
+form input[type=submit] {
+  float: right;
+}
+.checkinForm {
+  overflow: hidden;
+}
+.checkinForm form {
+  margin: 0;
+}

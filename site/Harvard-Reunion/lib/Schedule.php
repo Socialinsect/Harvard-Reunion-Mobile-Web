@@ -388,6 +388,7 @@ class Schedule {
       'location'     => null,
       'registration' => null,
       'attendees'    => array(),
+      'fbPlaceId'    => 0,
     );
     
     //
@@ -450,15 +451,20 @@ class Schedule {
         $mapModule = WebModule::factory('map');
         
         $buildingInfo = $mapModule->getBuildingDataById($locationBuildingID);
-        if (isset($buildingInfo['attributes'], $buildingInfo['attributes']['Address'])) {
-          $location['address']['street'] = mb_convert_case($buildingInfo['attributes']['Address'], MB_CASE_TITLE);
+        if (isset($buildingInfo['Address'])) {
+          $location['address']['street'] = mb_convert_case($buildingInfo['Address'], MB_CASE_TITLE);
           
-          if (isset($buildingInfo['attributes']['City'])) {
-            $location['address']['city'] = mb_convert_case($buildingInfo['attributes']['City'], MB_CASE_TITLE);
+          if (isset($buildingInfo['City'])) {
+            $location['address']['city'] = mb_convert_case($buildingInfo['City'], MB_CASE_TITLE);
           }
-          if (isset($buildingInfo['attributes']['State'])) {
-            $location['address']['state'] = $buildingInfo['attributes']['State'];
+          if (isset($buildingInfo['State'])) {
+            $location['address']['state'] = $buildingInfo['State'];
           }
+        }
+        
+        
+        if ($buildingInfo['coords']) {
+          $location['latlon'] = array_values($buildingInfo['coords']);
         }
         //error_log(print_r($buildingInfo, true));
       }
