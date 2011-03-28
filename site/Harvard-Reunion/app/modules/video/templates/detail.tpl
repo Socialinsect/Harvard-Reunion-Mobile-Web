@@ -20,7 +20,7 @@
   {/capture}
   {$video['html'] = $postHTML}
   
-  {include file="findInclude:common/templates/postDetail.tpl" post=$video}
+  {include file="findInclude:common/templates/postdetail.tpl" post=$video}
 {/if}
 
 {include file="findInclude:common/templates/footer.tpl"}

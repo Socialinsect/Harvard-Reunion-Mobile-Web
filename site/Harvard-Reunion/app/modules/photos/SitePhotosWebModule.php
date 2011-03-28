@@ -101,7 +101,7 @@ class SitePhotosWebModule extends WebModule {
       $this->assign('service', array(
         'type'  => 'facebook',
         'name'  => 'Facebook',
-        'url'   => $facebook->getNeedsLoginURL(),
+        'url'   => $facebook->getLoginURL(),
         'items' => 'photos',
       ));
       return false;

@@ -306,6 +306,11 @@ class Schedule {
     
     return $result->fetchAll();
   }
+
+  public function getAttendeeCountForEvent($event) {
+    // Yes, it's not efficient. We can fix it if it becomes a problem.
+    return count($this->getAttendeesRegisteredForEvent($event));
+  }
   
   public function getAllAttendees() {
     if (!$this->isAuthenticatedUser()) {

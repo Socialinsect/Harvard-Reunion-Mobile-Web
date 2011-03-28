@@ -14,7 +14,7 @@
   {/capture}
   {$photo['html'] = $postHTML}
   
-  {include file="findInclude:common/templates/postDetail.tpl" post=$photo}
+  {include file="findInclude:common/templates/postdetail.tpl" post=$photo}
 {/if}
 
 {include file="findInclude:common/templates/footer.tpl"}

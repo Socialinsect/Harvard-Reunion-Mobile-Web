@@ -184,6 +184,18 @@ class SiteScheduleWebModule extends WebModule {
     }
   }
 
+  private function titleForAttendeeCount($event) {
+    $attendeeCount = $this->schedule->getAttendeeCountForEvent($event);
+    if ($this->schedule->isRegisteredForEvent($event)) {
+      $otherCount = $attendeeCount - 1;
+      return "$otherCount ".($otherCount == 1 ? "other" : "others")." attending";
+    }
+
+    // We're not attending, just these people
+    return "$attendeeCount ".($attendeeCount == 1 ? "person" : "people")." attending";
+  }
+
+
   protected function initialize() {
     $user = $this->getUser('HarvardReunionUser');
     $this->schedule = new Schedule($user);
@@ -355,10 +367,11 @@ class SiteScheduleWebModule extends WebModule {
           }
           $registrationSection[] = $registration;
         }
+
         if (isset($info['attendees']) && count($info['attendees'])) {
           $otherAttendeeCount = count($info['attendees']) - 1;
           $registrationSection[] = array(
-            'title' => "$otherAttendeeCount others attending",
+            'title' => $this->titleForAttendeeCount($event),
             'url'   => $this->buildBreadcrumbURL('attendees', array(
               'eventId' => $eventId,
               'start'   => $start,
