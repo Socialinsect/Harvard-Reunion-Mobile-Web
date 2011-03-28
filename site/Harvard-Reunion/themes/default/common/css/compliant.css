@@ -173,8 +173,8 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 /* Footer */
 
 #footer {
-	font-size: 12px;
-	line-height: 14px;
+	font-size: 70.589%;
+	line-height: 1.167em;
 }
 
 #footer .copyright {
