@@ -23,6 +23,7 @@ fi
 sed -e 's!Universitas!Harvard-Reunion!' $REPO_DIR/config/kurogo-default.ini > $REPO_DIR/config/kurogo.ini
 
 mkdir -p $REPO_DIR/site/Harvard-Reunion/cache
+rm -rf $REPO_DIR/site/Harvard-Reunion/cache/*
 cp -r $REPO_DIR/site/Harvard-Reunion/copy-to-Cache/* $REPO_DIR/site/Harvard-Reunion/cache
 chown -R apache $REPO_DIR
 chgrp -R apache $REPO_DIR
