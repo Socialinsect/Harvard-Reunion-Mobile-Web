@@ -44,7 +44,7 @@
   
   <div class="nonfocal">
     <span class="smallprint">
-      Signed in as {$user} (<a href="{$switchUserURL}">change</a>)
+      Signed into Facebook as {$user} (<a href="{$switchUserURL}">change</a>)
     </span>
   </div>
 {/if}
