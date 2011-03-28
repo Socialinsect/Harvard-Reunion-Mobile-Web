@@ -147,7 +147,7 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 }
 
 #navbar2 select, #category-switcher select {
-	background: url(/common/images/dropdown-arrow.png) no-repeat right, -webkit-gradient(linear, 0% 0%, 0% 100%, from(#c4161f), to(#790812));
+	background: url(/common/images/dropdown-arrow.png) no-repeat right, -webkit-gradient(linear, 0% 0%, 0% 100%, from(#b70d16), to(#7f0712));
 	color: #fff;  
 	border: 1px solid #bc2e37;
 	border-top: 1px solid #dc6a72;
@@ -156,6 +156,7 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 	-webkit-box-shadow: 0px 1px 3px #3c0104;
 	-moz-box-shadow: 0px 1px 3px #3c0104;
 	box-shadow: 0px 0px 1px #3c0104;
+	text-shadow: #360003 0 1px 2px;
 }
 
 #navbar2 a#bookmark {
