@@ -173,7 +173,7 @@ class SiteHomeWebModule extends HomeWebModule {
         break;
         
       case 'fbLogout':
-        $url = $this->getArg('url', FULL_URL_PREFIX.'home/');
+        $url = $this->getArg('next', FULL_URL_PREFIX.'home/');
         
         $facebook->expireSession('null');
         $redirect = $facebook->getLogoutRedirectURL($url);

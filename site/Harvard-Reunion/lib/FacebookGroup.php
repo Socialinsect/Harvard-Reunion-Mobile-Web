@@ -816,7 +816,7 @@ class ReunionFacebook extends Facebook {
   public function getLogoutUrl($params=array()) {
     return FULL_URL_PREFIX.'home/fbLogout?'.http_build_query(
       array_merge(array(
-        'url' => $this->getCurrentUrl(),
+        'next' => $this->getCurrentUrl(),
       ), $params));
   }
   
