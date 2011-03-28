@@ -58,5 +58,5 @@
 }
 
 .nav li .register .confirmed {
-  background-image: url('/common/images/badge-confirmed.png'); 
+  background: transparent url('/common/images/badge-confirmed.png') no-repeat left;
 }
