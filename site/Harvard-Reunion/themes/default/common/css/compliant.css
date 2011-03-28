@@ -113,7 +113,7 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 #navbar {
 	height: 48px; 
 	background: url(/common/images/navback.png) repeat-x;
-	font-size: 16px;
+	font-size: 94.11%;
 }
 
 /* Uncomment this rule and comment out the previous one to use a background gradient rather than image

@@ -311,9 +311,9 @@ input.formbutton {
 	height: 100%;
 	line-height: 44px;
 	vertical-align: top;
-  margin-left: -4px; /* overlap by the width of the drillup art */
-  padding: 0 18px 0 2px; 
-  background-image: url(/common/images/drillup-r.png);
+	margin-left: -4px; /* overlap by the width of the drillup art */
+	padding: 0 18px 0 2px; 
+	background-image: url(/common/images/drillup-r.png);
 	background-repeat: no-repeat;
 	background-position: top right;
 	text-decoration: none;
