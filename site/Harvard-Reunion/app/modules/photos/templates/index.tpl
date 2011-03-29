@@ -8,11 +8,14 @@
   
 {else}
   <div class="nonfocal" id="navbar2">
+	<div class="tabstrip threetabs">
     {foreach $views as $view => $url}
-      {if !$url@first}&nbsp;|&nbsp;{/if}
+      {if !$url@first}<span class="tabstripDivider">&nbsp;|&nbsp;</span>{/if}
       {if $currentView != $view}
         <a href="{$url}">
-      {/if}
+      {else}
+		<span class="selected">
+	  {/if}
       {if $view == 'all'}
         All Photos
       {elseif $view == 'mine'}
@@ -22,8 +25,11 @@
       {/if}
       {if $currentView != $view}
         </a>
+      {else}
+		</span>
       {/if}
     {/foreach}
+	</div>
   </div>
   
   <div class="photos">
