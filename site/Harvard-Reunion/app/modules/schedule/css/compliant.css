@@ -78,3 +78,8 @@
 #fqCheckin {
   background-image: url('/common/images/button-foursquare.png')
 }
+
+.cancelButton {
+  float: right;
+  padding-right: .5em;
+}

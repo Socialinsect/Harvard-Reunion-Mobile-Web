@@ -8,6 +8,7 @@
   <form method="get" action="addCheckin">
     <textarea rows="3" name="message" id="messageText" placeholder="Add a message"></textarea>
     <input type="submit" value="Submit" />
+    <a class="cancelButton" href="{$cancelURL}"><input type="button" value="Cancel" /></a>
     {foreach $hiddenArgs as $arg => $value}
       <input type="hidden" name="{$arg}" value="{$value}" />
     {/foreach}

@@ -482,15 +482,17 @@ class SiteScheduleWebModule extends WebModule {
         
       case 'checkin':
         $service = $this->getArg('service');
+        $eventURL = $this->getArg('eventURL');
         
         $this->assign('eventTitle', $this->getArg('eventTitle'));
         $this->assign('service',    $service);
+        $this->assign('cancelURL',  $eventURL);
         $this->assign('hiddenArgs', array(
           'service'   => $service,
           'place'     => $this->getArg('place'),
           'latitude'  => $this->getArg('latitude'),
           'longitude' => $this->getArg('longitude'),
-          'eventURL'  => $this->getArg('eventURL'),
+          'eventURL'  => $eventURL,
         ));
         break;
       
