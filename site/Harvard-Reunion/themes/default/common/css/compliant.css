@@ -185,7 +185,7 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 	font-size: 94.12%;
 	margin: 1px 0;
 	padding: 0;
-	background-color: #870410;
+	background-color: #930310;
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#3c0104), to(#6f0006));
 	color: #fff;  
 	width: 100%;
@@ -198,7 +198,7 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 
 #navbar2 .tabstrip a {
 	display: inline-block;
-	color: #f2d0d2;
+	color: #e2b4b7;
 	text-decoration: none;
 	text-align: center;
 	float: left;
@@ -212,12 +212,12 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 	display: inline-block;
 	color: #fff;
 	text-shadow: #1b0002 0 1px 2px;
-	background-color: #870410;
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#b10a13), to(#870410));
+	background-color: #90020f;
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#c40c16), to(#7e020e));
 	color: #fff;  
 	border: 1px solid #bc2e37;
 	border-top: 1px solid #dc6a72;
-	border-bottom: 1px solid #7c0007;
+	border-bottom: 1px solid #6a0006;
 	line-height: 28px;
 	float: left;
 }
