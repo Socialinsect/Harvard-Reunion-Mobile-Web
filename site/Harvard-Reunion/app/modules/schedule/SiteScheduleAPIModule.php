@@ -21,32 +21,47 @@ class SiteScheduleAPIModule extends APIModule {
 
     switch ($this->command) {
       case 'categories':
-        $response = array();
+        $responseCategories = array();
 
         $categories = $schedule->getEventCategories();
         foreach ($categories as $id => $title) {
-          $response[] = array(
+          $responseCategories[] = array(
             'id'    => $id,
             'title' => $title,
           );
         }
+
+        $response = array(
+          'total'        => count($responseCategories),
+          'returned'     => count($responseCategories),
+          'displayField' => 'title',
+          'results'      => $responseCategories,
+          );
 
         $this->setResponse($response);
         $this->setResponseVersion(1);
         break;
     
       case 'events':
-        $response = array();
-        $category  = $this->getArg('category', $schedule->getDefaultCategory());
+        $eventResponse = array();
+          $category = $this->getArg('calendar', $schedule->getDefaultCategory());
+        //$category  = $this->getArg('category', $schedule->getDefaultCategory());
         
         $feed = $schedule->getEventFeed();
         $events = $feed->items(0);
 
         foreach($events as $event) {
           if ($schedule->eventMatchesCategory($event, $category)) {
-            $response[] = $this->formatEventResponse($schedule, $event);
+            $eventResponse[] = $this->formatEventResponse($schedule, $event);
           }
         }
+
+        $response = array(
+          'total'        => count($eventResponse),
+          'returned'     => count($eventResponse),
+          'displayField' => 'title',
+          'results'      => $eventResponse,
+          );
         
         $this->setResponse($response);
         $this->setResponseVersion(1);
