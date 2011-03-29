@@ -44,8 +44,7 @@ class SiteScheduleAPIModule extends APIModule {
     
       case 'events':
         $eventResponse = array();
-          $category = $this->getArg('calendar', $schedule->getDefaultCategory());
-        //$category  = $this->getArg('category', $schedule->getDefaultCategory());
+          $category  = $this->getArg('category', $schedule->getDefaultCategory());
         
         $feed = $schedule->getEventFeed();
         $events = $feed->items(0);

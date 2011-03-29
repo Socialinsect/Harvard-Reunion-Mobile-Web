@@ -89,7 +89,7 @@ class SiteHomeWebModule extends HomeWebModule {
           'hard'      => 1,
         );
         if ($userInfo['authority'] == 'anonymous') {
-          $logoutArgs['url'] = URL_PREFIX.'/login/?authority=harris';
+          $logoutArgs['url'] = URL_PREFIX.'login/?authority=harris';
         }
         $logoutURL = $this->buildURLForModule('login', 'logout', $logoutArgs);
         
