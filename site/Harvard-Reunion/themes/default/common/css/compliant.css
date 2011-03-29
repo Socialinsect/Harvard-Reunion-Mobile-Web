@@ -180,9 +180,10 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 }
 
 #navbar2 .tabstrip {
-	height: 28px;
-	line-height: 28px;
-	margin: 2px 0;
+	height: 30px;
+	line-height: 30px;
+	font-size: 94.12%;
+	margin: 1px 0;
 	padding: 0;
 	background-color: #870410;
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#3c0104), to(#6f0006));
@@ -211,13 +212,13 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 	display: inline-block;
 	color: #fff;
 	text-shadow: #1b0002 0 1px 2px;
-	background-color: #fff;
+	background-color: #870410;
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#b10a13), to(#870410));
 	color: #fff;  
 	border: 1px solid #bc2e37;
 	border-top: 1px solid #dc6a72;
 	border-bottom: 1px solid #7c0007;
-	line-height: 26px;
+	line-height: 28px;
 	float: left;
 }
 
