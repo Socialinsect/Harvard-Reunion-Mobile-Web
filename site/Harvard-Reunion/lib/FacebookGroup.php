@@ -13,6 +13,7 @@ class FacebookGroup {
   
   const FEED_LIFETIME = 20;
   const OBJECT_LIFETIME = 3600;
+  const PLACE_LIFETIME = 14400;
   const NOCACHE_LIFETIME = 0;
   const ALL_FIELDS = null;
   
@@ -74,8 +75,23 @@ class FacebookGroup {
     ),
     'checkins' => array(
       'cache'         => null,
-      'cacheLifetime' => self::NOCACHE_LIFETIME,
+      'cacheLifetime' => self::FEED_LIFETIME,
       'suffix'        => '/checkins',
+    ),
+    'place' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::PLACE_LIFETIME,
+      'suffix'        => '',
+      'fields'        => array(
+        'id',
+        'name',
+        'location',
+      ),
+    ),
+    'searchPlaces' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::PLACE_LIFETIME,
+      'suffix'        => '/search',
     ),
   );
   const AUTHOR_URL    = 'http://m.facebook.com/profile.php?id=';
@@ -316,17 +332,76 @@ class FacebookGroup {
   // Checkins
   //
   
-  public function addCheckin($message, $coords=array(0,0)) {
-    $results = $this->graphQuery('checkins', $this->getMyId(), 'POST', array(
-      'message'     => $message,
-      'place'       => $this->groupId,
-      'coordinates' => json_encode(array(
-        'latitude'  => $coords[0],
-        'longitude' => $coords[1],
-      )),
-    ));
+  public function addCheckin($placeId, $message, $coords=null) {
+    if (!$coords) {
+      $results = $this->graphQuery('place', $placeId);
+      if (isset($results['location'])) {
+        $coords = array($results['location']['latitude'], $results['location']['longitude']);
+        error_log('Using place coords '.implode(',', $coords));
+      }
+    }
+    if ($coords) {
+      $results = $this->graphQuery('checkins', $this->getMyId(), 'POST', array(
+        'message'     => $message,
+        'place'       => $placeId,
+        'coordinates' => json_encode(array(
+          'latitude'  => $coords[0],
+          'longitude' => $coords[1],
+        )),
+      ));
+    }
   }
   
+  public function isCheckedIn($placeId, $since=null) {
+    $results = $this->graphQuery('checkins', $this->getMyId());
+    //error_log(print_r($results, true));
+    
+    if (isset($results['data'])) {
+      if (!$since) { $since = time() - 60*60; }
+      foreach ($results['data'] as $checkin) {
+        $created = strtotime($checkin['created_time']);
+      
+        if ($created > $since && $checkin['place']['id'] == $placeId) {
+          //error_log(print_r($checkin, true));
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+  
+  //
+  // Places
+  //
+  
+  public function findPlaces($placeTitle, $coords) {
+    $args = array(
+      'type'     => 'place',
+      'center'   => implode(',', $coords),
+      'distance' => '1000',
+    );
+    if ($placeTitle) {
+      $args['q'] = $placeTitle;
+    }
+    
+    $results = $this->graphQuery('searchPlaces', '', 'GET', $args);
+    //error_log(print_r($results, true));
+    
+    $places = array();
+    if (isset($results['data'])) {
+      foreach ($results['data'] as $data) {
+        $places[] = array(
+          'id'       => $data['id'],
+          'title'    => $data['name'],
+          'category' => $data['category'],
+          'coords'   => array($data['location']['latitude'], $data['location']['longitude']),
+        );
+      }
+    }
+    
+    return $places;
+  }
   
   //
   // Likes
@@ -616,7 +691,7 @@ class FacebookGroup {
     $cache = $this->getCacheForQuery($type);
 
     $path = $id.$this->queryConfig[$type]['suffix'];
-    $cacheName = $type.'_'.$id;
+    $cacheName = $type.'_'.($id ? $id : http_build_query($params));
 
     $shouldCache = $cache && $method == 'GET';
     $invalidateCache = $cache && $method != 'GET';

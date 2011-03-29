@@ -388,7 +388,6 @@ class Schedule {
       'location'     => null,
       'registration' => null,
       'attendees'    => array(),
-      'fbPlaceId'    => 0,
     );
     
     //
@@ -425,24 +424,28 @@ class Schedule {
     //
     // Location
     //
+    $placeTitle = '';
     $locationTitle = $event->get_attribute('Location Name');
     $locationBuildingID = $event->get_attribute('Building ID');
     $trumbaLocation = $event->get_attribute('location');
     if ($locationTitle || $locationBuilding || $trumbaLocation) {
       $location = array(
-        'title'    => null,
-        'building' => null,
-        'latlon'   => null,
-        'address'  => array(
-          'street' => null,
-          'city'   => null,
-          'state'  => null,
+        'title'     => null,
+        'building'  => null,
+        'latlon'    => null,
+        'address'   => array(
+          'street'  => null,
+          'city'    => null,
+          'state'   => null,
         ),
-        'multiple' => false,
+        'multiple'  => false,
+        'fbPlaceId' => null,
+        'fqPlaceId' => null,
       )
       ;
       if ($locationTitle) {
         $location['title'] = $locationTitle;
+        $placeTitle = $locationTitle;
       }
       
       if ($locationBuildingID) {
@@ -462,6 +465,9 @@ class Schedule {
           }
         }
         
+        if (isset($buildingInfo['Building Name'])) {
+          $placeTitle = mb_convert_case($buildingInfo['Building Name'], MB_CASE_TITLE);
+        }
         
         if ($buildingInfo['coords']) {
           $location['latlon'] = array_values($buildingInfo['coords']);
@@ -479,6 +485,15 @@ class Schedule {
       if (strtolower($multipleLocations) == 'yes') {
         $location['multiple'] = true;
       }
+      if (isset($location['latlon'])) {
+        $facebook = $this->getFacebookFeed();
+        
+        $places = $facebook->findPlaces($placeTitle, $location['latlon']);
+        if (count($places)) {
+          $location['fbPlaceId'] = $places[0]['id'];
+        }
+      }
+      
       $info['location'] = $location;
     }
     

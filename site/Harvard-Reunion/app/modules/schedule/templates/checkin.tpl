@@ -5,7 +5,7 @@
 </div>
 
 <div class="focal checkinForm">
-  <form method="get" action="doCheckin">
+  <form method="get" action="addCheckin">
     <textarea rows="3" name="message" id="messageText" placeholder="Add a message"></textarea>
     <input type="submit" value="Submit" />
     {foreach $hiddenArgs as $arg => $value}

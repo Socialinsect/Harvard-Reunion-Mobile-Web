@@ -1,17 +1,34 @@
 {include file="findInclude:common/templates/header.tpl"}
 
 <div class="nonfocal">
-  {if $registered}
-    <div id="bookmarkContainer">
-      <a href="javascript:void(0)" onclick="alert('Events you have registered for cannot be removed from your schedule.'); return false;"><div id="bookmark" class="on"></div></a>
-    </div>
-  {else}
-    {include file="findInclude:common/templates/bookmark.tpl" name=$cookieName item=$eventId exdate="COOKIE_DURATION" path="COOKIE_PATH"}
-  {/if}
+  {block name="bookmark"}
+    {if $registered}
+      <div id="bookmarkContainer">
+        <a href="javascript:void(0)" onclick="alert('Events you have registered for cannot be removed from your schedule.'); return false;"><div id="bookmark" class="on"></div></a>
+      </div>
+    {else}
+      <div id="bookmarkContainer">
+        <a href="javascript:void(0)" onclick="{if $requiresRegistration}alert('Bookmarking this event will only add it to your personal schedule.  You will still need to register for it to attend.');{/if}toggleBookmark('{$cookieName}', '{$eventId}', 'COOKIE_DURATION', '{$smarty.const.COOKIE_PATH}');">
+          <div id="bookmark"></div>
+        </a>
+      </div>
+    {/if}
+  {/block}
   <h2>{$eventTitle}</h2>
-  {$eventDate}
-  {if 0 && $fbCheckinURL}
-    <div class="smallprint"><a href="{$fbCheckinURL}">Check in to Facebook</a></div>
+  <p>{$eventDate}</p>
+  {if $fbCheckinURL || $fqCheckinURL || $fbCheckedIn || $fqCheckedIn}
+    <p class="smallprint">Check in: 
+      {if $fqCheckedIn}
+        <span id="fqCheckin" class="checkedin">foursquare</span>
+      {elseif $fqCheckinURL}
+        <a id="fqCheckin" href="{$fqCheckinURL}">foursquare</a>
+      {/if} 
+      {if $fbCheckedIn}
+        <span id="fbCheckin" class="checkedin">Facebook</span>
+      {elseif $fbCheckinURL}
+        <a id="fbCheckin" href="{$fbCheckinURL}">Facebook</a>
+      {/if} 
+    </p>
   {/if}
 </div>
 
