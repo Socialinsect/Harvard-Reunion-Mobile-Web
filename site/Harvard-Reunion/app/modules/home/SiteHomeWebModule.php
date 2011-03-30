@@ -177,9 +177,36 @@ class SiteHomeWebModule extends HomeWebModule {
         
         $facebook->expireSession('null');
         $redirect = $facebook->getLogoutRedirectURL($url);
-        error_log("Redirecting to $redirect");
+        error_log("fbLogout: Redirecting to $redirect");
         header("Location: $redirect");
         exit();
+
+      case 'fqLogin':
+        $foursquare = $this->schedule->getFoursquareFeed();
+        error_log(print_r($this->args, true));
+        $url  = $this->getArg('url', FULL_URL_PREFIX.'home/');
+        $code = $this->getArg('code', false);
+        
+        if ($code) {
+          $foursquare->authorize($url, $code);
+        }
+        
+        error_log("fqLogin: Redirecting to $url");
+        header("Location: $url");
+        exit();
+        break;
+        
+      case 'fqLogout':
+        $foursquare = $this->schedule->getFoursquareFeed();
+      
+        $url = $this->getArg('url', FULL_URL_PREFIX.'home/');
+        
+        $foursquare->setSession(null);
+        $redirect = $foursquare->getLogoutRedirectURL($url);
+        error_log("fqLogout: Redirecting to $redirect");
+        header("Location: $redirect");
+        exit();
+
     }
     
     parent::initializeForPage();

@@ -82,11 +82,7 @@ class FacebookGroup {
       'cache'         => null,
       'cacheLifetime' => self::PLACE_LIFETIME,
       'suffix'        => '',
-      'fields'        => array(
-        'id',
-        'name',
-        'location',
-      ),
+      'fields'        => self::ALL_FIELDS,
     ),
     'searchPlaces' => array(
       'cache'         => null,
@@ -335,9 +331,15 @@ class FacebookGroup {
   public function addCheckin($placeId, $message, $coords=null) {
     if (!$coords) {
       $results = $this->graphQuery('place', $placeId);
-      if (isset($results['location'])) {
+      if (isset($results['location'], $results['location']['latitude'])) {
+        // Is a place page
         $coords = array($results['location']['latitude'], $results['location']['longitude']);
         error_log('Using place coords '.implode(',', $coords));
+        
+      } else if (isset($results['venue'], $results['venue']['latitude'])) {
+        // Is an event
+        $coords = array($results['venue']['latitude'], $results['venue']['longitude']);
+        error_log('Using event venue coords '.implode(',', $coords));
       }
     }
     if ($coords) {
@@ -710,6 +712,7 @@ class FacebookGroup {
             $cache->write($results, $cacheName);
           } else {
             error_log("Facebook Graph API request for $type '{$id}' returned empty data");
+            $results = $cache->read($cacheName);
           }
           
         } else if ($invalidateCache) {
@@ -963,6 +966,7 @@ class ReunionFacebook extends Facebook {
       $loginURL = $this->getLoginURL();
       
       header("Location: $loginURL");
+      exit();
     }
         
     error_log("Requesting {$url}?".http_build_query($params));

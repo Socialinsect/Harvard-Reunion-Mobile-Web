@@ -15,6 +15,7 @@ class Schedule {
   private $timezone = null;
   private $facebook = null;
   private $twitter = null;
+  private $foursquare = null;
   
   const ID_SEPARATOR = ':';
 
@@ -440,7 +441,7 @@ class Schedule {
         ),
         'multiple'  => false,
         'fbPlaceId' => null,
-        'fqPlaceId' => null,
+        'fqPlaceId' => '133567',
       )
       ;
       if ($locationTitle) {
@@ -539,5 +540,13 @@ class Schedule {
     }
     
     return $this->twitter;
+  }
+  
+  public function getFoursquareFeed() {
+    if (!$this->foursquare) {
+      $this->foursquare = new foursquare();
+    }
+    
+    return $this->foursquare;
   }
 }
