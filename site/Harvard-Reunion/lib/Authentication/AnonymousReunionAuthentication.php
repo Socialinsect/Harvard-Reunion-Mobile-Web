@@ -18,10 +18,10 @@ class AnonymousReunionAuthentication extends AuthenticationAuthority
             $user->setClass_year($year);
             $user->setUserID($login);
             
-            if ($matches[3] == 'h') {
-              $user->setCollegeIndex(0);  // Harvard
-            } else if ($matches[3] == 'r') {
+            if ($matches[3] == 'r') {
               $user->setCollegeIndex(1);  // Radcliffe
+            } else {
+              $user->setCollegeIndex(0);  // default to Harvard
             }
             return $user;
         }

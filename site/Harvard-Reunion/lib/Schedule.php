@@ -41,14 +41,14 @@ class Schedule {
     $configFile = self::getScheduleConfigFile();
     if ($configFile) {
       
-      $defaultConfig = $configFile->getSection('default');
-      if ($defaultConfig) {
-        $config = array_merge($config, $defaultConfig);
+      $defaultConfig = $configFile->getOptionalSection('default');
+      if (!$defaultConfig) {
+        $defaultConfig = array();
       }
     
-      $scheduleConfig = $configFile->getSection($scheduleId);
+      $scheduleConfig = $configFile->getOptionalSection($scheduleId);
       if ($scheduleConfig) {
-        $config = array_merge($config, $scheduleConfig);
+        $config = array_merge($defaultConfig, $scheduleConfig);
       }
     }
     
@@ -82,6 +82,15 @@ class Schedule {
       $dbFile = $this->getConfigValue("ATTENDANCE_DB");
       $this->attendanceDb = new db(array('DB_TYPE'=>'sqlite', 'DB_FILE'=>$dbFile));
     }
+  }
+  
+  public static function userHasReunion($user) {
+    $scheduleId = self::getScheduleIdFromYearAndCollegeIndex(
+      $user->getGraduationClass(), $user->getCollegeIndex());
+      
+    $scheduleConfig = self::getScheduleConfig($scheduleId);
+    
+    return !empty($scheduleConfig);
   }
   
   private function getDateTimeForDate($date) {

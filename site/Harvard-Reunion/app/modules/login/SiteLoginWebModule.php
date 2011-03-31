@@ -74,16 +74,26 @@ class SiteLoginWebModule extends LoginWebModule
             $this->assign('authority', $authorityIndex);
             $this->assign('cancelURL', $this->buildURL('logout', array('authority'=>$authorityIndex)));
             $this->assign('url', $url);
+            
+            $noReunionOptions = array(
+                'authority' => $authorityIndex,
+                'hard'      => true,
+                'url'       => URL_PREFIX.ltrim($this->buildURL('index', array(
+                    'noreunion' => 'true',
+                )), '/'),
+            );
 
             if ($this->isLoggedIn($authorityIndex)) {
                 $user = $this->getUser($authorityIndex);
-                if ($authorityIndex == 'harris' && $user->needsCollegeIndex() && isset($_POST['collegeIndex'])) {
+                if ($user->needsCollegeIndex() && isset($_POST['collegeIndex'])) {
                     $user->setCollegeIndex($_POST['collegeIndex']);
                     error_log(print_r($this->getUser($authorityIndex), true));
                 }
                 
-                if ($authorityIndex == 'harris' && $user->needsCollegeIndex()) {
+                if ($user->needsCollegeIndex()) {
                     $this->setTemplatePage('college');
+                } else if (!Schedule::userHasReunion($user)) {
+                    $this->redirectTo('logout', $noReunionOptions);
                 } else {
                     $this->redirectTo('index', $options);
                 }
@@ -103,8 +113,10 @@ class SiteLoginWebModule extends LoginWebModule
                 switch ($result) {
                     case AUTH_OK:
                         $user = $this->getUser($authorityIndex);
-                        if ($authorityIndex == 'harris' && $user->needsCollegeIndex()) {
+                        if ($user->needsCollegeIndex()) {
                             $this->setTemplatePage('college');
+                        } else if (!Schedule::userHasReunion($user)) {
+                            $this->redirectTo('logout', $noReunionOptions);
                         } else {
                             header("Location: $url");
                             exit();
@@ -128,6 +140,10 @@ class SiteLoginWebModule extends LoginWebModule
             if ($this->isLoggedIn()) {
                 header("Location: $url");
                 exit();
+            
+            } elseif ($this->getArg('noreunion', false)) {
+                $this->setTemplatePage('noreunion');
+                $this->assign('loginURL', $this->buildURL('index'));
             
             } elseif ($authority = $this->getArg('authority')) {
                 if ($authority == 'anonymous') {
