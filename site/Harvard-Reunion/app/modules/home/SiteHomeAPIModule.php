@@ -1,16 +1,30 @@
 <?php
 
 class SiteHomeAPIModule extends APIModule {
-  protected $id = 'home';    
+  protected $id = 'home';
 
   public function initializeForCommand() {
     $user = $this->getUser('HarvardReunionUser');
-    $this->schedule = new Schedule($user);
+    $schedule = new Schedule($user);
     
-    $facebook = $this->schedule->getFacebookFeed();
-    $twitter = $this->schedule->getTwitterFeed();
+    $facebook = $schedule->getFacebookFeed();
+    $twitter = $schedule->getTwitterFeed();
 
     switch ($this->command) {
+      case 'config':
+        if (Schedule::userHasReunion($user)) {
+          $this->setResponse($schedule->getReunionConfig());
+          $this->setResponseVersion(1);
+          
+        } else {
+          $error = new KurogoError(
+            1,
+            'Invalid Request',
+            'User\'s graduation year does not have an upcoming reunion');
+          $this->throwError($error);
+        }
+        break;
+
       case 'recent':
         $response = array();
         

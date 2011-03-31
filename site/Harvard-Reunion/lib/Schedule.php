@@ -202,6 +202,22 @@ class Schedule {
   // Feeds
   //
   
+  
+  public function getReunionConfig() {
+    return array(
+      'title'              => $this->getReunionTitle(),
+      'number'             => $this->getReunionNumber(),
+      'startDate'          => $this->getConfigValue('START_DATE', ''),
+      'endDate'            => $this->getConfigValue('END_DATE', ''),
+      'classWebsite'       => $this->getConfigValue('CLASS_WEBSITE_URL', ''),
+      'calendarURL'        => $this->getConfigValue('BASE_URL', ''),
+      'facebookGroupName'  => $this->getFacebookGroupName(),
+      'facebookGroupId'    => $this->getFacebookGroupId(),
+      'facebookGroupIsOld' => $this->getFacebookGroupIsOldGroup(),
+      'twitterHashtag'     => $this->getTwitterHashTag(),
+    );
+  }
+  
   public function getInfo() {
     $info = array(
       'paragraphs' => $this->getConfigValue('ABOUT_TEXT', array()),
