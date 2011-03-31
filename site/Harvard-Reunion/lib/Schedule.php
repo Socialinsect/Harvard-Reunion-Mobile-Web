@@ -441,7 +441,7 @@ class Schedule {
         ),
         'multiple'  => false,
         'fbPlaceId' => null,
-        'fqPlaceId' => '133567',
+        'fqPlaceId' => null,
       )
       ;
       if ($locationTitle) {
@@ -488,10 +488,15 @@ class Schedule {
       }
       if (isset($location['latlon'])) {
         $facebook = $this->getFacebookFeed();
-        
         $places = $facebook->findPlaces($placeTitle, $location['latlon']);
         if (count($places)) {
           $location['fbPlaceId'] = $places[0]['id'];
+        }
+        
+        $foursquare = $this->getFoursquareFeed();
+        $venues = $foursquare->findVenues($placeTitle, $location['latlon']);
+        if (count($venues)) {
+          $location['fqPlaceId'] = $venues[0]['id'];
         }
       }
       

@@ -2,13 +2,144 @@
 
 class foursquare {
   const COOKIE_NAME = 'fqReunionSession';
-  private $clientId = '3IKSHJLXDVFA1EODCWD4BREFUUTESASMBST5LRYSIFXIWP3P';
-  private $clientSecret = 'SL1YXQ0GNL1FQDW2ZRCU2YCBPRKBPESW3QWRQU2H2JB5BY2A';
+  private $clientId = '';
+  private $clientSecret = '';
+  
+  const PLACE_LIFETIME = 14400;
+  const NOCACHE_LIFETIME = 0;
+  
+  private $queryConfig = array(
+    'venueSearch' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::PLACE_LIFETIME,
+      'path'          => 'venues/search',
+      'includeParams' => true,
+    ),
+    'venues' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::PLACE_LIFETIME,
+      'path'          => 'venues/',
+      'includeParams' => false,
+    ),
+    'checkins' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::NOCACHE_LIFETIME,
+      'path'          => 'users/self/checkins',
+      'includeParams' => false,
+    ),
+    'addCheckin' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::NOCACHE_LIFETIME,
+      'path'          => 'checkins/add',
+      'includeParams' => true,
+    ),
+  );
   
   private $session = null;
 
-  function __construct() { }
+  function __construct() {
+    $urlPrefixes = Kurogo::getSiteVar('FOURSQUARE_FULL_URL_PREFIXES');
+    
+    $foundApp = false;
+    foreach ($urlPrefixes as $i => $urlPrefix) {
+      if ($urlPrefix == FULL_URL_PREFIX) {
+        $appIds     = Kurogo::getSiteVar('FOURSQUARE_APP_IDS');
+        $appSecrets = Kurogo::getSiteVar('FOURSQUARE_APP_SECRETS');
+        
+        $foundApp = true;
+        $this->clientId = $appIds[$i];
+        $this->clientSecret = $appSecrets[$i];
+        break;
+      }
+    }
+    
+    if (!$foundApp) {
+      error_log('WARNING: no foursquare app id for url '.FULL_URL_PREFIX);
+    }
+  }
   
+  public function findVenues($venueTitle, $coords) {
+    $args = array(
+      'll'    => implode(',', $coords),
+      'llAcc' => '1000',
+    );
+    if ($venueTitle) {
+      $args['query'] = $venueTitle;
+    }
+    
+    $results = $this->api('venueSearch', '', 'GET', $args);
+    //error_log(print_r($results, true));
+    
+    $venues = array();
+    if (isset($results['response'], $results['response']['groups'])) {
+      foreach ($results['response']['groups'] as $group) {
+        if ($group['type'] == 'places') {
+          foreach ($group['items'] as $item) {
+            $venues[] = array(
+              'id'       => $item['id'],
+              'title'    => $item['name'],
+              'coords'   => array($item['location']['lat'], $item['location']['lng']),
+            );
+          }
+          break;
+        }
+      }
+    }
+    
+    return $venues;
+  }
+  
+  public function isCheckedIn($venueId, $afterTimestamp) {
+    $isCheckedIn = false;
+    $realVenueId = $venueId;
+    
+    $results = $this->api('venues', $venueId);
+    //error_log(print_r($results, true));
+    if (isset($results['response'], $results['response']['venue'])) {
+      $realVenueId = $results['response']['venue']['id'];
+    }
+    
+    $results = $this->api('checkins', '', array(
+      'afterTimestamp' => $afterTimestamp,
+    ));
+    //error_log(print_r($results, true));
+    if (isset($results['response'], $results['response']['checkins'], $results['response']['checkins']['items'])) {
+      foreach ($results['response']['checkins']['items'] as $item) {
+        if ($item['venue']['id'] == $realVenueId) {
+          $isCheckedIn = true;
+          break;
+        }
+      }
+    }
+    
+    return $isCheckedIn;
+  }
+  
+  public function addCheckin($venueId, $message, $coords) {
+    $realVenueId = $venueId;
+  
+    $results = $this->api('venues', $venueId);
+    //error_log(print_r($results, true));
+    if (isset($results['response'], $results['response']['venue'])) {
+      $realVenueId = $results['response']['venue']['id'];
+      
+      if (!$coords && isset($results['venue']['location']['lat'], $results['venue']['location']['lng'])) {
+        // Is a place page
+        $coords = array($results['venue']['location']['lat'], $results['venue']['location']['lng']);
+        error_log('Using venue coords '.implode(',', $coords));
+      }
+    }
+    
+    if ($coords) {
+      $results = $this->api('addCheckin', '', 'POST', array(
+        'venueId'   => $realVenueId,
+        'shout'     => $message, 
+        'll'        => implode(',', array_values($coords)),
+        'broadcast' => 'public',
+      ));
+    }
+  }
+
   public function getSession() {
     if (!$this->session) {
       if (isset($_COOKIE[self::COOKIE_NAME]) && $_COOKIE[self::COOKIE_NAME]) {
@@ -100,80 +231,7 @@ class foursquare {
   public function getLogoutRedirectURL($redirectURL) {
     return $redirectURL;
   }
-  
-  const PLACE_LIFETIME = 14400;
-  const NOCACHE_LIFETIME = 0;
-  
-  private $queryConfig = array(
-    'venues' => array(         // default, no cache
-      'cache'         => null,
-      'cacheLifetime' => self::PLACE_LIFETIME,
-      'path'          => 'venues/',
-    ),
-    'checkins' => array(
-      'cache'         => null,
-      'cacheLifetime' => self::NOCACHE_LIFETIME,
-      'path'          => 'users/self/checkins',
-    ),
-    'addCheckin' => array(
-      'cache'         => null,
-      'cacheLifetime' => self::NOCACHE_LIFETIME,
-      'path'          => 'checkins/add',
-    ),
-  );
-  
-  
-  public function isCheckedIn($venueId, $afterTimestamp) {
-    $isCheckedIn = false;
-    $realVenueId = $venueId;
     
-    $results = $this->api('venues', $venueId);
-    //error_log(print_r($results, true));
-    if (isset($results['response'], $results['response']['venue'])) {
-      $realVenueId = $results['response']['venue']['id'];
-    }
-    
-    $results = $this->api('checkins', '', array(
-      'afterTimestamp' => $afterTimestamp,
-    ));
-    //error_log(print_r($results, true));
-    if (isset($results['response'], $results['response']['checkins'], $results['response']['checkins']['items'])) {
-      foreach ($results['response']['checkins']['items'] as $item) {
-        if ($item['venue']['id'] == $realVenueId) {
-          $isCheckedIn = true;
-          break;
-        }
-      }
-    }
-    
-    return $isCheckedIn;
-  }
-  
-  public function addCheckin($venueId, $message, $coords) {
-    $realVenueId = $venueId;
-  
-    $results = $this->api('venues', $venueId);
-    //error_log(print_r($results, true));
-    if (isset($results['response'], $results['response']['venue'])) {
-      $realVenueId = $results['response']['venue']['id'];
-      
-      if (!$coords && isset($results['venue']['location']['lat'], $results['venue']['location']['lng'])) {
-        // Is a place page
-        $coords = array($results['venue']['location']['lat'], $results['venue']['location']['lng']);
-        error_log('Using venue coords '.implode(',', $coords));
-      }
-    }
-    
-    if ($coords) {
-      $results = $this->api('addCheckin', '', 'POST', array(
-        'venueId'   => $realVenueId,
-        'shout'     => $message, 
-        'll'        => implode(',', array_values($coords)),
-        'broadcast' => 'public',
-      ));
-    }
-  }
-  
   protected function getCurrentUrl() {
     return 'http'.(IS_SECURE ? 's' : '').'://'.
       $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
@@ -218,7 +276,10 @@ class foursquare {
     $cache = $this->getCacheForQuery($type);
     $path = $this->queryConfig[$type]['path'].$id;
     
-    $cacheName = $path;
+    $cacheName = implode('_', array($type, $id));
+    if ($this->queryConfig[$type]['includeParams']) {
+      $cacheName .= http_build_query($params, null, '&');
+    }
 
     $url = 'https://api.foursquare.com/v2/'.$path;
     $params['oauth_token'] = $this->getAccessToken();
