@@ -43,7 +43,7 @@
 {capture name="title" assign="title"}
   <input type="checkbox" name="showFacebook" id="showFacebook" value="1" onchange="settingChanged(this)" {if $info['facebook']['showHome']}checked {/if}/> 
   <label for="showFacebook">
-    Updates from Facebook Group <div class="smallprint">({$info['facebook']['groupName']})</siv>
+    Updates from Facebook Group <div class="smallprint">({$info['facebook']['groupName']})</div>
   </label>
 {/capture}
 {$item['title'] = $title}

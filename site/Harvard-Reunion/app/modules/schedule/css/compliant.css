@@ -78,6 +78,12 @@
 #fqCheckin {
   background-image: url('/common/images/button-foursquare.png')
 }
+#fbCheckin .checkedin {
+  background-image: url('/common/images/button-facebook-checkedin.png')
+}
+#fqCheckin .checkedin {
+  background-image: url('/common/images/button-foursquare-checkedin.png')
+}
 
 .cancelButton {
   float: right;

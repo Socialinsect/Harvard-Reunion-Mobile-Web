@@ -170,7 +170,6 @@ class SiteHomeWebModule extends HomeWebModule {
         error_log("fbLogin: Redirecting to $url");
         header("Location: $url");
         exit();
-        break;
         
       case 'fbLogout':
         $url = $this->getArg('next', FULL_URL_PREFIX.'home/');
@@ -183,7 +182,7 @@ class SiteHomeWebModule extends HomeWebModule {
 
       case 'fqLogin':
         $foursquare = $this->schedule->getFoursquareFeed();
-        error_log(print_r($this->args, true));
+        //error_log(print_r($this->args, true));
         $url  = $this->getArg('url', FULL_URL_PREFIX.'home/');
         $code = $this->getArg('code', false);
         
@@ -194,7 +193,6 @@ class SiteHomeWebModule extends HomeWebModule {
         error_log("fqLogin: Redirecting to $url");
         header("Location: $url");
         exit();
-        break;
         
       case 'fqLogout':
         $foursquare = $this->schedule->getFoursquareFeed();

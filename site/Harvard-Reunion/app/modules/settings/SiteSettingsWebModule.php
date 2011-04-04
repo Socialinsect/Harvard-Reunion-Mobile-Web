@@ -14,6 +14,7 @@ class SiteSettingsWebModule extends WebModule {
     switch ($this->page) {
       case 'index':
         $facebook = $schedule->getFacebookFeed();
+        $foursquare = $schedule->getFoursquareFeed();
 
         $authority = $user->getAuthenticationAuthorityIndex();
         $logoutArgs = array(
@@ -43,10 +44,9 @@ class SiteSettingsWebModule extends WebModule {
             'showHome'  => $user->getShowHomeFacebookPosts(),
           ),
           'foursquare' => array(
-            'username'  => null,
-            'fullname'  => null,
-            'toggleURL' => 'https://foursquare.com/mobile/login?continue='.
-              urlencode(FULL_URL_PREFIX.$this->buildBreadcrumbURL($this->page, $this->args, false)),
+            'username'  => $foursquare->needsLogin() ? null : $foursquare->getUserFullName(),
+            'fullname'  => $foursquare->needsLogin() ? null : $foursquare->getUserFullName(),
+            'toggleURL' => $foursquare->needsLogin() ? $foursquare->getLoginURL(true) : $foursquare->getLogoutURL(),
           ),
           'twitter' => array(
             'hashtag'   => $schedule->getTwitterHashTag(),
