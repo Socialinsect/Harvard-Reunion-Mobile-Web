@@ -579,7 +579,7 @@ class Schedule {
   
   public function getFoursquareFeed() {
     if (!$this->foursquare) {
-      $this->foursquare = new foursquare();
+      $this->foursquare = new Foursquare();
     }
     
     return $this->foursquare;

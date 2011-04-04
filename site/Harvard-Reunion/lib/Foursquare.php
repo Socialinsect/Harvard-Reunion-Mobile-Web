@@ -1,6 +1,6 @@
 <?php
 
-class foursquare {
+class Foursquare {
   const COOKIE_NAME = 'fqReunionSession';
   private $clientId = '';
   private $clientSecret = '';
