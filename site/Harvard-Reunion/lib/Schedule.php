@@ -237,10 +237,11 @@ class Schedule {
     }
     
     $linkArrays = array(
-      'title'    => $this->getConfigValue('LINKS_TITLES',    array()),
-      'subtitle' => $this->getConfigValue('LINKS_SUBTITLES', array()),
-      'url'      => $this->getConfigValue('LINKS_URLS',      array()),
-      'class'    => $this->getConfigValue('LINKS_CLASSES',   array()),
+      'title'      => $this->getConfigValue('LINKS_TITLES',       array()),
+      'subtitle'   => $this->getConfigValue('LINKS_SUBTITLES',    array()),
+      'url'        => $this->getConfigValue('LINKS_URLS',         array()),
+      'linkTarget' => $this->getConfigValue('LINKS_LINK_TARGETS', array()),
+      'class'      => $this->getConfigValue('LINKS_CLASSES',      array()),
     );
     $sections = $this->getConfigValue('LINKS_SECTION', array());
     

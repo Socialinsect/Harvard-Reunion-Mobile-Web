@@ -341,6 +341,7 @@ class SiteScheduleWebModule extends WebModule {
                 array('\1',                 ''), $info['registration']['url']);
     
               $registration['url'] = $info['registration']['url'];
+              $registration['linkTarget'] = 'reunionAlumni';
               $registration['subtitle'] = 'Register online at '.$printableURL;
             }
             if (isset($info['registration']['fee'])) {
@@ -367,10 +368,11 @@ class SiteScheduleWebModule extends WebModule {
         $fieldConfig = $this->loadPageConfigFile('detail', 'detailFields');
         foreach ($fieldConfig as $key => $fieldInfo) {
           if (isset($info[$key])) {
-            $type = self::argVal($fieldInfo, 'type', 'text');
-            $section = self::argVal($fieldInfo, 'section', 'misc');
-            $label = self::argVal($fieldInfo, 'label', '');
-            $class = self::argVal($fieldInfo, 'class', '');
+            $type       = self::argVal($fieldInfo, 'type', 'text');
+            $section    = self::argVal($fieldInfo, 'section', 'misc');
+            $label      = self::argVal($fieldInfo, 'label', '');
+            $class      = self::argVal($fieldInfo, 'class', '');
+            $linkTarget = self::argVal($fieldInfo, 'linkTarget', '');
             
             $title = $this->valueForType($type, $info[$key]);
             $url = $this->urlForType($type, $info[$key]);
@@ -386,6 +388,10 @@ class SiteScheduleWebModule extends WebModule {
 
             if ($url) {
               $item['url'] = $url;
+            }
+
+            if ($linkTarget) {
+              $item['linkTarget'] = $linkTarget;
             }
 
             if ($class) {
