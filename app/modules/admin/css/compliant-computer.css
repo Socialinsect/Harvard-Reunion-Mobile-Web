@@ -239,6 +239,11 @@ label {
     margin-top: -18px;
 }
 
+.formfields .error {
+    background-color: #fdd7de;
+    padding: .5em;
+}
+
 .helptext {
 	display: block;
 	padding: 2px 0 0 4px;
@@ -348,7 +353,7 @@ table.subtable th {
 	border-bottom: 2px solid #999;
 }
 select.filePrefix {
-    width: 100px;
+    width: 100px !important;
 }
 input.fileData{ 
     margin-left: 10px;
