@@ -11,8 +11,10 @@ define('SCHEDULE_BOOKMARKS_COOKIE_DURATION', 160 * 24 * 60 * 60);
 
 class SiteScheduleWebModule extends WebModule {
   protected $id = 'schedule';
+  protected $user = null;
   protected $schedule = null;
   protected $bookmarks = array();
+  const COOKIE_CATEGORY_SUFFIX = '_scheduleView';
 
   private function getCookieNameForEvent($event) {
     return SCHEDULE_BOOKMARKS_COOKIE_PREFIX.$event;
@@ -196,8 +198,8 @@ class SiteScheduleWebModule extends WebModule {
 
 
   protected function initialize() {
-    $user = $this->getUser('HarvardReunionUser');
-    $this->schedule = new Schedule($user);
+    $this->user = $this->getUser('HarvardReunionUser');
+    $this->schedule = new Schedule($this->user);
   }
   
   protected function eventMatchesCategory($event, $category) {
@@ -205,11 +207,13 @@ class SiteScheduleWebModule extends WebModule {
       return 
         $this->isBookmarked($this->schedule->getScheduleId(), $event->get_uid()) ||
         $this->schedule->isRegisteredForEvent($event);
+    } else if ($category == 'all') {
+      return true;
     } else {
       return $this->schedule->eventMatchesCategory($event, $category);
     }
   }
-
+  
   protected function initializeForPage() {    
     $scheduleId = $this->schedule->getScheduleId();
 
@@ -224,8 +228,9 @@ class SiteScheduleWebModule extends WebModule {
         
         $events = $feed->items(0);
         
-        $categories = $this->schedule->getEventCategories();
         $categories['mine'] = 'My Schedule';
+        $categories = array_merge($categories, $this->schedule->getEventCategories());
+        $categories['all'] = 'All Events';
         
         $eventDays = array();
         foreach($events as $event) {
@@ -341,6 +346,7 @@ class SiteScheduleWebModule extends WebModule {
                 array('\1',                 ''), $info['registration']['url']);
     
               $registration['url'] = $info['registration']['url'];
+              $registration['linkTarget'] = 'reunionAlumni';
               $registration['subtitle'] = 'Register online at '.$printableURL;
             }
             if (isset($info['registration']['fee'])) {
@@ -367,10 +373,11 @@ class SiteScheduleWebModule extends WebModule {
         $fieldConfig = $this->loadPageConfigFile('detail', 'detailFields');
         foreach ($fieldConfig as $key => $fieldInfo) {
           if (isset($info[$key])) {
-            $type = self::argVal($fieldInfo, 'type', 'text');
-            $section = self::argVal($fieldInfo, 'section', 'misc');
-            $label = self::argVal($fieldInfo, 'label', '');
-            $class = self::argVal($fieldInfo, 'class', '');
+            $type       = self::argVal($fieldInfo, 'type', 'text');
+            $section    = self::argVal($fieldInfo, 'section', 'misc');
+            $label      = self::argVal($fieldInfo, 'label', '');
+            $class      = self::argVal($fieldInfo, 'class', '');
+            $linkTarget = self::argVal($fieldInfo, 'linkTarget', '');
             
             $title = $this->valueForType($type, $info[$key]);
             $url = $this->urlForType($type, $info[$key]);
@@ -386,6 +393,10 @@ class SiteScheduleWebModule extends WebModule {
 
             if ($url) {
               $item['url'] = $url;
+            }
+
+            if ($linkTarget) {
+              $item['linkTarget'] = $linkTarget;
             }
 
             if ($class) {

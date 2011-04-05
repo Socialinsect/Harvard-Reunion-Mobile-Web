@@ -48,19 +48,96 @@ class AdminAPIModule extends APIModule
         
         return $configData;
     }
+    
+    private function getAdminData($type, $section) {
+        if ($type=='site') {
+            $configData = $this->getSiteAdminConfig();
+            $module = $this;
+        } elseif ($type instanceOf Module) {
+            $configData = $type->getModuleAdminConfig();
+            $module = $type;
+        } else {
+            throw new Exception("Invalid type $type");
+        }
+        
+        if (!isset($configData[$section])) {
+            throw new Exception("Invalid section $section");
+        }
+        
+        $sectionData = $configData[$section];
+        $sectionData['section'] = $section;
 
-    private function getModuleAdminData(Module $module) {
-        $configData = $module->getModuleAdminConfig();
-
-        foreach ($configData as $section=>&$sectionData) {
-            if (isset($sectionData['fields'])) {
+        switch ($sectionData['sectiontype'])
+        {
+            case 'fields':
                 foreach ($sectionData['fields'] as $key=>&$field) {
                     if (isset($field['valueMethod'])) {
                         $field['value'] = call_user_func(array($module, $field['valueMethod']));
+                    } elseif ($type=='site') {
+                        switch ($field['config'])
+                        {
+                            case 'site':
+                                $field['value'] = $this->getUnconstantedValue(Kurogo::getOptionalSiteVar($key, $field['section']), $constant);
+                                if ($constant) {
+                                    $field['constant'] = $constant;
+                                }
+                                break;
+                            case 'strings':
+                                $field['value'] = Kurogo::getOptionalSiteString($key);
+                                break;
+                            default: 
+                                throw new Exception("Unknown config " . $field['config']);
+                                break;
+                        }
                     } else {
-                        $field['value'] = $module->getOptionalModuleVar($key,'', $field['section'], $field['config']);
+                        $field['value'] = $module->getOptionalModuleVar($key, isset($field['default']) ? $field['default'] : '', $field['section'], $field['config']);
                     }
                     
+                    switch ($field['type']) 
+                    {
+                        case 'paragraph':
+                            if (is_array($field['value'])) {
+                                $field['value'] = implode("\n\n", $field['value']);
+                            }
+                            break;
+                        case 'select':
+                            if (isset($field['optionsMethod'])) {
+                                if (is_array($field['optionsMethod'])) {
+                                    $field['options'] = call_user_func($field['optionsMethod']);
+                                } else {
+                                    $field['options'] = $module->$field['optionsMethod']();
+                                }
+                                unset($field['optionsMethod']);
+                            }
+                            
+                            if (isset($field['optionsFirst'])) {
+                                $field['options'] = array_merge(array(''=>$field['optionsFirst']), $field['options']);    
+                                unset($field['optionsFirst']);
+                            }
+                    }
+    
+                    $field['value'] = $this->getUnconstantedValue($field['value'], $constant);
+                    if ($constant) {
+                        $field['constant'] = $constant;
+                    }
+                }
+                break;
+                
+            case 'section':
+                if (isset($sectionData['sectionsmethod'])) {
+                    if (is_array($sectionData['sectionsmethod'])) {
+                        $sectionData['sections'] = call_user_func($sectionData['sectionsmethod']);
+                    } else {
+                        $sectionData['sections'] = $module->$sectionData['sectionsmethod']();
+                    }
+                    unset($sectionData['sectionsmethod']);
+                } elseif ($type=='site') {
+                    throw new Exception("Can't get sections for site");
+                } else {
+                    $sectionData['sections'] = $module->getModuleSections($sectionData['config'], Config::NO_EXPAND_VALUE);
+                }
+        
+                foreach ($sectionData['fields'] as $key=>&$field) {
                     switch ($field['type']) 
                     {
                         case 'select':
@@ -68,116 +145,117 @@ class AdminAPIModule extends APIModule
                                 $field['options'] = call_user_func($field['optionsMethod']);
                                 unset($field['optionsMethod']);
                             }
+    
+                            if (isset($field['optionsFirst'])) {
+                                $field['options'] = array_merge(array(''=>$field['optionsFirst']), $field['options']);    
+                                unset($field['optionsFirst']);
+                            }
+                    }
+                    
+                }
+                    
+                foreach ($sectionData['sections'] as $section=>&$sectionFields) {
+                    foreach($sectionFields as $key=>&$value) {
+                        $value = $this->getUnconstantedValue($value, $constant);
+                        if ($constant) {
+                            $value = array($constant, $value);
+                        }
                     }
                 }
-            } elseif (isset($sectionData['tablerowsmethod'])) {
-                $sectionData['tablerows'] = $module->$sectionData['tablerowsmethod']();
-                unset($sectionData['tablerowsmethod']);
-            }
-        }
-    
-        return $configData;
-    }
-    
-    private function getSiteAdminData($section) {
-        $configData = $this->getSiteAdminConfig();
-        if (!isset($configData[$section])) {
-            throw new Exception("Invalid section $section");
-        }
-        
-        $sectionData = $configData[$section];
-        $sectionData['section'] = $section;
-        
-        foreach ($sectionData['fields'] as $key=>&$field) {
-            switch ($field['config'])
-            {
-                case 'site':
-                    $field['value'] = $this->getUnconstantedValue(Kurogo::getOptionalSiteVar($key), $constant);
-                    if ($constant) {
-                        $field['constant'] = $constant;
-                    }
-                    break;
-                case 'strings':
-                    $field['value'] = Kurogo::getOptionalSiteString($key);
-                    break;
-                default: 
-                    throw new Exception("Unknown config " . $field['config']);
-                    break;
-            }
+                break;
+            case 'acl':
+
+                if ($type=='site') {
+                    $sectionData['acls'] = Kurogo::getOptionalSiteVar('acl', array(), 'authentication');
+                    $sectionData['adminacls'] = Kurogo::getOptionalSiteVar('adminacl', array(), 'authentication');
+                } else {
+                    $sectionData['acls'] = $module->getOptionalModuleVar('acl', array(), 'authentication');
+                    $sectionData['adminacls'] = $module->getOptionalModuleVar('acl', array(), 'authentication');
+                }
+                break;
+            default:
+                throw new Exception("Section type " . $sectionData['sectiontype'] . " not understood for section $section");
             
-            switch ($field['type']) 
-            {
-                case 'select':
-                    if (isset($field['optionsMethod'])) {
-                        $field['options'] = call_user_func($field['optionsMethod']);
-                        unset($field['optionsMethod']);
-                    }
-            }
-        }
-        
+        }         
+    
         return $sectionData;
     }
     
-    private function setConfigVar($type, $subType, $section, $key, $value) {
-        switch ($type)
+    private function getAdminConfig($type, $config, $opts=0) {
+
+        $opts = $opts | ConfigFile::OPTION_IGNORE_LOCAL | ConfigFile::OPTION_IGNORE_MODE;
+        error_log("$config $opts");
+
+        if ($type=='site') {
+            $configKey = "site-$config";
+            if (isset($this->configs[$configKey])) {
+                $config = $this->configs[$configKey];
+            } elseif ($config = ConfigFile::factory($config, 'site', $opts)) {
+                $this->configs[$configKey] = $config;
+            }
+            
+        } elseif ($type instanceOf Module) {
+            $configKey = 'module-' . $type->getConfigModule() . '-' . $config;
+            if (isset($this->configs[$configKey])) {
+                $config = $this->configs[$configKey];
+            } elseif ($config = $type->getConfig($config, $opts)) {
+                $this->configs[$configKey] = $config;
+            }
+        } else {
+            throw new Exception("Invalid type $type");
+        }
+        
+        return $config;
+    }
+    
+    private function setConfigVar($type, $section, $key, $value) {
+
+        $sectionData = $this->getAdminData($type, $section);
+            
+        switch ($sectionData['sectiontype'])
         {
-            case 'site':
-                $adminData = array($subType=>$this->getSiteAdminData($subType));
-                $typeKey = 'site';
+            case 'fields':
+                if (!isset($sectionData['fields'][$key])) {
+                    throw new Exception("Invalid key $key for $type section $section");
+                }
+                
+                $fieldData = $sectionData['fields'][$key];
                 break;
-            case 'module':
-                $adminData = $this->getModuleAdminData($subType);
-                $typeKey = 'module-' . $subType->getConfigModule();
+            
+            case 'section':
+                $fieldData = $sectionData;
                 break;
             default:
-                throw new Exception("Invalid type $type");
+                throw new Exception("Unable to handle $type $section. Invalid section type " . $sectionData['sectiontype']);
         }
         
-        if (!isset($adminData[$section])) {
-            throw new Exception("Invalid section $section for $type");
-        }
+        $config = $this->getAdminConfig($type, $fieldData['config'], ConfigFile::OPTION_CREATE_EMPTY);
         
-        if (isset($adminData[$section]['fields'])) {
-            if (!isset($adminData[$section]['fields'][$key])) {
-                throw new Exception("Invalid key $key for $type section $section");
-            }
-            
-            $fieldData = $adminData[$section]['fields'][$key];
-        } elseif (isset($adminData[$section]['tablefields'])) {
-            $fieldData = $adminData[$section];
-        } else {
-            throw new Exception("don't know how to handle $type $section");
-        }
-        
-        $configKey = $typeKey . '-' . $fieldData['config'];
-
-        if (!isset($this->configs[$configKey])) {
-            switch ($type) 
-            {
-                case 'site':
-                    $this->configs[$configKey] = ConfigFile::factory($fieldData['config'], 'site', ConfigFile::OPTION_IGNORE_LOCAL | ConfigFile::OPTION_IGNORE_MODE);
-                    break;
-                    
-                case 'module':
-                    $this->configs[$configKey] = ModuleConfigFile::factory($subType->getConfigModule(), $fieldData['config'], ConfigFile::OPTION_IGNORE_LOCAL | ConfigFile::OPTION_IGNORE_MODE);
-                    break;
-            
-            }
-        }
-
         if (is_array($value)) {
             $result = true;
             $changed = false;
             foreach ($value as $k=>$v) {
-                if (!isset($fieldData['tablefields'][$k])) {
+                if (preg_match("/^(.*?)_prefix$/", $k,$bits)) {
+                    continue;
+                } 
+
+                if (!isset($fieldData['fields'][$k])) {
                     throw new Exception("Invalid key $k for $type:" . $fieldData['config'] . " section $key");
                 }
                 
-                if (isset($fieldData['tablefields'][$k]['omitBlankValue']) && $fieldData['tablefields'][$k]['omitBlankValue'] && strlen($v)==0) {
-                    $changed = $changed || $this->configs[$configKey]->clearVar($key, $k);
+                if (isset($fieldData['fields'][$k]['omitBlankValue']) && $fieldData['fields'][$k]['omitBlankValue'] && strlen($v)==0) {
+                    $changed = $changed || $config->clearVar($key, $k);
                     continue;
                 } else {
-                    if (!$this->configs[$configKey]->setVar($key, $k, $v, $c)) {
+                    $prefix = isset($value[$k . '_prefix']) ? $value[$k . '_prefix'] : '';
+                    if ($prefix && defined($prefix)) {
+                        $v = constant($prefix) . '/' . $v;
+                    }
+                    
+                    if ($fieldData['fields'][$k]['type']=='paragraph') {
+                        $v = explode("\n\n", str_replace(array("\r\n","\r"), array("\n","\n"), $v));
+                    }
+                    if (!$config->setVar($key, $k, $v, $c)) {
                         $result = false;
                     }
                     $changed = $changed || $c;
@@ -185,17 +263,24 @@ class AdminAPIModule extends APIModule
             }
         } else {
             if (isset($fieldData['omitBlankValue']) && $fieldData['omitBlankValue'] && strlen($value)==0) {
-                return true;
+                $changed = $config->clearVar($fieldData['section'], $key);
+            } else {
+                if ($fieldData['type']=='paragraph') {
+                    $value = explode("\n\n", str_replace(array("\r\n","\r"), array("\n","\n"), $value));
+                }
+            
+                $result = $config->setVar($fieldData['section'], $key, $value, $changed);
+
+                if (!$result) {
+                    throw new Exception("Error setting $config $section $key $value");
+                }
             }
-            $result = $this->configs[$configKey]->setVar($fieldData['section'], $key, $value, $changed);
         }
         
-        if (!$result) {
-            throw new Exception("Error setting $config $section $key $value");
-        }
-
         if ($changed) {    
-            $this->changedConfigs[$configKey] = $this->configs[$configKey];
+            if (!in_array($config, $this->changedConfigs)) {
+                $this->changedConfigs[] = $config;
+            }
         }
     }
     
@@ -203,8 +288,41 @@ class AdminAPIModule extends APIModule
         $this->requiresAdmin();
         
         switch ($this->command) {
+            case 'checkversion':
+                $data = array(
+                    'current'=>Kurogo::checkCurrentVersion(),
+                    'local'  =>KUROGO_VERSION
+                );
+                $this->setResponse($data);
+                $this->setResponseVersion(1);
+                
+                break;
+                
+            case 'getconfigsections':
+                $type = $this->getArg('type');
+                switch ($type) 
+                {
+                    case 'module':
+                        $moduleID = $this->getArg('module','');
+                        try {
+                            $module = WebModule::factory($moduleID);
+                        } catch (Exception $e) {
+                            throw new Exception('Module ' . $moduleID . ' not found');
+                        }
+        
+                        $sections = $module->getModuleAdminSections();
+                        break;
+                    case 'site':
+                        throw new Exception("getconfigsections for site not handled yet");
+                }
+                
+                $this->setResponse($sections);
+                $this->setResponseVersion(1);
+                break;
+                
             case 'getconfigdata':
                 $type = $this->getArg('type');
+                $section = $this->getArg('section','');
                 
                 switch ($type) 
                 {
@@ -216,11 +334,10 @@ class AdminAPIModule extends APIModule
                             throw new Exception('Module ' . $moduleID . ' not found');
                         }
         
-                        $adminData = $this->getModuleAdminData($module);
+                        $adminData = $this->getAdminData($module, $section);
                         break;
                     case 'site':
-                        $section = $this->getArg('section');
-                        $adminData = $this->getSiteAdminData($section);                
+                        $adminData = $this->getAdminData('site', $section);
                 }
                 
                 $this->setResponse($adminData);
@@ -257,7 +374,7 @@ class AdminAPIModule extends APIModule
                                         throw new Exception("Invalid property $key for module $module");
                                     }
                                     
-                                    $this->setConfigVar($type, $module, 'general', $key, $value);
+                                    $this->setConfigVar($module, 'general', $key, $value);
                                 }
                             }
                             
@@ -276,22 +393,30 @@ class AdminAPIModule extends APIModule
                             } catch (Exception $e) {
                                 throw new Exception('Module ' . $moduleID . ' not found');
                             }
-    
-                            $subType = $module;
+
+                            $type = $module;
                         }
 
                         break;
         
                     case 'site':
-                        $subType = $section;
                         break;
                     default:
                         throw new Exception("Invalid type $type");
                 }
                 
                 foreach ($data as $section=>$fields) {
+                    $adminData = $this->getAdminData($type, $section);
+                    $fields = is_array($fields) ? $fields : array();
+                    
                     foreach ($fields as $key=>$value) {
-
+                        
+                        if ($adminData['sectiontype']=='section' && isset($adminData['sectionclearvalues']) && $adminData['sectionclearvalues']) {
+                            if ($config = $this->getAdminConfig($type, $adminData['config'], ConfigFile::OPTION_DO_NOT_CREATE)) {
+                                $config->removeSection($key);
+                            }
+                        }
+                        
                         // ignore prefix values. We'll put it back together later
                         if (preg_match("/^(.*?)_prefix$/", $key,$bits)) {
                             continue;
@@ -302,12 +427,11 @@ class AdminAPIModule extends APIModule
                             $value = constant($prefix) . '/' . $value;
                         }
                         
-                        $this->setConfigVar($type, $subType, $section, $key, $value);
+                        $this->setConfigVar($type, $section, $key, $value);
                     }
 
                 }
                 
-
                 foreach ($this->changedConfigs as $config) {
                     $config->saveFile();
                 }
@@ -317,6 +441,49 @@ class AdminAPIModule extends APIModule
                 
                 break;
                 
+            case 'removeconfigsection':
+                $type = $this->getArg('type');
+                $section = $this->getArg('section','');
+                $key = $this->getArg('key', null);
+                
+                switch ($type)
+                {
+                    case 'site':
+                        $sectionData = $this->getAdminData($type, $section);
+                        $config = ConfigFile::factory($sectionData['config'],'site');
+                        break;
+                    case 'module':
+                        $moduleID = $this->getArg('module','');
+                        try {
+                            $module = WebModule::factory($moduleID);
+                        } catch (Exception $e) {
+                            throw new Exception('Module ' . $moduleID . ' not found');
+                        }
+                        $sectionData = $this->getAdminData($module, $section);
+                        $config = $module->getConfig($sectionData['config']);
+                        break;
+                    default:
+                        throw new Exception("Invalid type $type");
+                }
+                        
+                if (!isset($sectionData['sections']) || (!isset($sectionData['sectiondelete']) || !$sectionData['sectiondelete'])) {
+                    throw new Exception("Config '$section' of module '$moduleID' does not permit removal of items");
+                }
+
+                if (!isset($sectionData['sections'][$key])) {
+                    throw new Exception("Section $key not found in config '$section' of module '$moduleID'");
+                }
+
+                if (!$result = $config->removeSection($key)) {
+                    throw new Exception("Error removing item $key from config '" . $sectionData['config'] ."'");
+                } else {
+                    $config->saveFile();
+                }
+                
+                $this->setResponse(true);
+                $this->setResponseVersion(1);
+                break;
+
             case 'setmodulelayout':
                 
                 $data = $this->getArg('data', array());

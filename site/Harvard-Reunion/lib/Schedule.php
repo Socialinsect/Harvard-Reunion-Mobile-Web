@@ -237,10 +237,11 @@ class Schedule {
     }
     
     $linkArrays = array(
-      'title'    => $this->getConfigValue('LINKS_TITLES',    array()),
-      'subtitle' => $this->getConfigValue('LINKS_SUBTITLES', array()),
-      'url'      => $this->getConfigValue('LINKS_URLS',      array()),
-      'class'    => $this->getConfigValue('LINKS_CLASSES',   array()),
+      'title'      => $this->getConfigValue('LINKS_TITLES',       array()),
+      'subtitle'   => $this->getConfigValue('LINKS_SUBTITLES',    array()),
+      'url'        => $this->getConfigValue('LINKS_URLS',         array()),
+      'linkTarget' => $this->getConfigValue('LINKS_LINK_TARGETS', array()),
+      'class'      => $this->getConfigValue('LINKS_CLASSES',      array()),
     );
     $sections = $this->getConfigValue('LINKS_SECTION', array());
     
@@ -513,15 +514,19 @@ class Schedule {
       }
       if (isset($location['latlon'])) {
         $facebook = $this->getFacebookFeed();
-        $places = $facebook->findPlaces($placeTitle, $location['latlon']);
-        if (count($places)) {
-          $location['fbPlaceId'] = $places[0]['id'];
+        if (!$facebook->needsLogin()) {
+          $places = $facebook->findPlaces($placeTitle, $location['latlon']);
+          if (count($places)) {
+            $location['fbPlaceId'] = $places[0]['id'];
+          }
         }
         
         $foursquare = $this->getFoursquareFeed();
-        $venues = $foursquare->findVenues($placeTitle, $location['latlon']);
-        if (count($venues)) {
-          $location['fqPlaceId'] = $venues[0]['id'];
+        if (!$foursquare->needsLogin()) {
+          $venues = $foursquare->findVenues($placeTitle, $location['latlon']);
+          if (count($venues)) {
+            $location['fqPlaceId'] = $venues[0]['id'];
+          }
         }
       }
       
@@ -574,7 +579,7 @@ class Schedule {
   
   public function getFoursquareFeed() {
     if (!$this->foursquare) {
-      $this->foursquare = new foursquare();
+      $this->foursquare = new Foursquare();
     }
     
     return $this->foursquare;

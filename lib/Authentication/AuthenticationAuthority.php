@@ -228,6 +228,17 @@ abstract class AuthenticationAuthority
         
         return $configFile->getSectionVars();
     }
+
+    public static function getDefinedAuthenticationAuthorityNames()
+    {
+        $authorities = self::getDefinedAuthenticationAuthorities();
+        $authorityNames = array();
+        foreach ($authorities as $authority=>$data) {
+            $authorityNames[$authority]= $data['TITLE'];
+        }
+
+        return $authorityNames;
+    }
     
     /**
      * Returns the default (i.e. the first) authentication authority in the config file. 
@@ -257,7 +268,7 @@ abstract class AuthenticationAuthority
             $configFile = self::getAuthorityConfigFile();
         }
         
-        if ($authorityData = $configFile->getSection($index)) {
+        if ($authorityData = $configFile->getOptionalSection($index)) {
             $authorityClass = $authorityData['CONTROLLER_CLASS'];
             $authorityData['INDEX'] = $index;
             $authority = self::factory($authorityClass, $authorityData);
@@ -288,8 +299,9 @@ abstract class AuthenticationAuthority
                     $file = $dir . '/' . $entry;
                     if (preg_match("/^([A-Z].*?)\.php$/", $entry, $bits)) {
                         $class = $bits[1];
-                        if (@include_once($file)) {
-                            if (class_exists($class) && is_subclass_of($class, 'AuthenticationAuthority')) {
+                        $info = new ReflectionClass($class);
+                        if (!$info->isAbstract()) {
+                            if (is_subclass_of($class, 'AuthenticationAuthority')) {
                                 $authorities[$class] = $class;
                             }
                         }

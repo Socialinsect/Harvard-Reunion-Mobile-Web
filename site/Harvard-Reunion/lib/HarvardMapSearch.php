@@ -56,6 +56,10 @@ class HarvardMapSearch extends MapSearch {
                     $bldgId,
                     $this->controllerLayerID);
                 $feature->setTitleField('Building Name');
+                // TODO find a better place to set this attribute
+                if (isset($featureInfo['geometryType'])) {
+                    $feature->setGeometryType($featureInfo['geometryType']);
+                }
                 $results[] = $feature;
             }
         }
@@ -70,7 +74,7 @@ class HarvardMapSearch extends MapSearch {
             $this->searchController->setDebugMode(Kurogo::getSiteVar('DATA_DEBUG'));
         }
     	return $this->searchController;
-	}
+    }
 
     // search for courses
     public function searchCampusMapForCourseLoc($query) {

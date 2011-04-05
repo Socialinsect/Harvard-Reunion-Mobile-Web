@@ -29,7 +29,7 @@ class SiteHomeAPIModule extends APIModule {
         $response = array();
         
         // Only grab posts if logged in
-        $posts = $facebook->getMyId() ? $facebook->getGroupStatusMessages() : array();
+        $posts = !$facebook->needsLogin() ? $facebook->getGroupStatusMessages() : array();
         $tweets = $twitter->getRecentTweets();
         
         $recent = false;

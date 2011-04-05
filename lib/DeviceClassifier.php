@@ -51,7 +51,21 @@ class DeviceClassifier {
     } elseif (isset($_SERVER['HTTP_USER_AGENT'])) {
       
       if ($data = Kurogo::getSiteVar('MOBI_SERVICE_USE_EXTERNAL') ? 
-        $this->detectDeviceExternal($user_agent) : $this->detectDeviceInternal($this->userAgent) ) {
+        $this->detectDeviceExternal($this->userAgent) : $this->detectDeviceInternal($this->userAgent) ) {
+        
+
+        if ($data['pagetype']=='tablet' && !Kurogo::getOptionalSiteVar('TABLET_ENABLED', 1)) {
+            
+            //@TODO make this less hard coded
+            switch ($data['platform'])
+            {
+                case 'ipad':
+                    $data['pagetype'] = 'compliant';  
+                    $data['platform'] = 'iphone';
+                    break;
+            }
+        }        
+        
         $this->pagetype = $data['pagetype'];
         $this->platform = $data['platform'];
         $this->certs = $data['supports_certificate'];
@@ -149,7 +163,7 @@ class DeviceClassifier {
             $data['pagetype'] = 'touch';
           }
           break;
-          
+        
         case 'compliant':
         case 'webkit':
         default:

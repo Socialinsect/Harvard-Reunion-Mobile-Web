@@ -1,5 +1,7 @@
 <?php
 
+define('KUROGO_VERSION', '1.0.rc2');
+
 class Kurogo
 {
     public static function getLanguages() {
@@ -50,6 +52,37 @@ class Kurogo
         }
         
         return $config->getOptionalVar($var, $default);
+    }
+
+    public static function getSiteAccessControlListArrays() {
+        $acls = array();
+        foreach (self::getSiteAccessControlLists() as $acl) {
+            $acls[] = $acl->toArray();
+        }
+        return $acls;
+    }
+
+    public static function getSiteAccessControlLists() {
+        $config = ConfigFile::factory('acls', 'site', ConfigFile::OPTION_CREATE_EMPTY);
+        $acls = array();
+        
+        foreach ($config->getSectionVars() as $aclArray) {
+            if ($acl = AccessControlList::createFromArray($aclArray)) {
+                $acls[] = $acl;
+            }
+        }
+        
+        return $acls;
+    }
+    
+    public static function checkCurrentVersion() {
+        $url = "http://modolabs.com/kurogo/checkversion.php?" . http_build_query(array(
+            'version'=>KUROGO_VERSION,
+            'base'=>FULL_URL_BASE,
+            'site'=>SITE_KEY,
+            
+        ));
+        return trim(file_get_contents($url));
     }
 }
 

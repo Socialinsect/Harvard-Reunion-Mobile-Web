@@ -1,14 +1,21 @@
 <?php
 
-class foursquare {
+class Foursquare {
   const COOKIE_NAME = 'fqReunionSession';
   private $clientId = '';
   private $clientSecret = '';
   
+  const USER_LIFETIME = 14400;
   const PLACE_LIFETIME = 14400;
   const NOCACHE_LIFETIME = 0;
   
   private $queryConfig = array(
+    'users' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::PLACE_LIFETIME,
+      'path'          => 'users/',
+      'includeParams' => false,
+    ),
     'venueSearch' => array(
       'cache'         => null,
       'cacheLifetime' => self::PLACE_LIFETIME,
@@ -56,6 +63,29 @@ class foursquare {
     if (!$foundApp) {
       error_log('WARNING: no foursquare app id for url '.FULL_URL_PREFIX);
     }
+  }
+  
+  public function getUserFullName() {
+    $fullName = null;
+    
+    $results = $this->api('users', 'self');
+    //error_log(print_r($results, true));
+    
+    if (isset($results['response'], $results['response']['user'])) {
+      $parts = array();
+      
+      if (isset($results['response']['user']['firstName'])) {
+        $parts[] = $results['response']['user']['firstName'];
+      }
+      if (isset($results['response']['user']['lastName'])) {
+        $parts[] = $results['response']['user']['lastName'];
+      }
+      if ($parts) {
+        $fullName = implode(' ', $parts);
+      }
+    }
+    
+    return $fullName;
   }
   
   public function findVenues($venueTitle, $coords) {
@@ -189,8 +219,13 @@ class foursquare {
     ));
   }
   
-  public function getLoginURL() {
-    return 'https://foursquare.com/oauth2/authenticate?'.http_build_query(array(
+  public function getLoginURL($forceDialog=false) {
+    // Currently this provides an annoying user experience.  It should
+    // get fixed.  See the following thread for more info:
+    // http://groups.google.com/group/foursquare-api/browse_thread/thread/3385c4c58fe640e/ed214b861f034299
+    $page = $forceDialog ? 'authorize' : 'authenticate';
+    
+    return "https://foursquare.com/oauth2/$page?".http_build_query(array(
       'client_id'     => $this->clientId,
       'response_type' => 'code',
       'display'       => 'touch',
@@ -224,8 +259,8 @@ class foursquare {
   
   public function getLogoutUrl() {
     return FULL_URL_PREFIX.'home/fqLogout?'.http_build_query(array(
-        'url' => $this->getCurrentUrl(),
-      ));
+      'url' => $this->getCurrentUrl(),
+    ));
   }
   
   public function getLogoutRedirectURL($redirectURL) {

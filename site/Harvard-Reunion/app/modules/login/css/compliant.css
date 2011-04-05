@@ -152,6 +152,8 @@ select {
 	line-height: 1.2em;
 }
 
+.nonfocal p a,
+.nonfocal p a:visited,
 .helptext a,
 .helptext a:visited {
 	color: #c1bcb9;

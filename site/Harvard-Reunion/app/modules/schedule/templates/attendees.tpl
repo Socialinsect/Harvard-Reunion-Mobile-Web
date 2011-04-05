@@ -5,6 +5,6 @@
   {$eventDate}
 </div>
 
-{include file="findInclude:common/templates/navlist.tpl" navlistItems=$attendees accessKey=false}
+{include file="findInclude:common/templates/attendees.tpl" attendees=$attendees}
 
 {include file="findInclude:common/templates/footer.tpl"}

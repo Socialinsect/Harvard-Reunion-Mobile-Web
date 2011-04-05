@@ -25,6 +25,12 @@ class AdminWebModule extends WebModule {
                 'description'=>'',
                 'url'=>$this->buildURL('modules',array()),
             ),
+            array(
+                'id'=>'credits',
+                'title'=>'Credits and Licensing',
+                'description'=>'',
+                'url'=>$this->buildURL('credits',array()),
+            ),
         );
         
         return $navSections;
@@ -138,6 +144,7 @@ class AdminWebModule extends WebModule {
         }
 
         $navSections = $this->getNavSections();
+        $section = '';
         $this->assign('navSections', $navSections);
         $this->addJQuery();
         $this->addJQueryUI();
@@ -159,6 +166,8 @@ class AdminWebModule extends WebModule {
                             $this->assign('moduleName', $module->getModuleName());
                             $this->assign('moduleID', $module->getConfigModule());
                             $section = $moduleID;
+                            $moduleSection = $this->getArg('section','general');
+                            $this->assign('moduleSection',$moduleSection);
                         }
                     } catch (Exception $e) {
                         $this->redirectTo($this->page, array());
@@ -190,6 +199,29 @@ class AdminWebModule extends WebModule {
                 
                 if (!isset($subNavSections[$section])) {
                     $this->redirectTo($this->page, array());
+                }
+                break;
+            case 'credits':
+                
+                $section = $this->getArg('section', 'credits');
+                $subNavSections =  array(
+                    'credits'=>array(
+                        'id'=>'credits',
+                        'title'=>'Credits',
+                        'url'=>$this->buildURL($this->page, array('section'=>'credits'))
+                    ),
+                    'license'=>array(
+                        'id'=>'license',
+                        'title'=>'License',
+                        'url'=>$this->buildURL($this->page, array('section'=>'license'))
+                    )
+                );
+                $this->assign('subNavSections', $subNavSections);
+                
+                if (isset($subNavSections[$section])) {
+                    $this->setTemplatePage($section);
+                } else {
+                    $this->redirectTo('section', array());
                 }
                 break;
                 

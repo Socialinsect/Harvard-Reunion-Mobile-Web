@@ -84,7 +84,6 @@ class HarvardMapDataController extends ArcGISDataController
             }
         }
         $result = $featureCache->read($bldgId);
-
         $photoURL = self::getPhotoFromFeatureInfo($result);
         if ($photoURL) {
             $result['attributes']['Photo'] = $photoURL;
