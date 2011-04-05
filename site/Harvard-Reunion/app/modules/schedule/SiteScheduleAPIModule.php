@@ -36,23 +36,25 @@ class SiteScheduleAPIModule extends APIModule {
           'returned'     => count($responseCategories),
           'displayField' => 'title',
           'results'      => $responseCategories,
-          );
+        );
 
         $this->setResponse($response);
         $this->setResponseVersion(1);
         break;
-    
+        
+      case 'defaultCategory':
+        $this->setResponse($schedule->getDefaultCategory());
+        $this->setResponseVersion(1);
+        break;
+      
       case 'events':
         $eventResponse = array();
-          $category  = $this->getArg('category', $schedule->getDefaultCategory());
+        $category = $this->getArg('category', $schedule->getAllEventsCategory());
         
-        $feed = $schedule->getEventFeed();
-        $events = $feed->items(0);
+        $events = $schedule->getEvents($category);
 
         foreach($events as $event) {
-          if ($schedule->eventMatchesCategory($event, $category)) {
-            $eventResponse[] = $this->formatEventResponse($schedule, $event);
-          }
+          $eventResponse[] = $this->formatEventResponse($schedule, $event);
         }
 
         $response = array(
@@ -60,7 +62,7 @@ class SiteScheduleAPIModule extends APIModule {
           'returned'     => count($eventResponse),
           'displayField' => 'title',
           'results'      => $eventResponse,
-          );
+        );
         
         $this->setResponse($response);
         $this->setResponseVersion(1);
@@ -72,8 +74,7 @@ class SiteScheduleAPIModule extends APIModule {
         $id    = $this->getArg('id');
         $start = $this->getArg('start', time());
         
-        $feed = $schedule->getEventFeed();      
-        $event = $feed->getItem($id, $start);
+        $event = $schedule->getEvent($eventId, $start);
         if (!$event) {
           $error = new KurogoError(
             5,
@@ -92,7 +93,6 @@ class SiteScheduleAPIModule extends APIModule {
         $this->setResponse($schedule->getAllAttendees());
         $this->setResponseVersion(1);
         break;
-
 
       default:
         $this->invalidCommand();

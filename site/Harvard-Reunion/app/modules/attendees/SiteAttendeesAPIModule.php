@@ -16,6 +16,10 @@ class SiteAttendeesAPIModule extends APIModule {
         $this->setResponse($schedule->getAllAttendees());
         $this->setResponseVersion(1);
         break;
+
+      default:
+        $this->invalidCommand();
+        break;
     }
   }
 }

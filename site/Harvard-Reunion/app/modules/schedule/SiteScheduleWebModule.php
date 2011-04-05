@@ -5,19 +5,42 @@
   */
 
 includePackage('Maps');
-  
-define('SCHEDULE_BOOKMARKS_COOKIE_PREFIX', 'ScheduleBookmarks_');
-define('SCHEDULE_BOOKMARKS_COOKIE_DURATION', 160 * 24 * 60 * 60);
+
+define('SCHEDULE_COOKIE_DURATION', 160 * 24 * 60 * 60);
 
 class SiteScheduleWebModule extends WebModule {
   protected $id = 'schedule';
   protected $user = null;
   protected $schedule = null;
   protected $bookmarks = array();
-  const COOKIE_CATEGORY_SUFFIX = '_scheduleView';
-
+  const BOOKMARKS_COOKIE_PREFIX   = 'ScheduleBookmarks_';
+  const BOOKMARKS_COOKIE_DURATION = SCHEDULE_COOKIE_DURATION;
+  const CATEGORY_COOKIE_PREFIX    = 'ScheduleCategory_';
+  const CATEGORY_COOKIE_DURATION  = SCHEDULE_COOKIE_DURATION;
+  
+  protected function getCategory($categories) {
+    $category = $this->schedule->getDefaultCategory();
+    
+    // '.' in cookie names doesn't work properly with the PHP $_COOKIE variable
+    $categoryCookieName = self::CATEGORY_COOKIE_PREFIX.
+      urlencode(str_replace('.', '_', $this->user->getUserID()));
+    
+    if (isset($this->args['category'], $categories[$this->args['category']])) {
+      $category = $this->args['category'];
+      
+      // Remember cookie
+      $expires = time() + self::CATEGORY_COOKIE_DURATION;
+      setCookie($categoryCookieName, $category, $expires, COOKIE_PATH);
+      
+    } else if (isset($_COOKIE[$categoryCookieName], $categories[$_COOKIE[$categoryCookieName]])) {
+      $category = $_COOKIE[$categoryCookieName];
+    }
+    
+    return $category;
+  }
+  
   private function getCookieNameForEvent($event) {
-    return SCHEDULE_BOOKMARKS_COOKIE_PREFIX.$event;
+    return self::BOOKMARKS_COOKIE_PREFIX.$event;
   }
 
   private function getBookmarks($scheduleId) {
@@ -38,7 +61,7 @@ class SiteScheduleWebModule extends WebModule {
     $cookieName = $this->getCookieNameForEvent($scheduleId);
     
     setcookie($cookieName, implode(',', array_unique($bookmarks)), 
-      time() + SCHEDULE_BOOKMARKS_COOKIE_DURATION, COOKIE_PATH);
+      time() + self::BOOKMARKS_COOKIE_DURATION, COOKIE_PATH);
 
     $this->bookmarks[$cookieName] = $bookmarks;
   }
@@ -201,19 +224,7 @@ class SiteScheduleWebModule extends WebModule {
     $this->user = $this->getUser('HarvardReunionUser');
     $this->schedule = new Schedule($this->user);
   }
-  
-  protected function eventMatchesCategory($event, $category) {
-    if ($category == 'mine') {
-      return 
-        $this->isBookmarked($this->schedule->getScheduleId(), $event->get_uid()) ||
-        $this->schedule->isRegisteredForEvent($event);
-    } else if ($category == 'all') {
-      return true;
-    } else {
-      return $this->schedule->eventMatchesCategory($event, $category);
-    }
-  }
-  
+
   protected function initializeForPage() {    
     $scheduleId = $this->schedule->getScheduleId();
 
@@ -222,45 +233,52 @@ class SiteScheduleWebModule extends WebModule {
         break;
 
       case 'index':
-        $category  = $this->getArg('category', $this->schedule->getDefaultCategory());
+        $categories = array(
+          'mine' => 'My Schedule'
+        );
+        $categories = array_merge(
+          array('mine' => 'My Schedule'), 
+          $this->schedule->getEventCategories()
+        );
+        $category = $this->getCategory($categories);
         
-        $feed = $this->schedule->getEventFeed();
-        
-        $events = $feed->items(0);
-        
-        $categories['mine'] = 'My Schedule';
-        $categories = array_merge($categories, $this->schedule->getEventCategories());
-        $categories['all'] = 'All Events';
+        if ($category == 'mine') {
+          $events = $this->schedule->getEvents();
+          foreach ($events as $i => $event) {
+            if (!$this->isBookmarked($this->schedule->getScheduleId(), $event->get_uid()) &&
+                !$this->schedule->isRegisteredForEvent($event)) {
+              unset($events[$i]);
+            }
+          }
+        } else {
+          $events = $this->schedule->getEvents($category);
+        }
         
         $eventDays = array();
         foreach($events as $event) {
           $date = date('Y-m-d', $event->get_start());
           
-          $showThisEvent = $this->eventMatchesCategory($event, $category);
-          
-          if ($showThisEvent) {
-            if (!isset($eventDays[$date])) {
-              $eventDays[$date] = array(
-                'title'      => date('l, F j, Y', $event->get_start()),
-                'events'     => array(),
-              );
-            }
-            
-            $eventInfo = array(
-              'url'      => $this->detailURL($event),
-              'title'    => $event->get_summary(),
-              'subtitle' => $this->timeText($event, true),
+          if (!isset($eventDays[$date])) {
+            $eventDays[$date] = array(
+              'title'  => date('l, F j, Y', $event->get_start()),
+              'events' => array(),
             );
-            if ($this->isBookmarked($scheduleId, $event->get_uid())) {
-              $eventInfo['class'] = 'bookmarked';
-            }         
-            
-            if ($this->schedule->isRegisteredForEvent($event)) {
-              $eventInfo['class'] = 'bookmarked';
-            }
-            
-            $eventDays[$date]['events'][] = $eventInfo;
           }
+          
+          $eventInfo = array(
+            'url'      => $this->detailURL($event),
+            'title'    => $event->get_summary(),
+            'subtitle' => $this->timeText($event, true),
+          );
+          if ($this->isBookmarked($scheduleId, $event->get_uid())) {
+            $eventInfo['class'] = 'bookmarked';
+          }
+          
+          if ($this->schedule->isRegisteredForEvent($event)) {
+            $eventInfo['class'] = 'bookmarked';
+          }
+          
+          $eventDays[$date]['events'][] = $eventInfo;
         }
         
         $this->assign('category',   $category);        
@@ -274,8 +292,7 @@ class SiteScheduleWebModule extends WebModule {
         
         $this->checkToggleBookmark($scheduleId, $eventId);
         
-        $feed = $this->schedule->getEventFeed();      
-        $event = $feed->getItem($eventId, $start);
+        $event = $this->schedule->getEvent($eventId, $start);
         if (!$event) {
           throw new Exception("Event not found");
         }
@@ -472,7 +489,7 @@ class SiteScheduleWebModule extends WebModule {
         $cookieName = $this->getCookieNameForEvent($scheduleId);
         $this->addInlineJavascript(
           "var COOKIE_PATH = '".COOKIE_PATH."';".
-          "var COOKIE_DURATION = '".SCHEDULE_BOOKMARKS_COOKIE_DURATION."';");
+          "var COOKIE_DURATION = '".self::BOOKMARKS_COOKIE_DURATION."';");
         $this->addOnLoad("setBookmarkStates('$cookieName', '$eventId');");
 
         $this->assign('eventId',              $eventId);
@@ -490,8 +507,7 @@ class SiteScheduleWebModule extends WebModule {
         $eventId = $this->getArg('eventId');
         $start   = $this->getArg('start', time());
         
-        $feed = $this->schedule->getEventFeed();      
-        $event = $feed->getItem($eventId, $start);
+        $event = $this->schedule->getEvent($eventId, $start);
         if (!$event) {
           throw new Exception("Event not found");
         }

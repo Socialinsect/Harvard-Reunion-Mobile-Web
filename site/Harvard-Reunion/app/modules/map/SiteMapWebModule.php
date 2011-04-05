@@ -193,8 +193,7 @@ class SiteMapWebModule extends MapWebModule {
     $user = $this->getUser('HarvardReunionUser');
     $schedule = new Schedule($user);
     
-    $feed = $schedule->getEventFeed();
-    $event = $feed->getItem($eventId, $start);
+    $event = $schedule->getEvent($eventId, $start);
     if (!$event) {
       throw new Exception("Event '$eventId' not found");
     }

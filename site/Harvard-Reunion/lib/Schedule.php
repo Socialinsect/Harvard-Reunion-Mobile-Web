@@ -13,6 +13,8 @@ class Schedule {
   private $startDate = null;
   private $endDate = null;
   private $timezone = null;
+  private $eventController = null;
+  private $allEvents = null;
   private $facebook = null;
   private $twitter = null;
   private $foursquare = null;
@@ -269,20 +271,50 @@ class Schedule {
     return $info;
   }
 
-  public function getEventFeed() {
-    $controllerClass = $this->getConfigValue('CONTROLLER_CLASS', 'CalendarDataController');
+  private function getEventFeed() {
+    if (!$this->eventController) {
+      $controllerClass = $this->getConfigValue('CONTROLLER_CLASS', 'CalendarDataController');
+      
+      $this->eventController = CalendarDataController::factory($controllerClass, $this->scheduleConfig);
+      $this->eventController->setDebugMode(Kurogo::getSiteVar('DATA_DEBUG'));
+  
+      $endDate = new DateTime($this->endDate->format('Y-m-d').' 00:00:00 +1 day', $this->timezone);
+      $this->eventController->setStartDate($this->startDate);
+      $this->eventController->setEndDate($endDate);
+    }
     
-    $controller = CalendarDataController::factory($controllerClass, $this->scheduleConfig);
-    $controller->setDebugMode(Kurogo::getSiteVar('DATA_DEBUG'));
-
-    $endDate = new DateTime($this->endDate->format('Y-m-d').' 00:00:00 +1 day', $this->timezone);
-    $controller->setStartDate($this->startDate);
-    $controller->setEndDate($endDate);
-    
-    return $controller;
+    return $this->eventController;
   }
   
-  public function getEventCategories() {
+  private function getAllEvents() {
+    if (!$this->allEvents) {
+      $feed = $this->getEventFeed();
+      $this->allEvents = $feed->items(0);
+    }
+    return $this->allEvents;
+  }
+  
+  public function getEvents($category='all') {
+    $events = $this->getAllEvents();
+    
+    foreach($events as $i => $event) {
+      if (!$this->eventMatchesCategory($event, $category)) {
+        unset($events[$i]);
+      }
+    }
+    
+    return $events;
+  }
+  
+  public function getDefaultCategory() {
+    return 'reunion';
+  }
+  
+  public function getAllEventsCategory() {
+    return 'all';
+  }
+    
+  private function getAllEventCategories() {
     return array(
       'reunion'  => $this->getReunionNumber().'th Reunion Events',
       'other'    => 'Other Events',
@@ -290,11 +322,11 @@ class Schedule {
     );
   }
   
-  public function getDefaultCategory() {
-    return 'reunion';
-  }
-    
-  public function eventMatchesCategory($event, $category) {
+  private function eventMatchesCategory($event, $category) {
+    if ($category == 'all') {
+      return true; // All events, skip checks
+    }
+  
     $trumbaCategories = $event->get_attribute('categories');
     
     $eventCategory = 'reunion';
@@ -310,6 +342,51 @@ class Schedule {
     }
     
     return $category == $eventCategory;
+  }
+  
+  public function getEventCategories() {
+    $categories = $skipCategories = $this->getAllEventCategories();
+    $events = $this->getAllEvents();
+    
+    // Figure out which categories have no events
+    foreach ($events as $event) {
+      foreach ($skipCategories as $category => $name) {
+        if ($this->eventMatchesCategory($event, $category)) {
+          unset($skipCategories[$category]);
+        }
+      }
+      if (empty($skipCategories)) { break; } // all categories valid
+    }
+    
+    // Remove empty categories
+    foreach ($categories as $category => $name) {
+      if (isset($skipCategories[$category])) {
+        unset($categories[$category]);
+      }
+    }
+    
+    if (count($categories) > 1) {
+      // Show all events if there is more than one category and
+      // fewer than 100 total events (so we don't overwhelm devices)
+      $eventCountThreshhold = 100;
+      switch ($GLOBALS['deviceClassifier']->getPagetype()) {
+        case 'compliant':
+          $eventCountThreshhold = 100;
+          break;
+        case 'touch':
+          $eventCountThreshhold = 50;
+          break;
+        case 'basic':
+          $eventCountThreshhold = 25;
+          break;
+      }
+
+      if (count($events) < $eventCountThreshhold) {
+        $categories['all'] = 'All Events';
+      }
+    }
+    
+    return $categories;
   }
   
   // Takes a User object and returns an array of Harris or Harvard event IDs.
@@ -406,6 +483,11 @@ class Schedule {
     }
     
     return implode(' ', $parts);
+  }
+  
+  public function getEvent($eventId, $start) {
+    $feed = $this->getEventFeed();
+    return $feed->getItem($eventId, $start);
   }
   
   public function getEventInfo($event) {

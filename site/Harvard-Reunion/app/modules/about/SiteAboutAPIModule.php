@@ -16,6 +16,10 @@ class SiteAboutAPIModule extends APIModule {
         $this->setResponse($schedule->getInfo());
         $this->setResponseVersion(1);
         break;
+
+      default:
+        $this->invalidCommand();
+        break;
     }
   }
 }
