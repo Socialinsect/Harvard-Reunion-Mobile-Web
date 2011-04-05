@@ -485,6 +485,105 @@ class Schedule {
     return implode(' ', $parts);
   }
   
+  public function getAttendeeFirstLetterGroups($attendees) {
+    $countThreshhold = 100;
+    switch ($GLOBALS['deviceClassifier']->getPagetype()) {
+      case 'compliant':
+        $countThreshhold = 100;
+        $maxGroupSize = 75;
+        break;
+      case 'touch':
+        $countThreshhold = 50;
+        $maxGroupSize = 35;
+        break;
+      case 'basic':
+        $countThreshhold = 25;
+        $maxGroupSize = 20;
+        break;
+    }
+    
+    if (count($attendees) <= $countThreshhold) {
+      return false; // attendees will fit on one page
+    }
+    
+    $letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    
+    $firstLetterGroups = array();
+    for ($i = 0; $i < strlen($letters); $i++) {
+      $firstLetterGroups[substr($letters, $i, 1)] = array();
+    }
+    
+    foreach ($attendees as $i => $attendee) {
+      $firstLetter = strtoupper(substr($attendee['display_name'], 0, 1));
+      if (!isset($firstLetterGroups[$firstLetter])) {
+        $firstLetterGroups[$firstLetter] = array();
+      }
+      $firstLetterGroups[$firstLetter][] = $attendee;
+    }
+    
+    $letterGroups = array();
+    foreach ($firstLetterGroups as $letter => $a) {
+      $i = count($letterGroups)-1;
+      
+      $currentCount    = $i < 0 ? 0 : count($letterGroups[$i]['entries']);
+      $nextLetterCount = $i < 0 ? 0 : count($a);
+      $totalCount      = $currentCount + $nextLetterCount;
+        
+      if ($i < 0 || ($currentCount > 0 && $nextLetterCount > 0 && $totalCount > $maxGroupSize)) {
+        $letterGroups[] = array(
+          'letters' => array(),
+          'entries' => array(),
+        );
+        $i++;
+      }
+      
+      $letterGroups[$i]['letters'][] = $letter;
+      $letterGroups[$i]['entries'] = array_merge($letterGroups[$i]['entries'], $a);
+      
+    }
+    
+    $groups = array();
+    foreach ($letterGroups as $i => $group) {
+      $first = reset($group['letters']);
+      $last = end($group['letters']);
+      
+      if ($first == $last) {
+        $groups[$first] = array(
+          'title' => $first,
+          'count' => count($group['entries']),
+        );
+      } else {
+        $groups["$first-$last"] = array(
+          'title' => "$first - $last",
+          'count' => count($group['entries']),
+        );
+      }
+    }
+    unset($letterGroups);
+    
+    return $groups;
+  }
+  
+  public function getAttendeesForLetterRange($attendees, $range) {
+    $parts = explode('-', $range);
+    if (count($parts) && strlen(trim($parts[0]))) {
+      $first = trim($parts[0]);
+      $last = count($parts) == 1 ? $first : trim($parts[1]);
+      
+      $results = array();
+      foreach ($attendees as $attendee) {
+        $title = strtoupper(substr($attendee['display_name'], 0, 1));
+        if (strcmp($first, $title) <= 0 && strcmp($title, $last) <= 0) {
+          $results[] = $attendee;
+        }
+      }
+      
+      return $results;
+    }
+    
+    return array();
+  }
+  
   public function getEvent($eventId, $start) {
     $feed = $this->getEventFeed();
     return $feed->getItem($eventId, $start);

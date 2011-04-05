@@ -506,27 +506,56 @@ class SiteScheduleWebModule extends WebModule {
       case 'attendees':
         $eventId = $this->getArg('eventId');
         $start   = $this->getArg('start', time());
-        
+        $range = $this->getArg('range', null);
+
         $event = $this->schedule->getEvent($eventId, $start);
         if (!$event) {
           throw new Exception("Event not found");
         }
         //error_log(print_r($event, true));
         $info = $this->schedule->getEventInfo($event);
+        //error_log(print_r($info, true));
         
-        $attendees = array();
-        foreach ($info['attendees'] as $attendee) {
-          if ($attendee['display_name']) {
-            $attendees[] = array(
-              'title' => $attendee['display_name'],
-            );
+        $allAttendees = $info['attendees'];
+      
+        $letterGroups = $this->schedule->getAttendeeFirstLetterGroups($allAttendees);
+        if (!$letterGroups || $range) {
+          $filtered = $allAttendees;
+          if ($range) {
+            $printableRange = implode(' - ', explode('-', $range));
+            $this->setPageTitle($this->getPageTitle()." ($printableRange)");
+            $this->setBreadcrumbTitle($this->getBreadcrumbTitle()." ($printableRange)");
+            $this->setBreadcrumbLongTitle($this->getBreadcrumbLongTitle()." ($printableRange)");
+            $filtered = $this->schedule->getAttendeesForLetterRange($allAttendees, $range);
           }
+          
+          $attendees = array();
+          foreach ($filtered as $attendee) {
+            if ($attendee['display_name']) {
+              $attendees[] = array(
+                'title' => $attendee['display_name'],
+              );
+            }
+          }
+          $this->assign('attendees',  $attendees);
+           
+        } else {
+          $args = $this->args;
+        
+          $groups = array();
+          foreach ($letterGroups as $range => $rangeInfo) {
+            $args['range'] = $range;
+            
+            $rangeInfo['url'] = $this->buildBreadcrumbURL('attendees', $args);
+            $groups[] = $rangeInfo;
+          }
+          
+          $this->assign('groups',  $groups);
         }
         
-        $this->assign('eventId',    $eventId);
         $this->assign('eventTitle', $info['title']);
         $this->assign('eventDate',  $this->valueForType('datetime', $info['datetime']));        
-        $this->assign('attendees',  $attendees);        
+        $this->assign('authority',  $this->user->getAuthenticationAuthorityIndex());
         break;
         
       case 'checkin':
