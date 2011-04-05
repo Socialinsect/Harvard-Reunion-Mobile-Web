@@ -1,6 +1,6 @@
 <?php
 
-class AttendeesWebModule extends WebModule
+class SiteAttendeesWebModule extends WebModule
 {
   protected $id = 'attendees';
   

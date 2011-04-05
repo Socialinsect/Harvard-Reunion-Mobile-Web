@@ -5,7 +5,7 @@
     <h3>{$reunionTitle} Reunion</h3>
   </div>
   {if count($attendees)}
-    {include file="findInclude:common/templates/navlist.tpl" navlistItems=$attendees accessKey=false}
+    {include file="findInclude:common/templates/attendees.tpl" attendees=$attendees}
   {else}
     <div class="focal">
       No one has signed up for this reunion.

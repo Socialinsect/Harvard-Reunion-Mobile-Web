@@ -11,8 +11,10 @@ define('SCHEDULE_BOOKMARKS_COOKIE_DURATION', 160 * 24 * 60 * 60);
 
 class SiteScheduleWebModule extends WebModule {
   protected $id = 'schedule';
+  protected $user = null;
   protected $schedule = null;
   protected $bookmarks = array();
+  const COOKIE_CATEGORY_SUFFIX = '_scheduleView';
 
   private function getCookieNameForEvent($event) {
     return SCHEDULE_BOOKMARKS_COOKIE_PREFIX.$event;
@@ -196,8 +198,8 @@ class SiteScheduleWebModule extends WebModule {
 
 
   protected function initialize() {
-    $user = $this->getUser('HarvardReunionUser');
-    $this->schedule = new Schedule($user);
+    $this->user = $this->getUser('HarvardReunionUser');
+    $this->schedule = new Schedule($this->user);
   }
   
   protected function eventMatchesCategory($event, $category) {
@@ -205,11 +207,13 @@ class SiteScheduleWebModule extends WebModule {
       return 
         $this->isBookmarked($this->schedule->getScheduleId(), $event->get_uid()) ||
         $this->schedule->isRegisteredForEvent($event);
+    } else if ($category == 'all') {
+      return true;
     } else {
       return $this->schedule->eventMatchesCategory($event, $category);
     }
   }
-
+  
   protected function initializeForPage() {    
     $scheduleId = $this->schedule->getScheduleId();
 
@@ -224,8 +228,9 @@ class SiteScheduleWebModule extends WebModule {
         
         $events = $feed->items(0);
         
-        $categories = $this->schedule->getEventCategories();
         $categories['mine'] = 'My Schedule';
+        $categories = array_merge($categories, $this->schedule->getEventCategories());
+        $categories['all'] = 'All Events';
         
         $eventDays = array();
         foreach($events as $event) {
