@@ -24,7 +24,25 @@ class SiteHomeAPIModule extends APIModule {
           $this->throwError($error);
         }
         break;
-
+      
+      case 'modules':
+        $moduleNavConfig = ModuleConfigFile::factory('home', 'module');
+        if (!$moduleNavConfig) {
+          $error = new KurogoError(
+            1,
+            'Invalid Configuration',
+            'Home module config missing');
+          $this->throwError($error);
+        }
+        
+        $moduleConfig = array();
+        $moduleConfig['primary']   = array_keys($moduleNavConfig->getOptionalSection('primary_modules', array()));
+        $moduleConfig['secondary'] = array_keys($moduleNavConfig->getOptionalSection('secondary_modules', array()));
+        
+        $this->setResponse($moduleConfig);
+        $this->setResponseVersion(1);
+        break;
+      
       case 'recent':
         $response = array();
         

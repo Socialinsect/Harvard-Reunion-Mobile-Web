@@ -7,17 +7,6 @@
 class SiteHomeWebModule extends HomeWebModule {
   private $schedule = null;
 
-  static public function loadReunionConfig() {
-    $data = array();
-    
-    $feedConfigFile = realpath_exists(SITE_CONFIG_DIR.'/feeds/reunion.ini');
-    if ($feedConfigFile) {
-      $data = parse_ini_file($feedConfigFile, true);
-    }
-    
-    return $data;
-  }
-  
   protected function initializeForPage() {
     $user = $this->getUser('HarvardReunionUser');
     $this->schedule = new Schedule($user);
