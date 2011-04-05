@@ -1,0 +1,43 @@
+h2 {
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 100%;
+	font-weight: bold;
+	margin: 20px 0 14px 0;
+}
+
+#intro {
+	font-size: 88.23%;
+	color: #d7e2e3;
+	line-height: 1.25em;
+}
+
+.or {
+	font-weight: bold;
+}
+
+form {
+	padding: 5px 2px 12px 2px;
+	font-size: 94.1%;
+}
+
+form p {
+	margin: 0.75em 0;
+}
+
+label {
+	padding-left: 2px;
+}
+
+.secondlabel {
+	font-size: 88.2%;
+	margin-left: 4px;
+}
+
+.helptext {
+	font-size: 88.2%;
+	line-height: 1.2em;
+}
+
+table.inputs {
+  margin-top: .5em;
+}

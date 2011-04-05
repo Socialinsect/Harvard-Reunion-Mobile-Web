@@ -1,0 +1,160 @@
+.reunionHeader {
+	background: url(/modules/login/images/shields.gif) no-repeat left;
+	padding-left: 106px;
+	font-size: 129.4%;
+	line-height: 1.2em;
+	min-height: 58px;
+	color: #fff;
+	padding-top: 2px;
+	margin: 6px 0 20px -2px;
+  	text-shadow: #333 0 1px 1px;
+}
+
+h2 {
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 100%;
+	font-weight: bold;
+	color: #fff;
+	margin: 20px 0 14px 0;
+}
+
+#intro {
+	font-size: 88.23%;
+	color: #d7e2e3;
+	line-height: 1.25em;
+}
+
+.ribbon {
+	height: 52px;
+	margin: 0 -12px;
+	padding: 8px 0;
+	background: url(/common/images/signin-ribbon.gif) repeat-x;
+}
+
+.ribbon a,
+.ribbon a:visited {
+	display: block;
+	padding: 5px 22px 7px 10px;
+	text-decoration: none;
+	color: #fff;
+	font-size: 100%;
+	line-height: 1.2em;
+	font-weight: bold;
+	background: url(/common/images/signin-ribbon-actionarrow.gif) no-repeat right;
+}
+
+.ribbon a .smallprint {
+	font-size: 82.35%;
+	font-weight: normal;
+	color: #d8aaaa;
+}
+
+.or {
+	clear: both;
+	font-weight: bold;
+	text-align: center;
+}
+
+#download {
+	margin: 24px -10px;
+}
+
+#download img {
+	float: left;
+	padding-right: 8px;
+	margin-top: -4px;
+}
+
+#download a,
+#download a:visited {
+	display: block;
+	padding: 8px;
+	color: #c1bcb9;
+	font-size: 88.2%;
+	text-decoration: none;
+	line-height: 1.25em;
+}
+
+form {
+	padding: 0 2px 12px 2px;
+	font-size: 94.1%;
+}
+
+form p {
+	margin: 0.75em 0;
+}
+
+label {
+	display: block;
+	clear: both;
+	color: #fff;
+	font-size: 88.2%;
+	line-height: 1.33em;
+	padding-left: 2px;
+}
+
+select {
+	border-color: #333;
+	height: 2em;
+}
+
+.secondlabel {
+	font-size: 88.2%;
+	margin-left: 4px;
+}
+
+#username, #pwd {
+	border-width: 1px;
+	border-radius: 6px;
+	padding: 2px 4px;
+	width: 97%;
+	background: -webkit-gradient(linear, left top, left bottom, from(#ddd), to(#f9f9f9));
+}
+
+.signinbuttons {
+	margin: 1em 0;
+	width: auto;
+}
+
+.signinbutton {
+	display: inline-block;
+	width: 100px;
+	height: 43px;
+	margin-right: 10px;
+	text-align: center;
+	line-height: 43px;
+	padding: 0;
+	border: none;
+	background-repeat: no-repeat;
+	background-position: 0 0;
+	font-weight: bold;
+	text-decoration: none;
+	border-radius: 4px;
+}
+
+.signinbutton:active {
+	background-position: 0 -50px;
+}
+
+.submit {
+	background: url(/common/images/signin-button-red.gif);
+	color: #fff;
+}
+
+.cancel, a.cancel, a.cancel:visited {
+	background: url(/common/images/signin-button-grey.gif);
+	color: #bbb;
+}
+
+.helptext {
+	color: #d6d1ce;
+	font-size: 88.2%;
+	line-height: 1.2em;
+}
+
+.nonfocal p a,
+.nonfocal p a:visited,
+.helptext a,
+.helptext a:visited {
+	color: #c1bcb9;
+}
