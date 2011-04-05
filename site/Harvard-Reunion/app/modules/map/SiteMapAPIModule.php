@@ -6,18 +6,53 @@ class SiteMapAPIModule extends MapAPIModule
     private $outputProjector;
     private $inputProjector;
 
+    private $fieldConfig;
+    private $photoServer;
+
     private function arrayFromMapFeature(MapFeature $feature) {
         $category = $feature->getCategory();
         if (!is_array($category)) {
             $category = explode(MAP_CATEGORY_DELIMITER, $category);
         }
+
+        $info = $feature->getDescription();
+
+        if (!isset($this->fieldConfig)) {
+            $this->fieldConfig = $this->getAPIConfig('detail');
+        }
+
+        if (!isset($this->photoServer)) {
+            $this->photoServer = $this->getOptionalModuleVar('MAP_PHOTO_SERVER');
+        }
+
+        $suppress = $this->fieldConfig->getVar('suppress', 'details');
+        $photofields = $this->fieldConfig->getVar('photofields', 'details');
+
+        $filteredInfo = array();
+        $photoURL = null;
+        foreach ($info as $infoDict) {
+            if (in_array($infoDict['label'], $photofields)) {
+                $photoFile = $infoDict['title'];
+                if ($photoFile && $photoFile != 'Null') {
+                    $photoURL = $this->photoServer.$photoFile;
+                }
+                
+            } else if (!in_array($infoDict['label'], $suppress)) {
+                $filteredInfo[] = $infoDict;
+            }
+        }
+
         $result = array(
             'title' => $feature->getTitle(),
             'subtitle' => $feature->getSubtitle(),
             'id' => $feature->getIndex(),
             'category' => $category,
-            'description' => $feature->getDescription(),
+            'description' => $filteredInfo,
             );
+
+        if ($photoURL) {
+            $result['photo'] = $photoURL;
+        }
 
         $geometry = $feature->getGeometry();
         if ($geometry) {
@@ -102,7 +137,7 @@ class SiteMapAPIModule extends MapAPIModule
                     }
 
                     break;
-                /*
+                
                 case 'nearby':
                     $lat = $this->getArg('lat', 0);
                     $lon = $this->getArg('lon', 0);
@@ -130,7 +165,7 @@ class SiteMapAPIModule extends MapAPIModule
                     $this->setResponseVersion(1);
 
                     break;
-                */
+                
                 default:
                     $searchTerms = $this->getArg('q');
                     if ($searchTerms) {
