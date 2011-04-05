@@ -197,11 +197,5 @@ class SiteHomeWebModule extends HomeWebModule {
     }
     
     parent::initializeForPage();
-    
-    if ($this->page == 'index') {
-      $modules = $this->getModuleNavList(); error_log(print_r($modules, true));
-      
-      $this->assign('modules', $this->getModuleNavList());
-    }
   }
 }
