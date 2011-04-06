@@ -1,5 +1,8 @@
 {extends file="findExtends:common/templates/footer.tpl"}
 
+{block name="loginHTML"}
+{/block}
+
 {block name="footer"}
   <p class="fontsize">
     Font size:&nbsp;
