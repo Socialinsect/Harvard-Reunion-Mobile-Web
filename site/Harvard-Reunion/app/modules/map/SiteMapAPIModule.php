@@ -34,6 +34,7 @@ class SiteMapAPIModule extends MapAPIModule
             if (in_array($infoDict['label'], $photofields)) {
                 $photoFile = $infoDict['title'];
                 if ($photoFile && $photoFile != 'Null') {
+                    $photoFile = str_replace(' ', '%20', $photoFile);
                     $photoURL = $this->photoServer.$photoFile;
                 }
                 
