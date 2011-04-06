@@ -24,7 +24,7 @@
       </p>
     {/block}
     
-    {include file="findInclude:modules/{$moduleID}/templates/buttons.tpl" submitName="login_submit" submitText="Sign In" cancelURL=$cancelURL cancelText="Cancel"}  
+    {include file="findInclude:modules/{$moduleID}/templates/buttons.tpl" submitText="Sign In" cancelText="Cancel"}
   </form>
 
   <div class="clear"></div>

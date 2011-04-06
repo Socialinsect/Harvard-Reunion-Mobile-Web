@@ -21,7 +21,7 @@
       </select>
     </p>
   
-    {include file="findInclude:modules/{$moduleID}/templates/buttons.tpl" submitName="login_submit" submitText="Enter" cancelURL=$cancelURL cancelText="Cancel"}  
+    {include file="findInclude:modules/{$moduleID}/templates/buttons.tpl" submitText="Enter" cancelText="Cancel"}
   </form>
 
   <div class="clear"></div>

@@ -59,9 +59,24 @@ class SiteLoginWebModule extends LoginWebModule
             break;
             
         case 'login':
+            if (isset($this->args['login_cancel'])) {
+              $this->redirectTo('index', array(
+                'url' => $url,
+              ));
+            }
+        
             $login          = $this->argVal($_POST, 'loginUser', '');
             $password       = $this->argVal($_POST, 'loginPassword', '');
             $authorityIndex = $this->getArg('authority', AuthenticationAuthority::getDefaultAuthenticationAuthorityIndex());
+            
+            $this->assign('authority', $authorityIndex);
+            $this->assign('url', $url);
+
+            if (empty($login) || empty($password)) {
+              $this->setTemplatePage($authorityIndex);
+              $this->assign('authFailed', true);
+              break;
+            }
             
             $options = array(
                 'url'       => $url,
@@ -71,9 +86,7 @@ class SiteLoginWebModule extends LoginWebModule
             $referrer = $this->argVal($_SERVER, 'HTTP_REFERER', '');
             $session->setRemainLoggedIn($this->getArg('remainLoggedIn', 0));
             
-            $this->assign('authority', $authorityIndex);
             $this->assign('cancelURL', $this->buildURL('logout', array('authority'=>$authorityIndex)));
-            $this->assign('url', $url);
             
             $noReunionOptions = array(
                 'authority' => $authorityIndex,
@@ -152,7 +165,6 @@ class SiteLoginWebModule extends LoginWebModule
             
                 $this->setTemplatePage($authority);
                 $this->assign('url', $url);
-                $this->assign('cancelURL', $this->buildURL('index', array('url'=>$url)));
             
             } else {
                 $this->assign('harrisURL',    $this->buildURL($this->page, array('authority'=>'harris', 'url'=>$url)));

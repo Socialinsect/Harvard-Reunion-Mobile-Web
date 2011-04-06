@@ -1,4 +1,4 @@
-<div class="signinbuttons">
-  <input class="signinbutton submit" name="{$submitName}" type="submit" value="{$submitText}"/>
-  <a class="signinbutton cancel" href="{$cancelURL}">{$cancelText}</a>
-</div>
+<p class="signinbuttons">
+  <input class="signinbutton submit" name="login_submit" type="submit" value="{$submitText}"/>
+  <input class="signinbutton cancel" name="login_cancel" type="submit" value="{$cancelText}"/>
+</p>
