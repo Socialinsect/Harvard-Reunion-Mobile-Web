@@ -72,7 +72,7 @@ class SiteLoginWebModule extends LoginWebModule
             $this->assign('authority', $authorityIndex);
             $this->assign('url', $url);
 
-            if (empty($login) || empty($password)) {
+            if ($authorityIndex != 'anonymous' && (empty($login) || empty($password))) {
               $this->setTemplatePage($authorityIndex);
               $this->assign('authFailed', true);
               break;
