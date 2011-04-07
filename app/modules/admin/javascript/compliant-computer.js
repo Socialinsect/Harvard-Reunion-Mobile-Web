@@ -72,6 +72,7 @@ function createFormFieldListItem(key, fieldData) {
     var listClass='';
     switch (fieldData.type) {
         case 'checkbox':
+        case 'inversecheckbox':
             listClass='checkitem';
             break;
         case 'paragraph':
@@ -132,6 +133,10 @@ function appendFormField(parent, key, fieldData) {
             }
             parent.append(input);
             break;
+        case 'inversecheckbox':
+            parent.append($('<input/>').attr('type','hidden').attr('name', key).attr('section', section).attr('value', '1'));
+            parent.append($('<input/>').attr('type','checkbox').attr('name', key).attr('section', section).attr('value', '0').addClass('changeElement').addClass(inputClass).attr('checked', !parseInt(fieldData.value) ? 'checked':'').attr('id',id));
+            break;
         case 'checkbox':
             parent.append($('<input/>').attr('type','hidden').attr('name', key).attr('section', section).attr('value', '0'));
             parent.append($('<input/>').attr('type',fieldData.type).attr('name', key).attr('section', section).attr('value', '1').addClass('changeElement').addClass(inputClass).attr('checked', parseInt(fieldData.value) ? 'checked':'').attr('id',id));
@@ -147,7 +152,7 @@ function appendFormField(parent, key, fieldData) {
             parent.append(createSelectBox(options, fieldData.value).attr('name',key).attr('section', section).addClass('changeElement').addClass(inputClass).attr('id',id));
             break;
         case 'paragraph':
-            parent.append($('<textarea>'+(fieldData.value ? fieldData.value : '')+'</textarea>').attr('name',key).attr('rows','5').attr('section', section).addClass(inputClass).attr('id',id));
+            parent.append($('<textarea>'+(fieldData.value ? fieldData.value : '')+'</textarea>').attr('name',key).attr('rows','8').attr('section', section).addClass(inputClass).attr('id',id));
             break;
         case 'label':
             parent.append('<span class="labeltext">'+fieldData.value+'</span>');

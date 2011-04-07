@@ -214,37 +214,6 @@ abstract class Module
     }
 
     /**
-      * Returns the main module configuration
-      * @return array. Dictionary of module keys and values
-      */
-    public function getModuleData() {
-        if (!$this->moduleData) {
-            $moduleData = $this->getModuleDefaultData();
-            $config = $this->getConfig('module');
-            $moduleData = array_merge($moduleData, $config->getSectionVars());
-            $this->moduleData = $moduleData;
-        }
-    
-        return $this->moduleData;
-    }
-  
-    /**
-      * Returns default module configuration data
-      * @return array
-      */
-    protected function getModuleDefaultData() {
-        return array(
-            'module'=>array(
-                'title'=>ucfirst($this->configModule),
-                'disabled'=>0,
-                'protected'=>0,
-                'search'=>0,
-                'secure'=>0
-            )
-        );
-    }
-
-    /**
       * Convenience method for retrieving a key from an array
       * @param array $args an array to search
       * @param string $key the key to retrieve
@@ -410,9 +379,12 @@ abstract class Module
         $configData = $this->getModuleAdminConfig();
         $sections = array();
         foreach ($configData as $section=>$sectionData) {
-            $sections[$section] = $sectionData['title'];
+            $sections[$section] = array(
+                'title'=>$sectionData['title'],
+                'type'=>$sectionData['type']
+            );
         }
-        
+                
         return $sections;
     }
     
@@ -421,15 +393,20 @@ abstract class Module
         if (!$configData) {
             $configData = array();
             $files = array(
-                sprintf("%s/common/config/admin-module.json", APP_DIR),
-                sprintf("%s/%s/config/admin-module.json", MODULES_DIR, $this->id)
+                'common'=>sprintf("%s/common/config/admin-module.json", APP_DIR),
+                'module'=>sprintf("%s/%s/config/admin-module.json", MODULES_DIR, $this->id)
             );
 
-            foreach ($files as $file) {                
+            foreach ($files as $type=>$file) {                
                 if (is_file($file)) {
                     if (!$data = json_decode(file_get_contents($file),true)) {
                         throw new Exception("Error parsing $file");
                     }
+                    
+                    foreach ($data as $section=>&$sectionData) {
+                        $sectionData['type'] = $type;
+                    }
+                    
                     $configData = array_merge_recursive($configData, $data);
                 }
             }

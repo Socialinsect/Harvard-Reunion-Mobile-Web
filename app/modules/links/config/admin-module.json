@@ -8,13 +8,15 @@
       }
     },
     "strings":{
+        "title":"Text Strings",
+        "description":"",
+        "sectiontype":"fields",
         "fields":{
              "description":{"label":"Header text","type":"text","config":"module","section":"strings","description":"Text to display in the header of the module"}
       }
     },
     "links": {
         "title":"Links",
-        "label":"Links",
         "description":"",
         "config":"links",
         "sectiontype":"section",

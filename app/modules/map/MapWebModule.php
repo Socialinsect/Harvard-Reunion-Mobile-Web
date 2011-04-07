@@ -7,6 +7,7 @@ define('MAP_GROUP_COOKIE', 'mapgroup');
 class MapWebModule extends WebModule {
 
     protected $id = 'map';
+    protected $bookmarkLinkTitle = 'Bookmarked Locations';
     protected $feedGroup = null;
     protected $feedGroups = null;
     protected $numGroups = 1;
@@ -68,7 +69,10 @@ class MapWebModule extends WebModule {
         $sections = parent::getModuleAdminSections();
         
         foreach ($this->getFeedGroups() as $feedgroup=>$data) {
-            $sections['feeds-'.$feedgroup] = $data['title'];
+            $sections['feeds-'.$feedgroup] = array(
+                'title'=>$data['title'],
+                'type'=>'module hidden'
+            );
         }
         
         return $sections;
@@ -88,7 +92,6 @@ class MapWebModule extends WebModule {
         return $configData;
     }
 
-    
     protected function initialize() {
         $this->feedGroup = $this->getArg('group', NULL);
         if ($this->feedGroup === NULL) {
@@ -106,57 +109,6 @@ class MapWebModule extends WebModule {
         }
     }
     
-    protected function pageSupportsDynamicMap() {
-        return ($this->pagetype == 'compliant' ||
-                $this->pagetype == 'tablet')
-            && $this->platform != 'blackberry'
-            && $this->platform != 'bbplus';
-    }
-
-    protected function staticMapImageDimensions() {
-        switch ($this->pagetype) {
-            case 'tablet':
-                $imageWidth = 600; $imageHeight = 350;
-                break;
-            case 'compliant':
-                if ($this->platform == 'bbplus') {
-                    $imageWidth = 410; $imageHeight = 260;
-                } else {
-                    $imageWidth = 290; $imageHeight = 290;
-                }
-                break;
-            case 'touch':
-            case 'basic':
-                $imageWidth = 200; $imageHeight = 200;
-                break;
-        }
-        return array($imageWidth, $imageHeight);
-    }
-    
-    protected function dynamicMapImageDimensions() {
-        $imageWidth = '98%';
-        switch ($this->pagetype) {
-            case 'tablet':
-                $imageHeight = 350;
-                break;
-            case 'compliant':
-            default:
-                if ($this->platform == 'bbplus') {
-                    $imageHeight = 260;
-                } else {
-                    $imageHeight = 290;
-                }
-                break;
-        }
-        return array($imageWidth, $imageHeight);
-    }
-    
-    protected function fullscreenMapImageDimensions() {
-        $imageWidth = '100%';
-        $imageHeight = '100%';
-        return array($imageWidth, $imageHeight);
-    }
-
     protected function addJavascriptFullscreenStaticMap() {
         // Let Webkit figure out what the window size is and then hide the address bar
         // and resize the map
@@ -214,6 +166,7 @@ JS;
     
     private function initializeMap(MapDataController $dataController, MapFeature $feature, $fullscreen=FALSE) {
         
+        $MapDevice = new MapDevice($this->pagetype, $this->platform);
         $style = $feature->getStyle();
         $geometries = array();
         
@@ -226,7 +179,7 @@ JS;
             $zoomLevel = $dataController->getDefaultZoomLevel();
         }
 
-        if ($this->pageSupportsDynamicMap() && $dataController->supportsDynamicMap()) {
+        if ($MapDevice->pageSupportsDynamicMap() && $dataController->supportsDynamicMap()) {
             $imgController = $dataController->getDynamicMapController();
         } else {
             $imgController = $dataController->getStaticMapController();
@@ -282,20 +235,20 @@ JS;
             $this->assign('fullscreenURL', $this->buildBreadcrumbURL('fullscreen', $this->args, false));
         
             if ($imgController->isStatic()) {
-                list($imageWidth, $imageHeight) = $this->staticMapImageDimensions();
+                list($imageWidth, $imageHeight) = $MapDevice->staticMapImageDimensions();
 
             } else {
-                list($imageWidth, $imageHeight) = $this->dynamicMapImageDimensions();
+                list($imageWidth, $imageHeight) = $MapDevice->dynamicMapImageDimensions();
                 $this->addInlineJavascriptFooter("\n hideMapTabChildren();\n");
             }
             
         } else {
             $this->assign('detailURL', $this->buildBreadcrumbURL('detail', $this->args, false));
             if ($imgController->isStatic()) {
-                list($imageWidth, $imageHeight) = $this->staticMapImageDimensions();
+                list($imageWidth, $imageHeight) = $MapDevice->staticMapImageDimensions();
 
             } else {
-                list($imageWidth, $imageHeight) = $this->fullscreenMapImageDimensions();
+                list($imageWidth, $imageHeight) = $MapDevice->fullscreenMapImageDimensions();
                 $this->addJavascriptFullscreenDynamicMap();
             }
             $this->addJavascriptFullscreenRotateScreen();
@@ -434,53 +387,6 @@ JS;
         $this->assign('categories', $categories);
     }
 
-    // bookmarks -- shouldn't really be specific to this module
-
-    protected $bookmarkCookie = 'mapbookmarks';
-    protected $bookmarkLifespan = 25237;
-
-    protected function generateBookmarkOptions($cookieID) {
-        $cookieID = urldecode($cookieID);
-
-        // compliant branch
-        $this->addOnLoad("setBookmarkStates('{$this->bookmarkCookie}', '{$cookieID}')");
-        $this->assign('cookieName', $this->bookmarkCookie);
-        $this->assign('expireDate', $this->bookmarkLifespan);
-        $this->assign('bookmarkItem', $cookieID);
-
-        // the rest of this is all touch and basic branch
-        if (isset($this->args['bookmark'])) {
-            if ($this->args['bookmark'] == 'add') {
-                $this->addBookmark($cookieID);
-                $status = 'on';
-                $bookmarkAction = 'remove';
-            } else {
-                $this->removeBookmark($cookieID);
-                $status = 'off';
-                $bookmarkAction = 'add';
-            }
-
-        } else {
-            if ($this->hasBookmark($cookieID)) {
-                $status = 'on';
-                $bookmarkAction = 'remove';
-            } else {
-                $status = 'off';
-                $bookmarkAction = 'add';
-            }
-        }
-
-        $this->assign('bookmarkStatus', $status);
-        $this->assign('bookmarkURL', $this->bookmarkToggleURL($bookmarkAction));
-        $this->assign('bookmarkAction', $bookmarkAction);
-    }
-
-    private function bookmarkToggleURL($toggle) {
-        $args = $this->args;
-        $args['bookmark'] = $toggle;
-        return $this->buildBreadcrumbURL($this->page, $args, false);
-    }
-
     protected function detailURLForBookmark($aBookmark) {
         parse_str($aBookmark, $params);
         if (isset($params['featureindex']) || isset($params['lat'], $params['lon'])) {
@@ -492,41 +398,6 @@ JS;
         }
     }
 
-    protected function getBookmarks() {
-        $bookmarks = array();
-        if (isset($_COOKIE[$this->bookmarkCookie])) {
-            $bookmarks = explode(",", $_COOKIE[$this->bookmarkCookie]);
-        }
-        return $bookmarks;
-    }
-
-    protected function setBookmarks($bookmarks) {
-        $values = implode(",", $bookmarks);
-        $expireTime = time() + $this->bookmarkLifespan;
-        setcookie($this->bookmarkCookie, $values, $expireTime, COOKIE_PATH);
-    }
-
-    protected function addBookmark($aBookmark) {
-        $bookmarks = $this->getBookmarks();
-        if (!in_array($aBookmark, $bookmarks)) {
-            $bookmarks[] = $aBookmark;
-            $this->setBookmarks($bookmarks);
-        }
-    }
-
-    protected function removeBookmark($aBookmark) {
-        $bookmarks = $this->getBookmarks();
-        $index = array_search($aBookmark, $bookmarks);
-        if ($index !== false) {
-            array_splice($bookmarks, $index, 1);
-            $this->setBookmarks($bookmarks);
-        }
-    }
-
-    protected function hasBookmark($aBookmark) {
-        return in_array($aBookmark, $this->getBookmarks());
-    }
-    
     protected function getTitleForBookmark($aBookmark) {
         parse_str($aBookmark, $params);
         if (isset($params['featureindex'])) {
@@ -557,18 +428,6 @@ JS;
         if (isset($params['group']))
             return 'group';
         return 'place';
-    }
-    
-    private function generateBookmarkLink() {
-        $hasBookmarks = count($this->getBookmarks()) > 0;
-        if ($hasBookmarks) {
-            $bookmarkLink = array(array(
-                'title' => 'Bookmarked Locations',
-                'url' => $this->buildBreadcrumbURL('bookmarks', $this->args, true),
-                ));
-            $this->assign('bookmarkLink', $bookmarkLink);
-        }
-        $this->assign('hasBookmarks', $hasBookmarks);
     }
 
     // return true on success, false on failure

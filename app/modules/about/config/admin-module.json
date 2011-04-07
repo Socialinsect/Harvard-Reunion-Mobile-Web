@@ -1,5 +1,8 @@
 {
     "strings":{
+        "title":"Text Strings",
+        "description":"",
+        "sectiontype":"fields",
         "fields":{
          "SITE_ABOUT_HTML":{"label":"About this site","type":"paragraph","config":"module","section":"strings","description":""},
          "ABOUT_HTML":{"label":"About this organization","type":"paragraph","config":"module","section":"strings","description":""}
@@ -7,7 +10,6 @@
     },
     "index": {
         "title":"Index Page",
-        "label":"Index Page",
         "config":"page-index",
         "description":"Entries for about index page",
         "sectiontype":"section",
