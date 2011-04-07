@@ -12,9 +12,43 @@ require_once realpath(LIB_DIR.'/smarty/Smarty.class.php');
   */
 class TemplateEngine extends Smarty {
   static $accessKey = 0;
+  public $templateEngineCurrentInclude = '';
+  public $templateEngineExtendsFiles = array();
+  
+  private function resetTemplateEngineExtendsTracker() {
+    self::checkTemplateEngineExtendsTracker($this, '');
+  }
+  
+  private static function checkTemplateEngineExtendsTracker($smarty, $name) {
+    if (!$name || $name != $smarty->templateEngineCurrentInclude) {
+      if ($name) {
+        //error_log("****RESETTING TRACKER for new include {$name}");
+      } else {
+        //error_log("****RESETTING TRACKER, include was {$smarty->templateEngineCurrentInclude}");
+      }
+      $smarty->templateEngineCurrentInclude = $name;
+      $smarty->templateEngineExtendsFiles = array();
+    }
+  }
+  
+  private static function addExtends($file, $smarty) {
+    // This function tracks extends off include files
+    // Fortunately for us, Smarty handles each extends chain as a unit
+    // keeping the resource_name the name of the include file throughout the 
+    // entire process.
+    // So our basic technique is to track all the files used for a given include
+    // and to toss the array either when the include file changes or when we
+    // leave the file via the postfilter below.
+  
+    if ($smarty->resource_type == 'file') {
+      self::checkTemplateEngineExtendsTracker($smarty->smarty, $smarty->resource_name);
+      //error_log("****ADDING {$file}");
+      $smarty->smarty->templateEngineExtendsFiles[$file] = true;
+    }
+  }
   
   //
-  // Include file resource plugin
+  // Include file
   //
   
   static private function getIncludeFile($name) {
@@ -29,7 +63,7 @@ class TemplateEngine extends Smarty {
     $checkDirs = array(
       'THEME_DIR'    => THEME_DIR,
       'SITE_APP_DIR' => SITE_APP_DIR,
-      'APP_DIR'      => APP_DIR
+      'APP_DIR'      => APP_DIR,
     );
     $checkFiles = array(
       "$subDir$page-$pagetype-$platform.tpl", // platform-specific
@@ -37,11 +71,11 @@ class TemplateEngine extends Smarty {
       "$subDir$page.tpl"                      // default
     );
     
-    foreach ($checkDirs as $type => $dir) {
-      foreach ($checkFiles as $file) {
+    foreach ($checkFiles as $file) {
+      foreach ($checkDirs as $type => $dir) {
         $test = realpath_exists("$dir/$file");
         if ($test) {
-          //error_log(__FUNCTION__."($pagetype-$platform) choosing '$type/$file'");
+          //error_log(__FUNCTION__."($pagetype-$platform) choosing '$type/$file' for '$name'");
           return $test;
         }
       }
@@ -49,80 +83,87 @@ class TemplateEngine extends Smarty {
     return $name;
   }
   
-  public static function smartyResourceIncludeGetSource($name, &$source, $smarty) {
-    $file = self::getIncludeFile($name);
-    if ($file !== false) {
-      $source = file_get_contents($file);
-      return true;
-    }
-    return false;
-  }
-
-  public static function smartyResourceIncludeGetTimestamp($name, &$timestamp, $smarty) {
-    $file = self::getIncludeFile($name);
-    if ($file !== false) {
-      $timestamp = filemtime($file);
-      return true;
-    }
-    return false;
-  }
-
-  public static function smartyResourceIncludeGetSecure($name, $smarty) {
-    return true;
-  }
-
-  public static function smartyResourceIncludeGetTrusted($name, $smarty) {
-    return true;
-  }
-  
   //
-  // Extends file resource plugin
+  // Extends file
   //
   
-  static private function getExtendsFile($name) {
+  static private function getExtendsFile($name, $smarty) {
     $pagetype = $GLOBALS['deviceClassifier']->getPagetype();
     $platform = $GLOBALS['deviceClassifier']->getPlatform();
     
     $checkDirs = array(
-      'APP_DIR'      => APP_DIR,
+      'THEME_DIR'    => THEME_DIR,
       'SITE_APP_DIR' => SITE_APP_DIR,
-      'THEME_DIR'    => THEME_DIR
+      'APP_DIR'      => APP_DIR,
     );
-    
+        
     foreach ($checkDirs as $type => $dir) {
-        $test = realpath_exists("$dir/$name");
-        if ($test) {
-          //error_log(__FUNCTION__."($pagetype-$platform) choosing     '$type/$name'");
-          return $test;
-        }
+      $test = realpath_exists("$dir/$name");
+      if ($test && !isset($smarty->smarty->templateEngineExtendsFiles[$test])) {
+        //error_log(__FUNCTION__."($pagetype-$platform) choosing     '$type/$name' for '$name'");
+        self::addExtends($test, $smarty);
+        return $test;
+      }
     }
     return false;
   }
   
-  public static function smartyResourceExtendsGetSource($name, &$source, $smarty) {
-    $file = self::getExtendsFile($name);
-    if ($file !== false) {
-      $source = file_get_contents($file);
-      return true;
+  private static function replaceVariables($string, $variables) {
+    $search = array();
+    $replace = array();
+
+    // TODO: fix this so it doesn't match on single { or }
+    if (preg_match_all(';{?\$([A-za-z]\w*)}?;', $string, $matches, PREG_PATTERN_ORDER)) {
+      foreach ($matches[1] as $i => $variable) {
+        if (isset($variables[$variable]) && is_string($variables[$variable])) {
+          $search[] = $matches[0][$i];
+          $replace[] = $variables[$variable];
+        }
+      }
     }
-    return false;
+    return $search ? str_replace($search, $replace, $string) : $string;
   }
-
-  public static function smartyResourceExtendsGetTimestamp($name, &$timestamp, $smarty) {
-    $file = self::getExtendsFile($name);
-    if ($file !== false) {
-      $timestamp = filemtime($file);
-      return true;
+  
+  public static function smartyPrefilterHandleIncludeAndExtends($source, $smarty) {
+    $variables = $smarty->smarty->getTemplateVars();
+    
+    // findIncludes
+    $search = array();
+    $replace = array();
+    if (preg_match_all(';file\s*=\s*"findInclude:([^"]+)";', $source, $matches, PREG_PATTERN_ORDER)) {
+      foreach ($matches[1] as $i => $name) {
+        $path = self::getIncludeFile(self::replaceVariables($name, $variables));
+        if ($path) {
+          $search[] = $matches[0][$i];
+          $replace[] = 'file="file:'.$path.'"';
+          //error_log(__FUNCTION__." replacing include $name with $path");
+        } else {
+          trigger_error(__FUNCTION__." FAILED to find INCLUDE for $name", E_USER_ERROR);
+        }
+      }
     }
-    return false;
+    if (preg_match_all(';file\s*=\s*"findExtends:([^"]+)";', $source, $matches, PREG_PATTERN_ORDER)) {
+      foreach ($matches[1] as $i => $name) {
+        $path = self::getExtendsFile(self::replaceVariables($name, $variables), $smarty);
+        if ($path) {
+          $search[] = $matches[0][$i];
+          $replace[] = 'file="file:'.$path.'"';
+          //error_log(__FUNCTION__." replacing extends $name with $path");
+        } else {
+          trigger_error(__FUNCTION__." FAILED to find EXTENDS for $name", E_USER_ERROR);
+        }
+      }
+    }
+    
+    return $search ? str_replace($search, $replace, $source) : $source;
   }
-
-  public static function smartyResourceExtendsGetSecure($name, $smarty) {
-    return true;
-  }
-
-  public static function smartyResourceExtendsGetTrusted($name, $smarty) {
-    return true;
+  
+  public static function smartyPostfilterHandleIncludeAndExtends($source, $smarty) {
+    if ($smarty->resource_type == 'file' && 
+        $smarty->resource_name == $smarty->templateEngineCurrentInclude) {
+      self::checkTemplateEngineExtendsTracker($smarty->smarty, '');
+    }
+    return $source;
   }
   
   private static function stripWhitespaceReplace($search, $replace, &$subject) {
@@ -242,6 +283,9 @@ class TemplateEngine extends Smarty {
   function __construct() {
     parent::__construct();
 
+    // Fix this in a later release -- currently generates lots of warnings
+    $this->error_reporting = E_ALL & ~E_NOTICE;
+
     // Device info
     $pagetype      = $GLOBALS['deviceClassifier']->getPagetype();
     $platform      = $GLOBALS['deviceClassifier']->getPlatform();
@@ -252,20 +296,11 @@ class TemplateEngine extends Smarty {
     $this->setCacheDir   (CACHE_DIR.'/smarty/html');
     $this->setCompileId  ("$pagetype-$platform");
     
-    // Theme and device detection for includes and extends
-    $this->registerResource('findExtends', array(
-      array('TemplateEngine','smartyResourceExtendsGetSource'),
-      array('TemplateEngine','smartyResourceExtendsGetTimestamp'),
-      array('TemplateEngine','smartyResourceExtendsGetSecure'),
-      array('TemplateEngine','smartyResourceExtendsGetTrusted')
-    ));
-    $this->registerResource('findInclude', array(
-      array('TemplateEngine','smartyResourceIncludeGetSource'),
-      array('TemplateEngine','smartyResourceIncludeGetTimestamp'),
-      array('TemplateEngine','smartyResourceIncludeGetSecure'),
-      array('TemplateEngine','smartyResourceIncludeGetTrusted')
-    ));
-    
+    $this->registerFilter('pre', array('TemplateEngine', 
+      'smartyPrefilterHandleIncludeAndExtends'));
+    $this->registerFilter('post', array('TemplateEngine', 
+      'smartyPostfilterHandleIncludeAndExtends'));
+
     // Postfilter to add url prefix to absolute urls and
     // strip unnecessary whitespace (ignores <pre>, <script>, etc)
     $this->registerFilter('output', array('TemplateEngine', 
@@ -289,6 +324,8 @@ class TemplateEngine extends Smarty {
   //
   
   function displayForDevice($page, $cacheID = null, $compileID = null) {
+    $this->resetTemplateEngineExtendsTracker();
+  
     $this->display(self::getIncludeFile($page), $cacheID, $compileID);
   }
   
@@ -297,6 +334,8 @@ class TemplateEngine extends Smarty {
   //
   
   function fetchForDevice($page, $cacheID = null, $compileID = null) {
+    $this->resetTemplateEngineExtendsTracker();
+
     return $this->fetch(self::getIncludeFile($page), $cacheID, $compileID);
   }
 }
