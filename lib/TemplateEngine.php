@@ -44,7 +44,7 @@ class TemplateEngine extends Smarty {
   
     if ($smarty->resource_type == 'file') {
       self::checkTemplateEngineExtendsTracker($smarty->smarty, $smarty->resource_name);
-      error_log("****ADDING TO TRACKER {$file}");
+      //error_log("****ADDING TO TRACKER {$file}");
       $smarty->smarty->templateEngineExtendsFiles[$file] = true;
     }
   }
