@@ -12,45 +12,68 @@ require_once realpath(LIB_DIR.'/smarty/Smarty.class.php');
   */
 class TemplateEngine extends Smarty {
   static $accessKey = 0;
-  public $templateEngineCurrentInclude = '';
-  public $templateEngineExtendsFiles = array();
+  public $extendsTrackerCurrentInclude = '';
+  public $extendsTrackerSeenFiles = array();
+
+  //
+  // Extends file tracking
+  //
   
-  private function resetTemplateEngineExtendsTracker() {
-    self::checkTemplateEngineExtendsTracker($this, '');
-  }
+  // The following functions track {extends} files used for device templates.
+  // The purpose is to allow us to have extends relationships between files 
+  // with the same name in different directories, but to be able to know
+  // which directories have already been used so we don't loop.
+  //
+  // Fortunately for us, Smarty handles each extends chain as a unit
+  // keeping the template resource_name the name of the include file 
+  // throughout the entire process.
+  //
+  // So our basic technique is to track all the files used for a given resource_name
+  // and to toss the array either when the resource_name file changes or when we
+  // leave the template via the postfilter below.
+
   
-  private static function checkTemplateEngineExtendsTracker($smarty, $file) {
-    if (!$file || $file != $smarty->templateEngineCurrentInclude) {
-      $smarty->templateEngineExtendsFiles = array();
-      if ($file) {
-        //error_log("****RESETTING TRACKER for new include {$file}");
-        //error_log("****ADDING TO TRACKER {$file}");
-        $smarty->templateEngineExtendsFiles[$file] = true;
-      } else {
-        //error_log("****RESETTING TRACKER, leaving {$smarty->templateEngineCurrentInclude}");
+  private function extendsTrackerReset($templateToMatch=null) {
+    if (!$templateToMatch || $this->extendsTrackerUsingTemplate($templateToMatch)) {
+      if (Kurogo::getOptionalSiteVar('TEMPLATE_DEBUG')) {
+        error_log('**** RESETTING TRACKER'.($this->extendsTrackerCurrentInclude ? " (old include {$this->extendsTrackerCurrentInclude})" : ''));
       }
-      $smarty->templateEngineCurrentInclude = $file;
+      $this->extendsTrackerCurrentInclude = '';
+      $this->extendsTrackerSeenFiles = array();
     }
   }
   
-  private static function addExtends($file, $smarty) {
-    // This function tracks extends off include files
-    // Fortunately for us, Smarty handles each extends chain as a unit
-    // keeping the resource_name the name of the include file throughout the 
-    // entire process.
-    // So our basic technique is to track all the files used for a given include
-    // and to toss the array either when the include file changes or when we
-    // leave the file via the postfilter below.
-  
-    if ($smarty->resource_type == 'file') {
-      self::checkTemplateEngineExtendsTracker($smarty->smarty, $smarty->resource_name);
-      //error_log("****ADDING TO TRACKER {$file}");
-      $smarty->smarty->templateEngineExtendsFiles[$file] = true;
+  private function extendsTrackerCheckTemplate($template) {
+    if ($template->resource_type == 'file' && !$this->extendsTrackerUsingTemplate($template)) {
+      if (Kurogo::getOptionalSiteVar('TEMPLATE_DEBUG')) {
+        error_log("**** RESETTING TRACKER (new include {$template->resource_name})");
+      }
+      $this->extendsTrackerCurrentInclude = $template->resource_name;
+      $this->extendsTrackerSeenFiles = array();
+      
+      $this->extendsTrackerAddFile($template->resource_name);
     }
+  }
+  
+  private function extendsTrackerUsingTemplate($template) {
+    return 
+      ($template->resource_type == 'file') && 
+      ($template->resource_name == $this->extendsTrackerCurrentInclude);
+  }
+  
+  private function extendsTrackerSeenFile($file) {
+    return isset($this->extendsTrackerSeenFiles[$file]);
+  }
+  
+  private function extendsTrackerAddFile($file) {
+    if (Kurogo::getOptionalSiteVar('TEMPLATE_DEBUG')) {
+      error_log("**** ADDING TO TRACKER -- {$file}");
+    }
+    $this->extendsTrackerSeenFiles[$file] = true;
   }
   
   //
-  // Include file
+  // Finding include files
   //
   
   static private function getIncludeFile($name) {
@@ -77,7 +100,9 @@ class TemplateEngine extends Smarty {
       foreach ($checkDirs as $type => $dir) {
         $test = realpath_exists("$dir/$file");
         if ($test) {
-          //error_log(__FUNCTION__."($pagetype-$platform) choosing '$type/$file' for '$name'");
+          if (Kurogo::getOptionalSiteVar('TEMPLATE_DEBUG')) {
+            error_log(__FUNCTION__."($pagetype-$platform) choosing '$type/$file' for '$name'");
+          }
           return $test;
         }
       }
@@ -86,10 +111,10 @@ class TemplateEngine extends Smarty {
   }
   
   //
-  // Extends file
+  // Finding extends files
   //
   
-  static private function getExtendsFile($name, $smarty) {
+  static private function getExtendsFile($name, $template) {
     $pagetype = $GLOBALS['deviceClassifier']->getPagetype();
     $platform = $GLOBALS['deviceClassifier']->getPlatform();
     
@@ -101,14 +126,20 @@ class TemplateEngine extends Smarty {
         
     foreach ($checkDirs as $type => $dir) {
       $test = realpath_exists("$dir/$name");
-      if ($test && !isset($smarty->smarty->templateEngineExtendsFiles[$test])) {
-        //error_log(__FUNCTION__."($pagetype-$platform) choosing     '$type/$name' for '$name'");
-        self::addExtends($test, $smarty);
+      if ($test && !$template->smarty->extendsTrackerSeenFile($test)) {
+        if (Kurogo::getOptionalSiteVar('TEMPLATE_DEBUG')) {
+          error_log(__FUNCTION__."($pagetype-$platform) choosing     '$type/$name' for '$name'");
+        }
+        $template->smarty->extendsTrackerAddFile($test);
         return $test;
       }
     }
     return false;
   }
+  
+  //
+  // Prefilter to map include and extend directives to real files
+  //
   
   private static function replaceVariables($string, $variables) {
     $search = array();
@@ -126,12 +157,10 @@ class TemplateEngine extends Smarty {
     return $search ? str_replace($search, $replace, $string) : $string;
   }
   
-  public static function smartyPrefilterHandleIncludeAndExtends($source, $smarty) {
-    if ($smarty->resource_type == 'file') {
-      self::checkTemplateEngineExtendsTracker($smarty->smarty, $smarty->resource_name);
-    }
+  public static function smartyPrefilterHandleIncludeAndExtends($source, $template) {
+    $template->smarty->extendsTrackerCheckTemplate($template);
     
-    $variables = $smarty->smarty->getTemplateVars();
+    $variables = $template->smarty->getTemplateVars();
     
     // findIncludes
     $search = array();
@@ -142,7 +171,9 @@ class TemplateEngine extends Smarty {
         if ($path) {
           $search[] = $matches[0][$i];
           $replace[] = 'file="file:'.$path.'"';
-          //error_log(__FUNCTION__." replacing include $name with $path");
+          if (Kurogo::getOptionalSiteVar('TEMPLATE_DEBUG')) {
+            error_log(__FUNCTION__." replacing include $name with $path");
+          }
         } else {
           trigger_error(__FUNCTION__." FAILED to find INCLUDE for $name", E_USER_ERROR);
         }
@@ -150,11 +181,13 @@ class TemplateEngine extends Smarty {
     }
     if (preg_match_all(';file\s*=\s*"findExtends:([^"]+)";', $source, $matches, PREG_PATTERN_ORDER)) {
       foreach ($matches[1] as $i => $name) {
-        $path = self::getExtendsFile(self::replaceVariables($name, $variables), $smarty);
+        $path = self::getExtendsFile(self::replaceVariables($name, $variables), $template);
         if ($path) {
           $search[] = $matches[0][$i];
           $replace[] = 'file="file:'.$path.'"';
-          //error_log(__FUNCTION__." replacing extends $name with $path");
+          if (Kurogo::getOptionalSiteVar('TEMPLATE_DEBUG')) {
+            error_log(__FUNCTION__." replacing extends $name with $path");
+          }
         } else {
           trigger_error(__FUNCTION__." FAILED to find EXTENDS for $name", E_USER_ERROR);
         }
@@ -164,11 +197,12 @@ class TemplateEngine extends Smarty {
     return $search ? str_replace($search, $replace, $source) : $source;
   }
   
-  public static function smartyPostfilterHandleIncludeAndExtends($source, $smarty) {
-    if ($smarty->resource_type == 'file' && 
-        $smarty->resource_name == $smarty->templateEngineCurrentInclude) {
-      self::checkTemplateEngineExtendsTracker($smarty->smarty, '');
-    }
+  //
+  // Postfilter to detect when we are leaving an extends dependency chain
+  //
+
+  public static function smartyPostfilterHandleIncludeAndExtends($source, $template) {
+    $template->smarty->extendsTrackerReset($template);
     return $source;
   }
   
@@ -330,7 +364,7 @@ class TemplateEngine extends Smarty {
   //
   
   function displayForDevice($page, $cacheID = null, $compileID = null) {
-    $this->resetTemplateEngineExtendsTracker();
+    $this->extendsTrackerReset();
   
     $this->display(self::getIncludeFile($page), $cacheID, $compileID);
   }
@@ -340,7 +374,7 @@ class TemplateEngine extends Smarty {
   //
   
   function fetchForDevice($page, $cacheID = null, $compileID = null) {
-    $this->resetTemplateEngineExtendsTracker();
+    $this->extendsTrackerReset();
 
     return $this->fetch(self::getIncludeFile($page), $cacheID, $compileID);
   }
