@@ -11,4 +11,5 @@
       <td><input type="password" id="pwd" name="loginPassword" /></td>
     </tr>
   </table>
+  <br/>
 {/block}
