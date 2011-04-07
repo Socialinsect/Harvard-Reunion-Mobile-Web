@@ -1,4 +1,4 @@
-{extends file="findExtends:modules/{$moduleID}/templates/harris.tpl"}
+{extends file="findExtends:modules/$moduleID/templates/harris.tpl"}
 
 {block name="inputs"}
   <table class="inputs">

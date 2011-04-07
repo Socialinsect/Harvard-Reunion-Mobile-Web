@@ -346,17 +346,28 @@ class SiteScheduleWebModule extends WebModule {
         if ($info['registration']) {
           $requiresRegistration = true;
           $registration = array(
-            'title' => '<div class="icon"></div>Registration Required',
+            'title' => 'Registration Required',
             'class' => 'external register',
           );
+          
+
           
           if ($info['registration']['registered']) {
             $registered = true;
             
-            // No a tag so we need to wrap in a div
-            $registration['title'] = '<div class="register confirmed"><div class="icon"></div>Registration Confirmed</div>';
-            
+            if ($this->pagetype == 'basic') {
+              $registration['title'] = '<img src="/common/images/badge-confirmed.gif"/> Registration Confirmed';
+            } else {
+              // No <a> tag so we need to wrap in a div
+              $registration['title'] = '<div class="register confirmed"><div class="icon"></div>Registration Confirmed</div>';
+            }
           } else {
+            if ($this->pagetype == 'basic') {
+              $registration['label'] = '<img src="/common/images/badge-register.gif"/> ';
+            } else {
+              $registration['title'] = '<div class="icon"></div>'.$registration['title'];
+            }
+
             if (isset($info['registration']['url'])) {
               $printableURL = preg_replace(
                 array(';http://([^/]+)/$;', ';http://;'), 

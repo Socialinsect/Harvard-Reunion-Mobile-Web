@@ -34,7 +34,7 @@
 
 {if count($sections)}
   {foreach $sections as $section}
-    {include file="findInclude:common/templates/navlist.tpl" navlistItems=$section accessKey=false subTitleNewline=true}
+    {include file="findInclude:common/templates/navlist.tpl" navlistItems=$section accessKey=false subTitleNewline=true labelColon=false}
   {/foreach}
 {/if}
 

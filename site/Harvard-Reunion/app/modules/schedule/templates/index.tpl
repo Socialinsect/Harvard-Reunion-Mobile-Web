@@ -11,7 +11,8 @@
         {/if}
       {/foreach}
     </select>
-
+    {block name="submit"}
+    {/block}
     
     {foreach $breadcrumbSamePageArgs as $arg => $value}
       <input type="hidden" name="{$arg}" value="{$value}" />

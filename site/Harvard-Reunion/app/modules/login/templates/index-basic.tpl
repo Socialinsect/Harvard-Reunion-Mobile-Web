@@ -1,4 +1,4 @@
-{extends file="findExtends:modules/{$moduleID}/templates/index.tpl"}
+{extends file="findExtends:modules/$moduleID/templates/index.tpl"}
 
 {block name="ribbons"}
 	<p class="ribbon"><a href="{$harrisURL}">Sign in using your alumni login</a><br/>
