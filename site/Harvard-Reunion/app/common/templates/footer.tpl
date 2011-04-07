@@ -1,5 +1,8 @@
 {extends file="findExtends:common/templates/footer.tpl"}
 
+{block name="loginHTML"}
+{/block}
+
 {block name="footerNavLinks"}
   {if $moduleID != 'login' && !($moduleID == 'home' && $page == 'index')}
     <div id="footerlinks">
