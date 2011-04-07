@@ -19,15 +19,17 @@ class TemplateEngine extends Smarty {
     self::checkTemplateEngineExtendsTracker($this, '');
   }
   
-  private static function checkTemplateEngineExtendsTracker($smarty, $name) {
-    if (!$name || $name != $smarty->templateEngineCurrentInclude) {
-      if ($name) {
-        //error_log("****RESETTING TRACKER for new include {$name}");
-      } else {
-        //error_log("****RESETTING TRACKER, include was {$smarty->templateEngineCurrentInclude}");
-      }
-      $smarty->templateEngineCurrentInclude = $name;
+  private static function checkTemplateEngineExtendsTracker($smarty, $file) {
+    if (!$file || $file != $smarty->templateEngineCurrentInclude) {
       $smarty->templateEngineExtendsFiles = array();
+      if ($file) {
+        //error_log("****RESETTING TRACKER for new include {$file}");
+        //error_log("****ADDING TO TRACKER {$file}");
+        $smarty->templateEngineExtendsFiles[$file] = true;
+      } else {
+        //error_log("****RESETTING TRACKER, leaving {$smarty->templateEngineCurrentInclude}");
+      }
+      $smarty->templateEngineCurrentInclude = $file;
     }
   }
   
@@ -42,7 +44,7 @@ class TemplateEngine extends Smarty {
   
     if ($smarty->resource_type == 'file') {
       self::checkTemplateEngineExtendsTracker($smarty->smarty, $smarty->resource_name);
-      //error_log("****ADDING {$file}");
+      error_log("****ADDING TO TRACKER {$file}");
       $smarty->smarty->templateEngineExtendsFiles[$file] = true;
     }
   }
@@ -125,6 +127,10 @@ class TemplateEngine extends Smarty {
   }
   
   public static function smartyPrefilterHandleIncludeAndExtends($source, $smarty) {
+    if ($smarty->resource_type == 'file') {
+      self::checkTemplateEngineExtendsTracker($smarty->smarty, $smarty->resource_name);
+    }
+    
     $variables = $smarty->smarty->getTemplateVars();
     
     // findIncludes
