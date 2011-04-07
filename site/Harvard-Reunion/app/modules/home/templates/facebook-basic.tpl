@@ -14,7 +14,7 @@
 {block name="facebookFooter"}
   <p class="nonfocal smallprint">
     Signed in as {$user} (<a href="{$switchUserURL}">change</a>)
-    </br>
+    <br/>
     View {$groupName} at <a href="{$groupURL}">facebook.com</a>
   </p>
 {/block}
