@@ -16,14 +16,18 @@ h3.nonfocal, .nonfocal h3 {
 }
 #navbar2 .postControl {
   display: inline;
-  background: none;
   font-size: 82.353%;
 }
 #navbar2 #comment,
-#navbar2 #bookmark {
+#navbar2 #bookmark,
+#navbar2 #like {
   margin: 0px;
+  background: none;
+  font-size: 82.353%;
 }
 #navbar2 #prev,
 #navbar2 #next {
   position: static;
+  background: none;
+  font-size: 82.353%;
 }
