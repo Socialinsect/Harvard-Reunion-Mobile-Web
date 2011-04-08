@@ -12,10 +12,12 @@ h3.nonfocal, .nonfocal h3 {
 }
 #navbar2 .textspacer {
   display: inline;
+  font-size: 82.353%;
 }
 #navbar2 .postControl {
   display: inline;
   background: none;
+  font-size: 82.353%;
 }
 #navbar2 #comment,
 #navbar2 #bookmark {
