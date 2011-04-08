@@ -35,11 +35,11 @@
 
 {block name="facebookLogin"}
   {capture name="label" assign="label"}
-    Facebook:
+    Facebook<br/>
     {if $info['facebook']['username']}
-      <span class="loggedin"> {$info['facebook']['username']} </span>
+      <span class="loggedin"> Signed in as {$info['facebook']['username']} </span>
     {else}
-      <span class="loggedout"> not signed in </span>
+      <span class="loggedout"> Not signed in </span>
     {/if}
   {/capture}
   {$item['label'] = $label}
@@ -57,11 +57,11 @@
 
 {block name="foursquareLogin"}
   {capture name="label" assign="label"}
-    foursquare:
+    foursquare<br/>
     {if $info['foursquare']['username']}
-      <span class="loggedin"> {$info['foursquare']['username']} </span>
+      <span class="loggedin"> Signed in as {$info['foursquare']['username']} </span>
     {else}
-      <span class="loggedout"> not signed in </span>
+      <span class="loggedout"> Not signed in </span>
     {/if}
   {/capture}
   {$item['label'] = $label}

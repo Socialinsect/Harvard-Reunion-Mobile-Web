@@ -62,12 +62,8 @@ class SiteSettingsWebModule extends WebModule {
         break;
         
       case 'change':
-        if (isset($this->args['showTwitter'])) {
-          $user->setShowHomeTwitterStream($this->args['showTwitter']);
-        }
-        if (isset($this->args['showFacebook'])) {
-          $user->setShowHomeFacebookPosts($this->args['showFacebook']);
-        }
+        $user->setShowHomeTwitterStream($this->getArg('showTwitter', false));
+        $user->setShowHomeFacebookPosts($this->getArg('showFacebook', false));
         
         $this->redirectTo('index');
         break;

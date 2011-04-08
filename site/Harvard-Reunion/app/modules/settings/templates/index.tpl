@@ -55,10 +55,12 @@
 {$item['title'] = $title}
 {$list[] = $item}
 
-{block name="formsubmit"}{/block}
+{block name="formsubmit"}
+{/block}
 
-<form method="get" action="change">
+<form name="homescreenFeeds" method="get" action="change">
   {include file="findInclude:common/templates/navlist.tpl" navlistItems=$list accessKey=false subTitleNewline=true labelColon=false}
+  
 </form>
 
 <div class="nonfocal">
