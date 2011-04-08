@@ -122,6 +122,10 @@ class SiteVideoWebModule extends WebModule {
   }  
 
   protected function initializeForPage() {
+    if ($this->pagetype == 'basic' || $this->pagetype == 'touch') {
+      $this->redirectToModule('home', 'index');
+    }
+  
     $user = $this->getUser('HarvardReunionUser');
     $this->schedule = new Schedule($user);
     $facebook = $this->schedule->getFacebookFeed();

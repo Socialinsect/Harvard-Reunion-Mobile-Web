@@ -8,40 +8,42 @@
   
 {else}
   <div class="nonfocal" id="navbar2">
-	<div class="tabstrip threetabs">
-    {foreach $views as $view => $url}
-      {if !$url@first}<span class="tabstripDivider">&nbsp;|&nbsp;</span>{/if}
-      {if $currentView != $view}
-        <a href="{$url}">
-      {else}
-		<span class="selected">
-	  {/if}
-      {if $view == 'all'}
-        All Photos
-      {elseif $view == 'mine'}
-        My Photos
-      {elseif $view == 'bookmarked'}
-        Bookmarks
+    <div class="tabstrip threetabs">
+      {foreach $views as $view => $url}
+        {if !$url@first}<span class="tabstripDivider">&nbsp;|&nbsp;</span>{/if}
+        {if $currentView != $view}
+          <a href="{$url}">
+        {else}
+      <span class="selected">
       {/if}
-      {if $currentView != $view}
-        </a>
-      {else}
-		</span>
-      {/if}
-    {/foreach}
-	</div>
+        {if $view == 'all'}
+          All Photos
+        {elseif $view == 'mine'}
+          My Photos
+        {elseif $view == 'bookmarked'}
+          Bookmarks
+        {/if}
+        {if $currentView != $view}
+          </a>
+        {else}
+      </span>
+        {/if}
+      {/foreach}
+    </div>
   </div>
   
   <div class="photos">
     {foreach $photos as $photo}
-      <div class="photo">
-        <a href="{$photo['url']}">
-          <div class="wrapper">
-            <img class="thumbnail" src="{$photo['thumbnail']}" />
-          </div>
-          <div class="when">{$photo['when']['delta']}</div>
-        </a>
-      </div>
+      {block name="photo"}
+        <div class="photo">
+          <a href="{$photo['url']}">
+            <div class="wrapper">
+              <img class="thumbnail" src="{$photo['thumbnail']}" />
+            </div>
+            <div class="when">{$photo['when']['delta']}</div>
+          </a>
+        </div>
+      {/block}
     {/foreach}
   </div>
   

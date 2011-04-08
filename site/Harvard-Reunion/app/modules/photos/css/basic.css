@@ -1,0 +1,15 @@
+.photos .photolist {
+  text-align: center;
+  padding-bottom: 0.5em;
+}
+
+.photos .photolist a {
+  text-decoration: none;
+  font-size: 82.353%;
+  line-height: normal;
+}
+
+.nonfocal a,
+.nonfocal a:visited {
+  color: #038;
+}

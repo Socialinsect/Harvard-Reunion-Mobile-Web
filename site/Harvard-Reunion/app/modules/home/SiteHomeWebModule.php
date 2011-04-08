@@ -197,5 +197,13 @@ class SiteHomeWebModule extends HomeWebModule {
     }
     
     parent::initializeForPage();
+    
+    if ($this->page == 'index' && 
+        ($this->pagetype == 'basic' || $this->pagetype == 'touch')) {
+      // Suppress video module
+      $modules = $this->getTemplateVars('modules');
+      unset($modules['video']);
+      $this->assign('modules', $modules);
+    }
   }
 }

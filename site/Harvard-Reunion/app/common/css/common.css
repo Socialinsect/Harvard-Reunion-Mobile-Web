@@ -1,18 +1,6 @@
 #navbar2 {
   position: relative;
-}
-
-#prev {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-}
-#bookmark2 {
-}
-#next {
-  position: absolute;
-  top: 6px;
-  right: 6px;
+  height: 34px;
 }
 
 .fbPostForm {
@@ -21,4 +9,48 @@
 
 .fbPostForm form {
   margin: 0;
+}
+
+#navbar2 .textspacer {
+  display: none;
+}
+
+#navbar2 .postControl span {
+  display: none;
+}
+
+#navbar2 .postControl {
+  display: inline-block;
+  height: 32px;
+  width: 32px;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: top left;
+  background-size: 32px;
+}
+
+#navbar2 #prev {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background-image: url('/common/images/button-prev.png');
+}
+
+#navbar2 #next {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background-image: url('/common/images/button-next.png');
+}
+
+#navbar2 #comment {
+  margin-right: 10px;
+  background-image: url('/common/images/button-comment.png');
+}
+#navbar2 #bookmark {
+  margin-right: 10px;
+  background-image: url('/common/images/button-bookmark.png');
+}
+#navbar2 #like {
+  background-image: url('/common/images/button-like.png');
 }

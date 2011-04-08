@@ -1,16 +1,16 @@
-<div class="nonfocal" id="navbar2">
+<div class="nonfocal postNav" id="navbar2">
   {if $post['prevURL']}
-    <a id="prev" href="{$post['prevURL']}"><span>Prev</span></a>
+    <a class="postControl" id="prev" href="{$post['prevURL']}"><span>Prev</span></a>
     <span class="textspacer"> | </span>
   {/if}
-  <a id="comment" href="#commentscrolldown"><span>Comment</span></a>
+  <a class="postControl" id="comment" href="#commentscrolldown"><span>Comment</span></a>
   <span class="textspacer"> | </span>
-  <a id="bookmark" class="{$bookmarkStatus}" href="{$post['bookmarkURL']}" onclick="toggleBookmark('{$cookieName}', '{$post['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}'); return false;"><span>Bookmark</span></a>
+  <a class="postControl" id="bookmark" class="{$bookmarkStatus}" href="{$post['bookmarkURL']}" onclick="toggleBookmark('{$cookieName}', '{$post['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}'); return false;"><span>Bookmark</span></a>
   <span class="textspacer"> | </span>
-  <a id="like" class="{if $post['liked']}liked{/if}" href="{$post['likeURL']}"><span>{if $post['liked']}Unlike{else}Like{/if}</span></a>  
+  <a class="postControl" id="like" class="{if $post['liked']}liked{/if}" href="{$post['likeURL']}"><span>{if $post['liked']}Unlike{else}Like{/if}</span></a>  
   {if $post['nextURL']}
     <span class="textspacer"> | </span>
-    <a id="next" href="{$post['nextURL']}"><span>Next</span></a>
+    <a class="postControl" id="next" href="{$post['nextURL']}"><span>Next</span></a>
   {/if}
 </div>
 
@@ -33,7 +33,9 @@
   {$post['comments'][$i]['title'] = $title}
 {/foreach}
 
-{include file="findInclude:common/templates/navlist.tpl" navlistItems=$post['comments'] navlistID="listContainer" accessKey=false}
+{if count($post['comments'])}
+  {include file="findInclude:common/templates/navlist.tpl" navlistItems=$post['comments'] navlistID="listContainer" accessKey=false}
+{/if}
   
 <div class="focal fbPostForm">
   <form method="get" action="comment">
