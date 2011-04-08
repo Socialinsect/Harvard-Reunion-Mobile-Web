@@ -10,7 +10,7 @@
   <div class="nonfocal" id="navbar2">
     <div class="tabstrip threetabs">
       {foreach $views as $view => $url}
-        {if !$url@first}<span class="tabstripDivider">&nbsp;|&nbsp;</span>{/if}
+        {if !$url@first}<span class="tabstripDivider"> | </span>{/if}
         {if $currentView != $view}
           <a href="{$url}">
         {else}

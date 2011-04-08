@@ -1,17 +1,15 @@
 <div class="nonfocal postNav" id="navbar2">
-  {if $post['prevURL']}
-    <a class="postControl" id="prev" href="{$post['prevURL']}"><span>Prev</span></a>
-    <span class="textspacer"> | </span>
-  {/if}
-  <a class="postControl" id="comment" href="#commentscrolldown"><span>Comment</span></a>
-  <span class="textspacer"> | </span>
-  <a class="postControl" id="bookmark" class="{$bookmarkStatus}" href="{$bookmarkURL}" onclick="toggleBookmark('{$cookieName}', '{$post['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}'); return false;"><span>{if $bookmarkStatus == 'on'}Unbookmark{else}Bookmark{/if}</span></a>
-  <span class="textspacer"> | </span>
-  <a class="postControl" id="like" class="{if $post['liked']}liked{/if}" href="{$post['likeURL']}"><span>{if $post['liked']}Unlike{else}Like{/if}</span></a>  
-  {if $post['nextURL']}
-    <span class="textspacer"> | </span>
-    <a class="postControl" id="next" href="{$post['nextURL']}"><span>Next</span></a>
-  {/if}
+  {block name="postNavigation"}
+    {if $post['prevURL']}
+      <a class="postControl" id="prev" href="{$post['prevURL']}"><div></div></a>
+    {/if}
+    <a class="postControl" id="comment" href="#commentscrolldown"><div></div></a>
+    <a class="postControl" id="bookmark" class="{$bookmarkStatus}" href="{$bookmarkURL}" onclick="toggleBookmark('{$cookieName}', '{$post['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}'); return false;"><div></div></a>
+    <a class="postControl" id="like" class="{if $post['liked']}liked{/if}" href="{$post['likeURL']}"><div></div></a>  
+    {if $post['nextURL']}
+      <a class="postControl" id="next" href="{$post['nextURL']}"><div></div></a>
+    {/if}
+  {/block}
 </div>
 
 {$post['html']}
