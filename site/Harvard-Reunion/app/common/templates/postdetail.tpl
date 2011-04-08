@@ -1,4 +1,4 @@
-<div class="nonfocal postNav" id="navbar2">
+<div class="postNav" id="navbar2">
   {block name="postNavigation"}
     {if $post['prevURL']}
       <a class="postControl" id="prev" href="{$post['prevURL']}"><div></div></a>

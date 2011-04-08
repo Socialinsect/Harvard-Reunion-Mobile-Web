@@ -60,6 +60,9 @@
 
 <form name="homescreenFeeds" method="get" action="change">
   {include file="findInclude:common/templates/navlist.tpl" navlistItems=$list accessKey=false subTitleNewline=true labelColon=false}
+
+  {block name="formsubmit2"}
+  {/block}
   
 </form>
 

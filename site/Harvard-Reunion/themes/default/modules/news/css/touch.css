@@ -11,6 +11,11 @@
     height: 62pt;
 }
 
+#category-form {
+  padding: 0 9px;
+  margin-top: -9px;
+}
+
 #category-form + .results {
   margin-top: 0;
 }

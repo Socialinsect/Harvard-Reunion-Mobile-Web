@@ -147,7 +147,7 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 }
 
 #navbar2 {
-	margin-top: -13px;
+	margin-top: -11px;
 }
 
 #category-switcher {
@@ -239,7 +239,7 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 }
 
 #navbar2 .threetabs .selected, #navbar2 .threetabs a {
-	width: 33%;
+	width: 33.33%;
 }
 
 #navbar2 .fourtabs .selected, #navbar2 .fourtabs a {

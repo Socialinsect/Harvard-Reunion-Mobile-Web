@@ -7,15 +7,15 @@
   {include file="findInclude:common/templates/needsjoin.tpl" service=$service}
   
 {else}
-  <div class="nonfocal" id="navbar2">
+  <div id="navbar2">
     <div class="tabstrip threetabs">
       {foreach $views as $view => $url}
         {if !$url@first}<span class="tabstripDivider"> | </span>{/if}
         {if $currentView != $view}
           <a href="{$url}">
         {else}
-      <span class="selected">
-      {/if}
+          <span class="selected">
+        {/if}
         {if $view == 'all'}
           All Photos
         {elseif $view == 'mine'}
@@ -26,7 +26,7 @@
         {if $currentView != $view}
           </a>
         {else}
-      </span>
+          </span>
         {/if}
       {/foreach}
     </div>

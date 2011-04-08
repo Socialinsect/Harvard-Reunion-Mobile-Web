@@ -1,7 +1,12 @@
 #navbar2 {
   position: relative;
-  height: 45px;
-  line-height: 42px;
+  line-height: 45px;
+}
+
+#navbar2 .tabstrip,
+#navbar2 form {
+  line-height: 45px;
+  margin: 0;
 }
 
 .fbPostForm {
@@ -12,36 +17,40 @@
   margin: 0;
 }
 
+#navbar2.postNav {
+  padding: 0;
+  height: 45px;
+}
+
 #navbar2 .postControl {
   display: inline-block;
   height: 32px;
   width: 32px;
-  background-color: transparent;
+  background-color: blue;
   background-repeat: no-repeat;
   background-position: top left;
   background-size: 32px;
+  margin: 6px;
 }
 
 #navbar2 #prev {
   position: absolute;
-  top: 6px;
-  left: 6px;
+  top: 0;
+  left: 0;
   background-image: url('/common/images/button-prev.png');
 }
 
 #navbar2 #next {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 0;
+  right: 0;
   background-image: url('/common/images/button-next.png');
 }
 
 #navbar2 #comment {
-  margin-right: 10px;
   background-image: url('/common/images/button-comment.png');
 }
 #navbar2 #bookmark {
-  margin-right: 10px;
   background-image: url('/common/images/button-bookmark.png');
 }
 #navbar2 #like {

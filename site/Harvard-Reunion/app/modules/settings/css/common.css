@@ -20,3 +20,13 @@ h3,
 .nav li input[type=checkbox] {
   vertical-align: top;
 }
+
+.nonfocal + form,
+.nonfocal + form .nav {
+  margin-top: .25em;
+  margin-bottom: .25em;
+}
+
+.savebutton {
+  margin-top: .25em;
+}

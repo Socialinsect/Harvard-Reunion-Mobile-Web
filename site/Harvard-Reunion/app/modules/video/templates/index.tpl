@@ -7,23 +7,29 @@
   {include file="findInclude:common/templates/needsjoin.tpl" service=$service}
   
 {else}
-  <div class="nonfocal" id="navbar2">
-    {foreach $views as $view => $url}
-      {if !$url@first}&nbsp;|&nbsp;{/if}
-      {if $currentView != $view}
-        <a href="{$url}">
-      {/if}
-      {if $view == 'all'}
-        All Videos
-      {elseif $view == 'mine'}
-        My Videos
-      {elseif $view == 'bookmarked'}
-        Bookmarks
-      {/if}
-      {if $currentView != $view}
-        </a>
-      {/if}
-    {/foreach}
+  <div id="navbar2">
+    <div class="tabstrip threetabs">
+      {foreach $views as $view => $url}
+        {if !$url@first}<span class="tabstripDivider"> | </span>{/if}
+        {if $currentView != $view}
+          <a href="{$url}">
+        {else}
+          <span class="selected">
+        {/if}
+        {if $view == 'all'}
+          All Videos
+        {elseif $view == 'mine'}
+          My Videos
+        {elseif $view == 'bookmarked'}
+          Bookmarks
+        {/if}
+        {if $currentView != $view}
+          </a>
+        {else}
+          </span>
+        {/if}
+      {/foreach}
+    </div>
   </div>
   
   <ul class="results">
