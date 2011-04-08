@@ -114,6 +114,10 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
 
         parent::logout($session, $hard);
     }
+    
+    public function validate(&$error) {
+        return true;
+    }
 }
 
 class HarrisReunionUser extends HarvardReunionUser 
