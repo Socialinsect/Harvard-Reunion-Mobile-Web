@@ -20,7 +20,7 @@
           <br/>
           {html_access_key_link href=$breadcrumb['url']}
             {if $breadcrumb@first}
-              {$moduleName} Home
+              {if $moduleName != "Home"}{$moduleName}{/if} Home
             {else}
               {$breadcrumb['longTitle']}
             {/if}

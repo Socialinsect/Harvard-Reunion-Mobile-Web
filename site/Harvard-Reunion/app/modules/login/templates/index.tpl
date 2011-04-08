@@ -2,7 +2,7 @@
 
 <div class="nonfocal">
 
-  <h1 class="reunionHeader">Harvard/Radcliffe College&nbsp;Reunions</h1>
+  {include file="findInclude:modules/{$moduleID}/templates/banner.tpl"}
   
   <p id="intro">Veritas Mobile: Your Reunion Connection. View your personalized schedule, maps, news, photos, and more.</p>
 

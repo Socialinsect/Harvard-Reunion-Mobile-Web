@@ -1,7 +1,8 @@
 {include file="findInclude:common/templates/header.tpl" customHeader=''}
 
 <div class="nonfocal">
-  <h1 class="reunionHeader">Harvard/Radcliffe College&nbsp;Reunions</h1>
+  {include file="findInclude:modules/{$moduleID}/templates/banner.tpl"}
+
   <h3>Enter anonymously by selecting your graduation year:</h3>
 
   <form id="signin" name="signin" action="login" method="POST" onsubmit="return validateAnonymousForm()">
