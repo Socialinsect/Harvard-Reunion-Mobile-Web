@@ -1,8 +1,9 @@
 {extends file="findExtends:modules/$moduleID/templates/facebook.tpl"}
 
 {block name="facebookComment"}
-  <textarea rows="3" name="message" id="messageText" placeholder="Share an update with the {$groupName} group"></textarea><br/>
-  <input type="submit" value="Share" onclick="return validateTextInputForm('messageText', 'Please enter a message to post to the Facebook group.');" />
+  <label for="messageText">Share an update with the {$groupName} group</label><br/>
+  <textarea rows="3" name="message" id="messageText"></textarea><br/>
+  <input type="submit" value="Share" />
 {/block}
 
 {block name="facebookPost"}

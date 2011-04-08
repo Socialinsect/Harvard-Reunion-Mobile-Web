@@ -26,9 +26,10 @@
 
 {foreach $post['comments'] as $i => $comment}
   {capture name="title" assign="title"}
-    &ldquo;{$comment['message']}&rdquo; 
-    <span class="smallprint"> -&nbsp;{$comment['author']['name']}, {$comment['when']['delta']}
-    </span>
+    {block name="comment"}
+      &ldquo;{$comment['message']}&rdquo; 
+      <span class="smallprint"> -&nbsp;{$comment['author']['name']}, {$comment['when']['delta']}</span>
+    {/block}
   {/capture}
   {$post['comments'][$i]['title'] = $title}
 {/foreach}
@@ -40,8 +41,10 @@
 <div class="focal fbPostForm">
   <form method="get" action="comment">
     <a class="scrolllink" name="commentscrolldown"> </a>
-    <textarea rows="3" name="message" id="messageText" placeholder="Add a comment"></textarea>
-    <input type="submit" value="Submit" onclick="return validateTextInputForm('messageText', 'Please enter a comment for this Facebook post.');" />
+    {block name="formelements"}
+      <textarea rows="3" name="message" id="messageText" placeholder="Add a comment"></textarea>
+      <input type="submit" value="Submit" onclick="return validateTextInputForm('messageText', 'Please enter a comment for this Facebook post.');" />
+    {/block}
     <input type="hidden" name="id" value="{$post['id']|escape:'url'}" />
     <input type="hidden" name="view" value="{$currentView}" />
     <input type="hidden" name="action" value="add" />
