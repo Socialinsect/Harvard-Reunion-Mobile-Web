@@ -49,7 +49,7 @@ class AdminAPIModule extends APIModule
         return $configData;
     }
     
-    private function getAdminData($type, $section) {
+    private function getAdminData($type, $section, $subsection=null) {
         if ($type=='site') {
             $configData = $this->getSiteAdminConfig();
             $module = $this;
@@ -65,6 +65,14 @@ class AdminAPIModule extends APIModule
         }
         
         $sectionData = $configData[$section];
+        if ($subsection) {
+            if (!isset($configData[$section]['sections'][$subsection])) {
+                throw new Exception("Invalid subsection $subsection for section $section");
+            }
+
+           $sectionData = $configData[$section]['sections'][$subsection];
+        }
+        
         $sectionData['section'] = $section;
 
         switch ($sectionData['sectiontype'])
@@ -74,20 +82,22 @@ class AdminAPIModule extends APIModule
                     if (isset($field['valueMethod'])) {
                         $field['value'] = call_user_func(array($module, $field['valueMethod']));
                     } elseif ($type=='site') {
-                        switch ($field['config'])
-                        {
-                            case 'site':
-                                $field['value'] = $this->getUnconstantedValue(Kurogo::getOptionalSiteVar($key, $field['section']), $constant);
-                                if ($constant) {
-                                    $field['constant'] = $constant;
-                                }
-                                break;
-                            case 'strings':
-                                $field['value'] = Kurogo::getOptionalSiteString($key);
-                                break;
-                            default: 
-                                throw new Exception("Unknown config " . $field['config']);
-                                break;
+                        if (isset($field['config'])) {
+                            switch ($field['config'])
+                            {
+                                case 'site':
+                                    $field['value'] = $this->getUnconstantedValue(Kurogo::getOptionalSiteVar($key, $field['section']), $constant);
+                                    if ($constant) {
+                                        $field['constant'] = $constant;
+                                    }
+                                    break;
+                                case 'strings':
+                                    $field['value'] = Kurogo::getOptionalSiteString($key);
+                                    break;
+                                default: 
+                                    throw new Exception("Unknown config " . $field['config']);
+                                    break;
+                            }
                         }
                     } else {
                         $field['value'] = $module->getOptionalModuleVar($key, isset($field['default']) ? $field['default'] : '', $field['section'], $field['config']);
@@ -116,9 +126,11 @@ class AdminAPIModule extends APIModule
                             }
                     }
     
-                    $field['value'] = $this->getUnconstantedValue($field['value'], $constant);
-                    if ($constant) {
-                        $field['constant'] = $constant;
+                    if (isset($field['value'])) {
+                        $field['value'] = $this->getUnconstantedValue($field['value'], $constant);
+                        if ($constant) {
+                            $field['constant'] = $constant;
+                        }
                     }
                 }
                 break;
@@ -163,14 +175,26 @@ class AdminAPIModule extends APIModule
                     }
                 }
                 break;
-            case 'acl':
+            case 'sections':
+                foreach ($sectionData['sections'] as $subsection=>&$_sectionData) {
 
-                if ($type=='site') {
-                    $sectionData['acls'] = Kurogo::getOptionalSiteVar('acl', array(), 'authentication');
-                    $sectionData['adminacls'] = Kurogo::getOptionalSiteVar('adminacl', array(), 'authentication');
-                } else {
-                    $sectionData['acls'] = $module->getOptionalModuleVar('acl', array(), 'authentication');
-                    $sectionData['adminacls'] = $module->getOptionalModuleVar('acl', array(), 'authentication');
+                    $subsectionData = $this->getAdminData($type, $section, $subsection);
+                    if (isset($subsectionData['showIfSiteVar'])) {
+                        if (Kurogo::getOptionalSiteVar($subsectionData['showIfSiteVar'][0], '') != $subsectionData['showIfSiteVar'][1]) {
+                            unset($sectionData['sections'][$subsection]);
+                            continue;
+                        }
+                    }
+
+                    if (isset($subsectionData['showIfModuleVar'])) {
+                        if ($type->getOptionalModuleVar($subsectionData['showIfModuleVar'][0], '') != $subsectionData['showIfModuleVar'][1]) {
+                            unset($sectionData['sections'][$subsection]);
+                            continue;
+                        }
+                    }
+
+                    $sectionData['sections'][$subsection] = $subsectionData;
+
                 }
                 break;
             default:
@@ -184,7 +208,6 @@ class AdminAPIModule extends APIModule
     private function getAdminConfig($type, $config, $opts=0) {
 
         $opts = $opts | ConfigFile::OPTION_IGNORE_LOCAL | ConfigFile::OPTION_IGNORE_MODE;
-        error_log("$config $opts");
 
         if ($type=='site') {
             $configKey = "site-$config";
@@ -208,9 +231,9 @@ class AdminAPIModule extends APIModule
         return $config;
     }
     
-    private function setConfigVar($type, $section, $key, $value) {
+    private function setConfigVar($type, $section, $subsection, $key, $value) {
 
-        $sectionData = $this->getAdminData($type, $section);
+        $sectionData = $this->getAdminData($type, $section, $subsection);
             
         switch ($sectionData['sectiontype'])
         {
@@ -230,6 +253,21 @@ class AdminAPIModule extends APIModule
         }
         
         $config = $this->getAdminConfig($type, $fieldData['config'], ConfigFile::OPTION_CREATE_EMPTY);
+
+        if (is_array($value)) {
+            foreach ($value as $k=>$v) {
+                if (isset($fieldData['fields'][$k]['omitBlankValue']) && $fieldData['fields'][$k]['omitBlankValue'] && strlen($v)==0) {
+                    unset($value[$k]);
+                }
+            }
+        }
+        
+        if (isset($sectionData['sectionvalidatemethod'])) {
+            $result = call_user_func($sectionData['sectionvalidatemethod'], $key, $value);
+            if (KurogoError::isError($result)) {
+                throw new Exception($result->getMessage());
+            }
+        }
         
         if (is_array($value)) {
             $result = true;
@@ -243,23 +281,18 @@ class AdminAPIModule extends APIModule
                     throw new Exception("Invalid key $k for $type:" . $fieldData['config'] . " section $key");
                 }
                 
-                if (isset($fieldData['fields'][$k]['omitBlankValue']) && $fieldData['fields'][$k]['omitBlankValue'] && strlen($v)==0) {
-                    $changed = $changed || $config->clearVar($key, $k);
-                    continue;
-                } else {
-                    $prefix = isset($value[$k . '_prefix']) ? $value[$k . '_prefix'] : '';
-                    if ($prefix && defined($prefix)) {
-                        $v = constant($prefix) . '/' . $v;
-                    }
-                    
-                    if ($fieldData['fields'][$k]['type']=='paragraph') {
-                        $v = explode("\n\n", str_replace(array("\r\n","\r"), array("\n","\n"), $v));
-                    }
-                    if (!$config->setVar($key, $k, $v, $c)) {
-                        $result = false;
-                    }
-                    $changed = $changed || $c;
+                $prefix = isset($value[$k . '_prefix']) ? $value[$k . '_prefix'] : '';
+                if ($prefix && defined($prefix)) {
+                    $v = constant($prefix) . '/' . $v;
                 }
+                
+                if ($fieldData['fields'][$k]['type']=='paragraph') {
+                    $v = explode("\n\n", str_replace(array("\r\n","\r"), array("\n","\n"), $v));
+                }
+                if (!$config->setVar($key, $k, $v, $c)) {
+                    $result = false;
+                }
+                $changed = $changed || $c;
             }
         } else {
             if (isset($fieldData['omitBlankValue']) && $fieldData['omitBlankValue'] && strlen($value)==0) {
@@ -338,6 +371,7 @@ class AdminAPIModule extends APIModule
                         break;
                     case 'site':
                         $adminData = $this->getAdminData('site', $section);
+                        break;
                 }
                 
                 $this->setResponse($adminData);
@@ -348,7 +382,10 @@ class AdminAPIModule extends APIModule
                 $type = $this->getArg('type');
                 $data = $this->getArg('data', array());
                 $section = $this->getArg('section','');
-                if (!is_array($data)) {
+                $subsection = null;
+                if (empty($data)) {
+                    $data = array();
+                } elseif (!is_array($data)) {
                     throw new Exception("Invalid data for $type $section");
                 }
                 
@@ -374,7 +411,7 @@ class AdminAPIModule extends APIModule
                                         throw new Exception("Invalid property $key for module $module");
                                     }
                                     
-                                    $this->setConfigVar($module, 'general', $key, $value);
+                                    $this->setConfigVar($module, 'general', $subsection, $key, $value);
                                 }
                             }
                             
@@ -407,6 +444,11 @@ class AdminAPIModule extends APIModule
                 
                 foreach ($data as $section=>$fields) {
                     $adminData = $this->getAdminData($type, $section);
+                    if ($adminData['sectiontype']=='sections') {
+                        $subsection = key($fields);
+                        $fields = current($fields);
+                        $adminData = $this->getAdminData($type, $section, $subsection);
+                    }
                     $fields = is_array($fields) ? $fields : array();
                     
                     foreach ($fields as $key=>$value) {
@@ -427,7 +469,7 @@ class AdminAPIModule extends APIModule
                             $value = constant($prefix) . '/' . $value;
                         }
                         
-                        $this->setConfigVar($type, $section, $key, $value);
+                        $this->setConfigVar($type, $section, $subsection, $key, $value);
                     }
 
                 }
@@ -449,7 +491,8 @@ class AdminAPIModule extends APIModule
                 switch ($type)
                 {
                     case 'site':
-                        $sectionData = $this->getAdminData($type, $section);
+                        $subsection = $this->getArg('subsection',null);
+                        $sectionData = $this->getAdminData($type, $section, $subsection);
                         $config = ConfigFile::factory($sectionData['config'],'site');
                         break;
                     case 'module':

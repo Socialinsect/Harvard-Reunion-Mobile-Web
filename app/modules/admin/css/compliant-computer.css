@@ -231,16 +231,24 @@ label {
 	line-height: 1.6em;
 	font-weight: bold;
 }
-.helptext, .checkitem label, .tallfield textarea, .infotext {
+.helptext, .checkitem label, .tallfield textarea, .infotext, .labeltext {
 	margin-left: 150px;		/* same as width plus padding-right of label */
 }
+
+td .labeltext {
+    margin: auto;
+    line-height: 1.6em;
+}
+
 
 .tallfield .helptext {
 /*    margin-left: 0; */
 }
 
-.infotext {
+.infotext,
+.labeltext {
     margin-top: -18px;
+    display:block;
 }
 
 .formfields .error {
@@ -260,6 +268,7 @@ label {
 	position: relative;
 	top: 2px;
 }
+
 .checkitem label {
 	position: absolute;
 	padding-left: 4px;
@@ -595,7 +604,7 @@ h1 img {
     color: white;
 }
 
-#moduleSections {
+#adminSections {
     height:30px;
     margin: 0;
     padding: 0 0 10px 0;
@@ -609,7 +618,7 @@ h1 img {
 	margin-top: -8px;
 }
 
-#moduleSections li {
+#adminSections li {
     text-align: center;
     float: left;
     list-style: none;
@@ -618,7 +627,7 @@ h1 img {
 	margin: 1px;
 }
 
-#moduleSections li.selected {
+#adminSections li.selected {
     background-color: #e3e3e3;
 	border: 1px solid #ccc;
 	margin: 0;
@@ -627,28 +636,37 @@ h1 img {
 	-moz-border-radius: 6px;
 }
 
-#moduleSections li.common {
+#adminSections li.common {
 }
 
-#moduleSections li.module {
+#adminSections li.module {
 }
 
-#moduleSections li.module a {
+#adminSections li.module a {
     color: black;
     font-weight: bold;
 }
 
-#moduleSections li.hidden {
+#adminSections li.hidden {
 /*    display: none; */
 }
 
 
-#moduleSections li a {
+#adminSections li a {
     text-decoration:none;
     display: block;
 }
 
-#moduleSections li.selected a {
+#adminSections li.selected a {
 	color: #000;
 }
 
+.sectionsnone {
+    font-weight: bold;
+    text-align: center;
+}
+
+table .labelfield label {
+    font-weight: bold;
+    top: 0;
+}
