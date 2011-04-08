@@ -1,0 +1,100 @@
+.dateHeader {
+  font: 94.1%/1.33em Georgia, serif;
+  color: white;
+  background: #736e6a;
+  margin: 0;
+  padding: 4px 10px;
+}
+.dateHeader + .results {
+  margin: 0;
+}
+
+#bookmark {
+	display: block;
+	width: 38px;
+	height: 33px;
+	overflow: hidden;
+	background-image: url(/common/images/bookmark.gif);
+	background-repeat: no-repeat;
+	background-position: 0 0;
+	float: right;
+	margin: -3px -8px 0 0;
+	padding: 0 0 5px 5px;
+}
+
+#bookmark.on {
+	background-position: 0 -38px;
+}
+
+.nav .smallprint a {
+  display: inline;
+  background: none;
+  padding: 0;
+  margin: 0;
+  text-decoration: underline;
+  color: inherit;
+}
+
+
+.nonfocal > h2,
+.nonfocal p {
+  padding-right: 40px;
+}
+
+.nav li .register {
+  position: relative;
+  padding-left: 27px;
+}
+
+.nav li .register .icon {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  margin-top: -12px;
+  height: 20px;
+  width: 20px;
+  background: transparent url('/common/images/badge-register.gif') no-repeat left;
+  background-size: 17px;
+}
+
+.nav li .confirmed {
+  margin-left: -8px;
+}
+
+.nav li .confirmed .icon {
+  background: transparent url('/common/images/badge-confirmed.gif') no-repeat left;
+}
+
+#fbCheckin,
+#fqCheckin {
+  display: inline-block;
+  padding-left: 30px;
+  background: transparent url('/common/images/button-facebook.gif') no-repeat 2px center;
+  background-size: 24px;
+  line-height: 24px;
+  color: white;
+  text-decoration: none;
+}
+#fqCheckin {
+  background-image: url('/common/images/button-foursquare.gif')
+}
+#fbCheckin .checkedin {
+  background-image: url('/common/images/button-facebook-checkedin.gif')
+}
+#fqCheckin .checkedin {
+  background-image: url('/common/images/button-foursquare-checkedin.gif')
+}
+
+.cancelButton {
+  float: right;
+  padding-right: .5em;
+}
+
+select {
+  width: auto;
+}
+
+#navbar2 form {
+  margin: 0;
+  line-height: 42px;
+}

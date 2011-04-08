@@ -39,11 +39,11 @@ class SiteScheduleWebModule extends WebModule {
     return $category;
   }
   
-  private function getCookieNameForEvent($event) {
+  protected function getCookieNameForEvent($event) {
     return self::BOOKMARKS_COOKIE_PREFIX.$event;
   }
 
-  private function getBookmarks($scheduleId) {
+  protected function getBookmarks($scheduleId) {
     $cookieName = $this->getCookieNameForEvent($scheduleId);
     
     if (!isset($this->bookmarks[$cookieName])) {
@@ -57,7 +57,7 @@ class SiteScheduleWebModule extends WebModule {
     return $this->bookmarks[$cookieName];
   }
   
-  private function setBookmarks($scheduleId, $bookmarks) {
+  protected function setBookmarks($scheduleId, $bookmarks) {
     $cookieName = $this->getCookieNameForEvent($scheduleId);
     
     setcookie($cookieName, implode(',', array_unique($bookmarks)), 
@@ -66,11 +66,11 @@ class SiteScheduleWebModule extends WebModule {
     $this->bookmarks[$cookieName] = $bookmarks;
   }
 
-  private function isBookmarked($scheduleId, $eventId) {
+  protected function isBookmarked($scheduleId, $eventId) {
     return in_array($eventId, $this->getBookmarks($scheduleId));
   }
   
-  private function checkToggleBookmark($scheduleId, $eventId) {
+  protected function checkToggleBookmark($scheduleId, $eventId) {
     if ($this->getArg('toggleBookmark')) {
       $bookmarks = array_fill_keys($this->getBookmarks($scheduleId), true);
     

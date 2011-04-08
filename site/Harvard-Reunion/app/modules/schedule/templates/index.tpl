@@ -1,6 +1,6 @@
 {include file="findInclude:common/templates/header.tpl"}
 
-<div class="nonfocal" id="navbar2">
+<div id="navbar2">
   <form method="get" action="./">
     <select name="category" onchange="loadCategory(this);">
       {foreach $categories as $value => $title}

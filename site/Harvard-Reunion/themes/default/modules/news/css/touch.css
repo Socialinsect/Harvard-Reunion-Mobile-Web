@@ -1,0 +1,16 @@
+.results li.story {
+  padding: 0;
+}
+.results li.story a {
+  padding: 1px;
+}
+
+.results li.story a .ellipsis {
+    margin: 3px 25px 8px 0;
+    padding: 0;
+    height: 62pt;
+}
+
+#category-form + .results {
+  margin-top: 0;
+}
