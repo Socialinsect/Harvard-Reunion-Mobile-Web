@@ -1,0 +1,221 @@
+.banner {
+  position: relative;
+  line-height: 1.2em;
+  padding-right: 75px;
+  min-height: 85px;
+}
+.banner p,
+.banner a,
+.banner a:visited {
+  color: #dcdad9;
+  text-decoration: none;
+}
+
+.banner a span {
+  text-decoration: underline;
+}
+
+.banner p {
+  font-size: 88%;
+  line-height: 1.2em;
+  margin: 6px 0;
+}
+
+.banner h3 {
+	margin: 8px 0 6px 0;
+	color: #d3dbe0;
+	font-size: 88%;
+}
+
+.banner h2 {
+  font-size: 150%;
+  margin: 6px 0;
+  text-shadow: #333 0 1px 2px;
+}
+
+#ribbon {
+  position: absolute;
+  top: -12px;
+  right: -8px;
+  width: 68px;
+  height: 80px;
+  padding: 12px 10px 31px 10px;
+  text-align: center;
+  line-height: 1em;
+  background: url('/modules/home/images/ribbon.gif') no-repeat;
+  font-family: Georgia, serif;
+  color: #fff;
+  text-shadow: #000 0 1px 2px;
+}
+
+#ribbon .ribbonYear {
+  font-size: 38px;
+}
+
+#ribbon .ribbonYearSup {
+	font-size: 18px;
+	vertical-align: super;
+}
+
+#ribbon .ribbonDesc {
+	display: inline-block;
+	padding: 6px 0 0 0;
+	font-size: 16px;
+}
+
+#ribbon .ribbonDate {
+	font-size: 13px;
+}
+
+.springboard {
+	margin: -6px 0;
+}
+
+#social {
+  position: relative;
+  padding: 0 4px 0 115px;
+  clear: both;
+  min-height: 92px;
+}
+
+#social .links {
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  width: 110px;
+  height: 70px;
+}
+
+#social .links a {
+  font-size: 70%;
+  line-height: normal;
+  padding: 5px 6px;
+  height: 32px;
+  overflow: hidden;
+  background: url('/modules/home/images/socialbutton.gif') no-repeat;
+  color: #eee;
+  text-decoration: none;
+  display: block;
+}
+
+#social .links a:first-child {
+  margin-bottom: 5px;
+}
+#social .links a .wrapper {
+  background: transparent no-repeat left center;
+  background-size: 24px;
+  padding-left: 29px;
+  height: 30px;
+}
+#social .links .facebookLink .wrapper {
+  background-image: url('/common/images/button-facebook.gif');
+  line-height: 15px;
+}
+#social .links .twitterLink .wrapper {
+  background-image: url('/common/images/button-twitter.gif');
+  line-height: 30px;
+}
+
+#social .recent {
+  position: relative;
+  display: none;
+}
+
+#social .facebook,
+#social .twitter {
+  display: block;
+}
+
+#social .recent .chatbubble {
+  color: #333;
+  padding: 8px 0 6px 0;
+  margin: 0 12px 0 16px;
+  height: 81px;
+  font-size: 82.3%;
+  line-height: 1.3em;
+  background: url('/modules/home/images/chatbubble-mid.gif') repeat-x;
+}
+
+#social .recent .cbr {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 95px;
+  background: url('/modules/home/images/chatbubble-r.gif') no-repeat;	
+}
+
+#social .recent .cbl {
+  position: absolute;
+  top: 0;
+  width: 16px;
+  height: 95px;	
+}
+
+#social .facebook .cbl {
+  background: url('/modules/home/images/chatbubble-l1.gif') no-repeat;
+}
+#social .twitter .cbl {
+  background: url('/modules/home/images/chatbubble-l2.gif') no-repeat;
+}
+
+#social .recent .chatbubble .info {
+  color: #43484c;
+  font-size: 85.7%;
+  max-height: 20px;
+  overflow: hidden;
+}
+
+#social .recent .chatbubble .message {
+  max-height: 56px;
+  margin-bottom: 2px;
+  overflow: hidden;
+}
+
+.nonfocal a,
+.nonfocal a:visited {
+  color: #DCDAD9;
+}
+li {
+  overflow: hidden;
+}
+form textarea {
+  width: 98%;
+  line-height: normal;
+}
+form input[type=submit] {
+  float: right;
+}
+.results a.scrolllink {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  background: none;
+}
+
+#listHeader a {
+  background: none;
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+.tweetButton {
+  display: block;
+  float: right;
+}
+.tweetLink,
+.fbpostsLink {
+  display: inline-block;
+  padding-left: 30px;
+  background: transparent url('/common/images/button-twitter.gif') no-repeat left center;
+  background-size: 24px;
+  line-height: 24px;
+}
+.fbpostsLink {
+  background: transparent url('/common/images/button-facebook.gif') no-repeat left center;
+}
+
+.fbPostForm {
+  overflow: hidden;
+}
