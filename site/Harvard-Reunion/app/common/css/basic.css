@@ -2,3 +2,26 @@
 h3.nonfocal, .nonfocal h3 {
 	margin: 1em 0 0 0;
 }
+
+#navbar2 {
+  height: auto;
+}
+#navbar2 .postControl span {
+  display: inline;
+  font-size: 82.353%;
+}
+#navbar2 .textspacer {
+  display: inline;
+}
+#navbar2 .postControl {
+  display: inline;
+  background: none;
+}
+#navbar2 #comment,
+#navbar2 #bookmark {
+  margin: 0px;
+}
+#navbar2 #prev,
+#navbar2 #next {
+  position: static;
+}
