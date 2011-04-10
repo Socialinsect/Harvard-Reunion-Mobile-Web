@@ -32,6 +32,10 @@ class AnonymousReunionAuthentication extends AuthenticationAuthority
     public function getGroup($group) {
         return false;
     }
+    
+    public function validate(&$error) {
+        return true;
+    }
 }
 
 class AnonymousReunionUser extends HarvardReunionUser 
