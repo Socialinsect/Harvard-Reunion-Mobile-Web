@@ -30,3 +30,13 @@
 #bookmark.pressed.on {
     background-position: -100px 0;
 }
+
+.checkin {
+	font-size: 82.35%;
+	color: #fff;
+	margin: 0.5em 0;
+}
+.checkin a {
+	margin-right: 6px;
+	padding: 0.75em 0;
+}

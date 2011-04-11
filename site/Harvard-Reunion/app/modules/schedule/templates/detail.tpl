@@ -17,7 +17,7 @@
     {/if}
   {/block}
   {if $fbCheckinURL || $fqCheckinURL || $fbCheckedIn || $fqCheckedIn}
-    <p class="smallprint">Check in: 
+    <div class="checkin">Check in: 
       {if $fqCheckedIn}
         <span id="fqCheckin" class="checkedin">foursquare</span> 
       {elseif $fqCheckinURL}
@@ -28,7 +28,7 @@
       {elseif $fbCheckinURL}
         <a id="fbCheckin" href="{$fbCheckinURL}">Facebook</a>
       {/if} 
-    </p>
+    </div>
   {/if}
 </div>
 
