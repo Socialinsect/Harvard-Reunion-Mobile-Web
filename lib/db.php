@@ -56,6 +56,7 @@ class db {
         $this->connection = call_user_func(array("db_$db_type", 'connection'), $config);
     } catch (Exception $e) {
         $this->lastError = KurogoError::errorFromException($e);
+        error_log($e->getMessage());
         if (Kurogo::getSiteVar('DB_DEBUG')) {
             throw new Exception("Error connecting to database: " . $e->getMessage(), 0);
         } else {

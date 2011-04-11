@@ -82,7 +82,13 @@ class Schedule {
       $this->endDate   = $this->getDateTimeForDate($this->getConfigValue('END_DATE', ''));
 
       $dbFile = $this->getConfigValue("ATTENDANCE_DB");
-      $this->attendanceDb = new db(array('DB_TYPE'=>'sqlite', 'DB_FILE'=>$dbFile));
+      try { 
+        $this->attendanceDb = new db(array('DB_TYPE'=>'sqlite', 'DB_FILE'=>$dbFile));
+      }
+      catch (Exception $e) {
+        error_log("Could not open database file for ".$this->year." : ".$e->getMessage());
+        $this->attendanceDb = null;
+      }
     }
   }
   
@@ -392,7 +398,7 @@ class Schedule {
   // Takes a User object and returns an array of Harris or Harvard event IDs.
   public function getRegisteredEvents() {
     // If there's no user, there are no registered events.
-    if (!$this->isAuthenticatedUser()) {
+    if (!$this->isAuthenticatedUser() || !$this->attendanceDb) {
       return array();
     }
     
@@ -428,7 +434,7 @@ class Schedule {
   }
   
   public function getAttendeesRegisteredForEvent($event) {
-    if (!$this->isAuthenticatedUser()) {
+    if (!$this->isAuthenticatedUser() || !$this->attendanceDb) {
       return array();
     }
     
@@ -453,7 +459,7 @@ class Schedule {
   }
   
   public function getAllAttendees() {
-    if (!$this->isAuthenticatedUser()) {
+    if (!$this->isAuthenticatedUser() || !$this->attendanceDb) {
       return array();
     }
     
