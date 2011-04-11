@@ -53,6 +53,12 @@
 #navbar2 #bookmark {
   background-image: url('/common/images/button-bookmark.png');
 }
+#navbar2 #bookmark.on {
+  background-image: url('/common/images/button-unbookmark.png');
+}
 #navbar2 #like {
   background-image: url('/common/images/button-like.png');
+}
+#navbar2 #like.liked {
+  background-image: url('/common/images/button-unlike.png');
 }
