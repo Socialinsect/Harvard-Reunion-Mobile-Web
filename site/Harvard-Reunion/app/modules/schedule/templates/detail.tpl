@@ -8,7 +8,7 @@
       </div>
     {else}
       <div id="bookmarkContainer">
-        <a href="javascript:void(0)" onclick="{if $requiresRegistration}alert('Bookmarking this event will only add it to your personal schedule.  You will still need to register for it to attend.');{/if}toggleBookmark('{$cookieName}', '{$eventId}', 'COOKIE_DURATION', '{$smarty.const.COOKIE_PATH}');">
+        <a href="javascript:void(0)" onclick="{if $requiresRegistration}registeredEventAlert(); {/if}toggleBookmark('{$cookieName}', '{$eventId}', 'COOKIE_DURATION', '{$smarty.const.COOKIE_PATH}');">
           <div id="bookmark"></div>
         </a>
       </div>
