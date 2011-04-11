@@ -41,16 +41,22 @@ class SiteHomeWebModule extends HomeWebModule {
         );
         
         // Only grab posts if logged in
-        $posts = $facebook->getMyId() ? $facebook->getGroupStatusMessages() : array();
-        $tweets = $twitter->getRecentTweets();
+        $posts = array();
+        $tweets = array();
+        if ($user->getShowHomeFacebookPosts() && !$facebook->needsLogin() && $facebook->isMemberOfGroup()) {
+          $posts = $facebook->getGroupStatusMessages();
+        }
+        if ($user->getShowHomeTwitterStream()) {
+          $tweets = $twitter->getRecentTweets();
+        }
         
         $recent = false;
         $recentType = false;
-        if (count($posts) && $user->getShowHomeFacebookPosts()) {
+        if (count($posts)) {
           $recent = reset($posts);
           $recentType = 'facebook';
         }
-        if (count($tweets) && $user->getShowHomeTwitterStream()) {
+        if (count($tweets)) {
           $tweet = reset($tweets);
           if (!$recent || 
               (intval($tweet['when']['time']) > intval($recent['when']['time']))) {
@@ -71,7 +77,7 @@ class SiteHomeWebModule extends HomeWebModule {
         $this->addOnLoad('initHome();');
         
         $this->addInlineJavascript(
-          'var RECENT_MESSAGE_AJAX_URL = "'.URL_BASE.API_URL_PREFIX.'/{$this->id}/recent"');
+          'var RECENT_MESSAGE_AJAX_URL = "'.URL_BASE.API_URL_PREFIX.'/'.$this->id.'/recent"');
         
         $logoutArgs = array(
           'authority' => $userInfo['authority'],
