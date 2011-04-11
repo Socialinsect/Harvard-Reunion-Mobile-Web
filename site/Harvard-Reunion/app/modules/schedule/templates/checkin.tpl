@@ -1,7 +1,7 @@
 {include file="findInclude:common/templates/header.tpl"}
 
 <div class="nonfocal">
-  <p>Check in to {$eventTitle}</p>
+  <p>Check in to {$eventTitle} via {$serviceName}</p>
 </div>
 
 <div class="focal checkinForm">

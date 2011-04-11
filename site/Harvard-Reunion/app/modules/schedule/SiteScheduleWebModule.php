@@ -421,7 +421,7 @@ class SiteScheduleWebModule extends WebModule {
               'service'    => 'facebook',
               'eventURL'   => FULL_URL_PREFIX.ltrim(
                 $this->buildBreadcrumbURL($this->page, $this->args, false), '/'),
-              'eventTitle' => isset($info['location']['title']) ? $info['location']['title'] : $info['title'],
+              'eventTitle' => $info['title'],
               'place'      => $info['location']['fbPlaceId'],
               'latitude'   => $latitude, 
               'longitude'  => $longitude
@@ -443,7 +443,7 @@ class SiteScheduleWebModule extends WebModule {
               'service'    => 'foursquare',
               'eventURL'   => FULL_URL_PREFIX.ltrim(
                 $this->buildBreadcrumbURL($this->page, $this->args, false), '/'),
-              'eventTitle' => isset($info['location']['title']) ? $info['location']['title'] : $info['title'],
+              'eventTitle' => $info['title'],
               'place'      => $info['location']['fqPlaceId'],
               'latitude'   => $latitude, 
               'longitude'  => $longitude
@@ -521,6 +521,7 @@ class SiteScheduleWebModule extends WebModule {
         
         $this->assign('eventTitle', $this->getArg('eventTitle'));
         $this->assign('service',    $service);
+        $this->assign('serviceName', ($service == 'foursquare') ? $service : ucfirst($service));
         $this->assign('cancelURL',  $eventURL);
         $this->assign('hiddenArgs', array(
           'service'   => $service,

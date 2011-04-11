@@ -41,6 +41,10 @@
   padding-right: 40px;
 }
 
+#bookmarkContainer + p {
+  padding-right: 0px;
+}
+
 .nav li .register {
   position: relative;
   padding-left: 27px;
@@ -78,10 +82,10 @@
 #fqCheckin {
   background-image: url('/common/images/button-foursquare.png')
 }
-#fbCheckin .checkedin {
+#fbCheckin.checkedin {
   background-image: url('/common/images/button-facebook-checkedin.png')
 }
-#fqCheckin .checkedin {
+#fqCheckin.checkedin {
   background-image: url('/common/images/button-foursquare-checkedin.png')
 }
 
