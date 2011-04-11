@@ -11,11 +11,21 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             $user = $this->getUser($login);
             
             $testUsers = array(
-              'john.smith'    => 'johnsmith',
-              'jason.park'    => 'jasonpark',
-              'janet.leary'   => 'janetleary',
-              'janice.fisher' => 'janicefisher',
-              'jane.doe'      => 'janedoe',
+              'john.smith'     => 'johnsmith',
+              'jason.park'     => 'jasonpark',
+              'janet.leary'    => 'janetleary',
+              'janice.fisher'  => 'janicefisher',
+              'jane.doe'       => 'janedoe',
+              'alex.smith'     => 'alexsmith',
+              'cynthia.fisher' => 'cynthiafisher',
+              'joe.leary'      => 'joeleary',
+              'darin.fisher'   => 'darinfisher',
+              'mary.park'      => 'marypark',
+              'shanon.doe'     => 'shanondoe',
+              'dana.park'      => 'danapark',
+              'dan.smith'      => 'dansmith',
+              'pat.leary'      => 'patleary',
+              'chris.doe'      => 'chrisdoe',
             );
             
             if (isset($testUsers[$login])) {
