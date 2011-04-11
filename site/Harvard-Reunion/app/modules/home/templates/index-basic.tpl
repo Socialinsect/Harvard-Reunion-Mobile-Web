@@ -26,12 +26,14 @@
 
 {block name="social"}
   <p class="bb">&nbsp;</p>
-  <table id="social" border="1" cellpadding="4"><tr><td>
-    {$socialInfo['recent']['message']}<br />
-    <span class="smallprint">
-      - {$socialInfo['recent']['author']}, {$socialInfo['recent']['age']} via {$socialInfo['recent']['type']|capitalize}
-    </span>
-  </td></tr></table>
+  {if $socialInfo['recent']}
+    <table id="social" border="1" cellpadding="4"><tr><td>
+      {$socialInfo['recent']['message']}<br />
+      <span class="smallprint">
+        - {$socialInfo['recent']['author']}, {$socialInfo['recent']['age']} via {$socialInfo['recent']['type']|capitalize}
+      </span>
+    </td></tr></table>
+  {/if}
   <p>
     <img src="/common/images/button-facebook.gif" alt="facebook group" /> 
     <a href="{$socialInfo['facebook']['url']}">{$socialInfo['facebook']['name']}</a>
