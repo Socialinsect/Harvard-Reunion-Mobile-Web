@@ -328,41 +328,6 @@ a.bookmarked {
 	background-color: #f9f6ef;
 }
 
-
-
-/* Bookmarks */
-
-#bookmarkContainer {
-	width: 46px;
-	height: 95px;
-	position: absolute;
-	float: none;
-	top: -14px;
-	right: 0px;  
-	margin: 0;
-	z-index: 2000;
-}
-
-.focal #bookmarkContainer {
-  right: 8px;
-}
-
-#bookmark {
-  width: 46px;
-  height: 95px;
-	border: none;
-  background: url(/common/images/bookmark-ribbon.gif) 0 0 no-repeat;
-}
-#bookmark.pressed {
-    background-position: 0 0;
-}
-#bookmark.on {
-    background-position: -100px 0;
-}
-#bookmark.pressed.on {
-    background-position: -100px 0;
-}
-
 .nonfocal {
   position: relative;
 }

@@ -1,6 +1,8 @@
 {include file="findInclude:common/templates/header.tpl"}
 
 <div class="nonfocal">
+  <h2>{$eventTitle}</h2>
+  <p>{$eventDate}</p>
   {block name="bookmark"}
     {if $registered}
       <div id="bookmarkContainer">
@@ -8,20 +10,18 @@
       </div>
     {else}
       <div id="bookmarkContainer">
-        <a href="javascript:void(0)" onclick="{if $requiresRegistration}registeredEventAlert(); {/if}toggleBookmark('{$cookieName}', '{$eventId}', 'COOKIE_DURATION', '{$smarty.const.COOKIE_PATH}');">
-          <div id="bookmark" class="{if $bookmarked}on{else}off{/if}"></div>
+        <a href="javascript:void(0)" onclick="{if $requiresRegistration}registeredEventAlert(); {/if}toggleBookmark('{$cookieName}', '{$bookmarkItem}', {$expireDate}, '{$smarty.const.COOKIE_PATH}');">
+          <div id="bookmark" class="{$bookmarkStatus}"></div>
         </a>
       </div>
     {/if}
   {/block}
-  <h2>{$eventTitle}</h2>
-  <p>{$eventDate}</p>
   {if $fbCheckinURL || $fqCheckinURL || $fbCheckedIn || $fqCheckedIn}
     <p class="smallprint">Check in: 
       {if $fqCheckedIn}
-        <span id="fqCheckin" class="checkedin">foursquare</span>
+        <span id="fqCheckin" class="checkedin">foursquare</span> 
       {elseif $fqCheckinURL}
-        <a id="fqCheckin" href="{$fqCheckinURL}">foursquare</a>
+        <a id="fqCheckin" href="{$fqCheckinURL}">foursquare</a> 
       {/if} 
       {if $fbCheckedIn}
         <span id="fbCheckin" class="checkedin">Facebook</span>

@@ -39,52 +39,8 @@ class SiteScheduleWebModule extends WebModule {
     return $category;
   }
   
-  protected function getCookieNameForEvent($event) {
-    return self::BOOKMARKS_COOKIE_PREFIX.$event;
-  }
-
-  protected function getBookmarks($scheduleId) {
-    $cookieName = $this->getCookieNameForEvent($scheduleId);
-    
-    if (!isset($this->bookmarks[$cookieName])) {
-      if (isset($_COOKIE[$cookieName])) {
-        $this->bookmarks[$cookieName] = array_unique(explode(',', $_COOKIE[$cookieName]));
-      } else {
-        $this->bookmarks[$cookieName] = array();
-      }
-    }
-    
-    return $this->bookmarks[$cookieName];
-  }
-  
-  protected function setBookmarks($scheduleId, $bookmarks) {
-    $cookieName = $this->getCookieNameForEvent($scheduleId);
-    
-    setcookie($cookieName, implode(',', array_unique($bookmarks)), 
-      time() + self::BOOKMARKS_COOKIE_DURATION, COOKIE_PATH);
-
-    $this->bookmarks[$cookieName] = $bookmarks;
-  }
-
-  protected function isBookmarked($scheduleId, $eventId) {
-    return in_array($eventId, $this->getBookmarks($scheduleId));
-  }
-  
-  protected function checkToggleBookmark($scheduleId, $eventId) {
-    if ($this->getArg('toggleBookmark')) {
-      $bookmarks = array_fill_keys($this->getBookmarks($scheduleId), true);
-    
-      if (isset($bookmarks[$eventId])) {
-        unset($bookmarks[$eventId]);
-      } else {
-        $bookmarks[$eventId] = true;
-      }
-      $this->setBookmarks($scheduleId, array_keys($bookmarks));
-        
-      $args = $this->args;
-      unset($args['toggleBookmark']);
-      $this->redirectTo($this->page, $args);
-    }
+  protected function getBookmarkCookie() {
+    return self::BOOKMARKS_COOKIE_PREFIX.$this->schedule->getScheduleId();
   }
   
   private function valueForType($type, $value) {
@@ -245,7 +201,7 @@ class SiteScheduleWebModule extends WebModule {
         if ($category == 'mine') {
           $events = $this->schedule->getEvents();
           foreach ($events as $i => $event) {
-            if (!$this->isBookmarked($this->schedule->getScheduleId(), $event->get_uid()) &&
+            if (!$this->hasBookmark($event->get_uid()) &&
                 !$this->schedule->isRegisteredForEvent($event)) {
               unset($events[$i]);
             }
@@ -270,7 +226,7 @@ class SiteScheduleWebModule extends WebModule {
             'title'    => $event->get_summary(),
             'subtitle' => $this->timeText($event, true),
           );
-          if ($this->isBookmarked($scheduleId, $event->get_uid())) {
+          if ($this->hasBookmark($event->get_uid())) {
             $eventInfo['class'] = 'bookmarked';
           }
           
@@ -289,18 +245,18 @@ class SiteScheduleWebModule extends WebModule {
       case 'detail':
         $eventId    = $this->getArg('eventId');
         $start      = $this->getArg('start', time());
-        
-        $this->checkToggleBookmark($scheduleId, $eventId);
-        
+                
         $event = $this->schedule->getEvent($eventId, $start);
         if (!$event) {
           throw new Exception("Event not found");
         }
+        
+        $this->generateBookmarkOptions($event->get_uid());
+
         //error_log(print_r($event, true));
         $info = $this->schedule->getEventInfo($event);
         $registered = false;
         $requiresRegistration = false;
-        $bookmarked = $this->isBookmarked($scheduleId, $event->get_uid());
         //error_log(print_r($info, true));
 
         $sections = array();
@@ -495,20 +451,12 @@ class SiteScheduleWebModule extends WebModule {
           }
         }
         
-        $cookieName = $this->getCookieNameForEvent($scheduleId);
-        $this->addInlineJavascript(
-          "var COOKIE_PATH = '".COOKIE_PATH."';".
-          "var COOKIE_DURATION = '".self::BOOKMARKS_COOKIE_DURATION."';");
-        $this->addOnLoad("setBookmarkStates('$cookieName', '$eventId');");
-
         $this->assign('eventId',              $eventId);
         $this->assign('eventTitle',           $info['title']);
         $this->assign('eventDate',            $this->valueForType('datetime', $info['datetime']));
         $this->assign('sections',             $sections);
-        $this->assign('bookmarked',           $bookmarked);
         $this->assign('registered',           $registered);
         $this->assign('requiresRegistration', $requiresRegistration);
-        $this->assign('cookieName',           $this->getCookieNameForEvent($scheduleId));
         //error_log(print_r($sections, true));
         break;
         
