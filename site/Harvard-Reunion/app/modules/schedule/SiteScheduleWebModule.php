@@ -300,7 +300,7 @@ class SiteScheduleWebModule extends WebModule {
         $info = $this->schedule->getEventInfo($event);
         $registered = false;
         $requiresRegistration = false;
-        $bookmarked = $this->isBookmarked($scheduleId, $eventId);
+        $bookmarked = $this->isBookmarked($scheduleId, $event->get_uid());
         //error_log(print_r($info, true));
 
         $sections = array();
@@ -349,8 +349,6 @@ class SiteScheduleWebModule extends WebModule {
             'title' => 'Registration Required',
             'class' => 'external register',
           );
-          
-
           
           if ($info['registration']['registered']) {
             $registered = true;

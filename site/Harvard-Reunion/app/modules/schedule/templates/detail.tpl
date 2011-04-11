@@ -9,7 +9,7 @@
     {else}
       <div id="bookmarkContainer">
         <a href="javascript:void(0)" onclick="{if $requiresRegistration}registeredEventAlert(); {/if}toggleBookmark('{$cookieName}', '{$eventId}', 'COOKIE_DURATION', '{$smarty.const.COOKIE_PATH}');">
-          <div id="bookmark"></div>
+          <div id="bookmark" class="{if $bookmarked}on{else}off{/if}"></div>
         </a>
       </div>
     {/if}
