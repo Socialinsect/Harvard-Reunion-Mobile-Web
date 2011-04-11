@@ -48,7 +48,6 @@ class Foursquare {
     $urlPrefixes = Kurogo::getSiteVar('FOURSQUARE_FULL_URL_PREFIXES');
     
     $foundApp = false;
-    echo ('<!-- '.FULL_URL_PREFIX.' '.print_r($urlPrefixes, true).' -->');
     foreach ($urlPrefixes as $i => $urlPrefix) {
       if ($urlPrefix == FULL_URL_PREFIX) {
         $appIds     = Kurogo::getSiteVar('FOURSQUARE_APP_IDS');
@@ -57,6 +56,7 @@ class Foursquare {
         $foundApp = true;
         $this->clientId = $appIds[$i];
         $this->clientSecret = $appSecrets[$i];
+        echo ('<!-- '.FULL_URL_PREFIX.' '.print_r($this, true).' -->');
         break;
       }
     }
