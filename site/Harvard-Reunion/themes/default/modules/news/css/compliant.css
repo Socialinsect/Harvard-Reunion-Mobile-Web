@@ -9,3 +9,12 @@
     padding: 0 .25em 0 0;
     width: 3.7em;
 }
+#category-switcher .inputfield input[type=text] {
+    width: 97%;
+    margin: 0;
+}
+
+#category-switcher .textbutton {
+  background-color: #930811;
+  color: white;
+}
