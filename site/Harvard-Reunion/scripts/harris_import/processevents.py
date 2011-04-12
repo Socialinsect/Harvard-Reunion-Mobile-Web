@@ -30,7 +30,8 @@ import config
 
 def main(class_year, infile_name, outfile_base):
     infile_cols = parse_doc(infile_name)
-    all_cols = infile_cols + non_harris_event_cols(infile_cols.num_rows)
+    all_cols = infile_cols + \
+               non_harris_event_cols(class_year, infile_cols.num_rows)
     
     # Basic user info like name, graduating year, email
     user_cols = select_user_cols(all_cols)
@@ -159,14 +160,15 @@ def parse_event_header(s):
 def format_as_event_header(event_id, event_name):
     return "%s #%s" % (event_name, event_id)
 
-def non_harris_event_cols(num_rows):
+def non_harris_event_cols(class_year, num_rows):
     """Add columns for non-Harris events. These can be auto-populated if Harris
     package events include them (look in config.py). They are initialized to all
     blank."""
-    return ColumnGroup([(format_as_event_header(event_id, event_name),
-                         DataColumn.init_with(num_rows, ''))
-                        for event_id, event_name
-                        in config.NON_HARRIS_EVENTS.items()])
+    blank_col = DataColumn.init_with(num_rows, '')
+    return ColumnGroup(
+               [(format_as_event_header(event_id, "NH"), blank_col)
+                for event_id in config.non_harris_events_for_year(class_year)]
+           )
 
 def add_packages(src_col_grp, class_year):
     """Return a new ColumnGroup that has the row values filled out for all 
@@ -180,7 +182,7 @@ def add_packages(src_col_grp, class_year):
     package if what's in the specific event is blank. Anything non-blank is
     assumed to mean that they're attending.
     """
-    package_events = config.CLASSES_TO_MAPPINGS[class_year]
+    package_events = config.packages_for_year(class_year)
     
     def _new_row(old_row):
         row = old_row.copy()
