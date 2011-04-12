@@ -5,7 +5,7 @@
     {/if}
     <a class="postControl" id="comment" href="#commentscrolldown"><div></div></a>
     <a class="postControl" id="bookmark" class="{$bookmarkStatus}" href="{$bookmarkURL}" onclick="toggleBookmark('{$cookieName}', '{$post['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}'); return false;"><div></div></a>
-    <a class="postControl" id="like" class="{if $post['liked']}liked{/if}" href="{$post['likeURL']}"><div></div></a>  
+    <a class="postControl{if $post['liked']} liked{/if}" id="like" href="{$post['likeURL']}"><div></div></a>
     {if $post['nextURL']}
       <a class="postControl" id="next" href="{$post['nextURL']}"><div></div></a>
     {/if}
