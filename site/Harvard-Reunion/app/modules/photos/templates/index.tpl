@@ -32,20 +32,32 @@
     </div>
   </div>
   
-  <div class="photos">
-    {foreach $photos as $photo}
-      {block name="photo"}
-        <div class="photo">
-          <a href="{$photo['url']}">
-            <div class="wrapper">
-              <img class="thumbnail" src="{$photo['thumbnail']}" />
-            </div>
-            <div class="when">{$photo['when']['delta']}</div>
-          </a>
-        </div>
-      {/block}
-    {/foreach}
-  </div>
+  {if count($photos)}
+    <div class="photos">
+      {foreach $photos as $photo}
+        {block name="photo"}
+          <div class="photo">
+            <a href="{$photo['url']}">
+              <div class="wrapper">
+                <img class="thumbnail" src="{$photo['thumbnail']}" />
+              </div>
+              <div class="when">{$photo['when']['delta']}</div>
+            </a>
+          </div>
+        {/block}
+      {/foreach}
+    </div>
+  {else}
+    <div class="nonfocal">
+      {if $currentView == 'all'}
+        There are no viewable photos in this Facebook group.
+      {elseif $currentView == 'mine'}
+        You have not uploaded any photos to this Facebook group.
+      {elseif $currentView == 'bookmarked'}
+        You have not bookmarked any photos.
+      {/if}
+    </div>
+  {/if}
   
   <div class="nonfocal">
     <span class="smallprint">Signed into Facebook as {$user} (<a href="{$switchUserURL}">change</a>)</span>

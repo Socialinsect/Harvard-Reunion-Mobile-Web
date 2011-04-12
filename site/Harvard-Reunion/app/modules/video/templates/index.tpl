@@ -31,23 +31,35 @@
       {/foreach}
     </div>
   </div>
-  
-  <ul class="results">
-    {foreach $videos as $video}
-      <li class="videoListing">
-        <a href="{$video['url']}">
-          <div class="thumbnail"><img src="{$video['thumbnail']}" /></div>
-          <div class="message">{$video['message']}</div>
-          <div class="smallprint">
-            Uploaded by {$video['author']['name']}
-            <br/>
-            {$video['when']['delta']}
-          </div>
-        </a>
-      </li>
-    {/foreach}
-  </ul>
-  
+
+  {if count($videos)}
+    <ul class="results">
+      {foreach $videos as $video}
+        <li class="videoListing">
+          <a href="{$video['url']}">
+            <div class="thumbnail"><img src="{$video['thumbnail']}" /></div>
+            <div class="message">{$video['message']}</div>
+            <div class="smallprint">
+              Uploaded by {$video['author']['name']}
+              <br/>
+              {$video['when']['delta']}
+            </div>
+          </a>
+        </li>
+      {/foreach}
+    </ul>
+  {else}
+      <div class="nonfocal">
+      {if $currentView == 'all'}
+        There are no videos in this Facebook group.
+      {elseif $currentView == 'mine'}
+        You have not uploaded any videos to this Facebook group.
+      {elseif $currentView == 'bookmarked'}
+        You have not bookmarked any videos.
+      {/if}
+    </div>
+  {/if}
+
   <div class="nonfocal">
     <span class="smallprint">
       Signed into Facebook as {$user} (<a href="{$switchUserURL}">change</a>)
