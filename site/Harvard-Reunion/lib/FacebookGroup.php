@@ -577,7 +577,8 @@ class FacebookGroup {
     $diff = $now - $time;
     
     if ($diff >= $limit) {
-      $format = $shortFormat ? 'M j g:ia' : 'M j g:ia';
+//      $format = $shortFormat ? 'M j g:ia' : 'M j g:ia';
+      $format = $shortFormat ? 'M j g:ia' : 'M j';
       $relative = date($format, $time);
       
     } else if ($diff < 0) {
@@ -587,14 +588,16 @@ class FacebookGroup {
       $relative = 'now';
       
     } else if ($diff < 60) {
-      $relative = $shortFormat ? '< 1 min ago' : 'less than one minute ago';
+//      $relative = $shortFormat ? '< 1 min ago' : 'less than one minute ago';
+      $relative = $shortFormat ? '< 1 min ago' : 'moments ago';
       
     } else if (($minutes = ceil($diff / 60)) < 60) {
       $relative = $minutes.($shortFormat ? ' min' : ' minute').($minutes == 1 ? '' : 's').' ago';
       
     } else {
       $hours = ceil($diff / 3600);
-      $relative = ($shortFormat ? ' ' : 'about ').$hours.' hour'.($hours == 1 ? '' : 's').' ago';
+//      $relative = ($shortFormat ? ' ' : 'about ').$hours.' hour'.($hours == 1 ? '' : 's').' ago';
+      $relative = ($shortFormat ? ' ' : '').$hours.' hour'.($hours == 1 ? '' : 's').' ago';
     }
     
     return $relative;
