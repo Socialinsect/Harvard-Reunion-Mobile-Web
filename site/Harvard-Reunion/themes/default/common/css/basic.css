@@ -1,41 +1,41 @@
 /* Overall font and colors */
 
 body {
-	background: #dcdddf;
+	background: #736d69;
 }
 
 body, th, td, li, option, select, input {
 	/* Primary font */
 	font: 14px/1.28em Helvetica, Arial, sans-serif;
-	color: #222;
+	color: #d7d4d2;
 }
 
 a, a:visited {
-	color: #036;
+	color: #fff;
 }
 
 a:hover {
-	color: #07d;
+	color: #c00;
 }
 
 h1 {
 	font-family: Georgia, serif;
 	font-size: 142%; 
 	font-weight: normal;
-	color: #036;
+	color: #fff;
 }
 
 h2 {
 	font-family: Helvetica, Arial, sans-serif;
 	font-size: 133%; 
 	font-weight: normal;
-	color: #036;
+	color: #fff;
 }
 
 h3 {
 	font-size: 100%; 
 	font-weight: bold;
-	color: #333;
+	color: #d7d4d2;
 }
 
 h4 {
@@ -46,12 +46,16 @@ h4 {
 
 dt, .label, .legend {
 	/* Accent text color */
-	color: #303339;
+	color: #d7d4d2;
 }
 
 .smallprint, .fineprint, .iconlegend, .dllabel {
 	/* Secondary text color */
-	color: #666;
+	color: #d7d4d2;
+}
+
+input, select, textarea {
+	color: #333;
 }
 
 
@@ -59,7 +63,7 @@ dt, .label, .legend {
 /* Major content blocks */
 
 .focal {
-	background-color: #fff;
+	background-color: #3d3a37;
 }
 
 
@@ -74,16 +78,20 @@ dt, .label, .legend {
 #footer {
 	font-size: 79%;
 	line-height: 1.33em;
-	color: #554c41;
+	color: #d7d4d2;
 }
 
 #footer a {
     text-decoration: none;
-	color: #554c41;
+	color: #d7d4d2;
 }
 
 #footer a:hover {
 	color: #e00;
+}
+
+.fontsize {
+	color: #d7d4d2;
 }
 
 
@@ -91,7 +99,7 @@ dt, .label, .legend {
 
 .combobutton {
 	/* Button for submitting forms, e.g., "Search" button */
-	background-color: #036;
+	background-color: #901;
 	color: #fff;
 }
 
@@ -101,13 +109,13 @@ dt, .label, .legend {
 
 .nav, .results {
 	/* Main navigation lists and search-results lists */
-	background-color: #fff;
+	background-color: #3d3a37;
 }
 
 .secondary {
 	/* Secondary navigation or action lists; typically have slightly smaller font size and slightly darker/tinted backgrounds */
-	background-color: #edeef0;
-	font-size: 93%;
+	background-color: #5d5955;
+	font-size: 100%;
 }
 
 .paging {
@@ -117,7 +125,7 @@ dt, .label, .legend {
 
 .bottomnav {
 	/* Navigation at bottom of page -- e.g., "Back to top" */
-	background-color: #4a4c4f;	
+	background-color: #5d5955;	
 	font-size: 93%;
 }
 
@@ -131,12 +139,15 @@ dt, .label, .legend {
 
 .tabs {
 	/* Text labels of unselected tab */
-	color: #999;
+	color: #d7d4d2;
 }
 
 .tabs .active {
 	/* Text label of currently selected tabs */
 	font-weight: bold;
-	color: #000;
+	color: #fff;
 }
 
+.tabstrip {
+	font-size: 100%;
+}

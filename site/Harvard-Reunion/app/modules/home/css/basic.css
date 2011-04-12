@@ -1,5 +1,6 @@
 #social {
   margin: 1em 0;
+  font-size: 88.23%;
 }
 
 table h2 {
@@ -8,4 +9,13 @@ table h2 {
 
 form textarea {
   width: 98%;
+}
+
+.banner {
+	margin: 10px;
+	font-size: 94.11%;
+}
+
+.banner h2 {
+	margin: 10px 0 6px 0;
 }
