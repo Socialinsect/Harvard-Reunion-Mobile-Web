@@ -52,8 +52,9 @@
 #navbar2 #bookmark {
   background-image: url('/common/images/button-navbar2-bookmark.png');
 }
-#navbar2 .on #bookmark {
+#navbar2 #bookmark.on {
   background-image: url('/common/images/button-navbar2-unbookmark.png');
+  background-position: top left;
 }
 #navbar2 #like {
   background-image: url('/common/images/button-navbar2-like.png');
