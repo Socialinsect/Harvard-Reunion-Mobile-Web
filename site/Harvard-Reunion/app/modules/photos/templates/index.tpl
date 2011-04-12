@@ -41,7 +41,7 @@
               <div class="wrapper">
                 <img class="thumbnail" src="{$photo['thumbnail']}" />
               </div>
-              <div class="when">{$photo['when']['delta']}</div>
+              <div class="when">{$photo['when']['shortDelta']}</div>
             </a>
           </div>
         {/block}

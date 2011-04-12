@@ -25,7 +25,7 @@
     {capture name="title" assign="title"}
       {block name="facebookPost"}
         &ldquo;{$post['message']}&rdquo; 
-        <span class="smallprint"> -&nbsp;{$post['author']['name']}, {$post['when']['delta']}</span>
+        <span class="smallprint"> -&nbsp;{$post['author']['name']}, {$post['when']['shortDelta']}</span>
       {/block}
     {/capture}
     {$posts[$i]['title'] = $title}

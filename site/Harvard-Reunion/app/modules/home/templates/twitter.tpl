@@ -12,7 +12,7 @@
   {capture name="title" assign="title"}
     {block name="tweetContent"}
       &ldquo;{$post['message']}&rdquo; 
-      <span class="smallprint"> - {$post['author']['name']}, {$post['when']['delta']}</span>
+      <span class="smallprint"> - {$post['author']['name']}, {$post['when']['shortDelta']}</span>
     {/block}
   {/capture}
   {$posts[$i]['title'] = $title}

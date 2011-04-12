@@ -42,7 +42,7 @@
             <div class="smallprint">
               Uploaded by {$video['author']['name']}
               <br/>
-              {$video['when']['delta']}
+              {$video['when']['shortDelta']}
             </div>
           </a>
         </li>

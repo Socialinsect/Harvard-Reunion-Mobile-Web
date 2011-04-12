@@ -26,7 +26,7 @@
   {capture name="title" assign="title"}
     {block name="comment"}
       &ldquo;{$comment['message']}&rdquo; 
-      <span class="smallprint"> -&nbsp;{$comment['author']['name']}, {$comment['when']['delta']}</span>
+      <span class="smallprint"> -&nbsp;{$comment['author']['name']}, {$comment['when']['shortDelta']}</span>
     {/block}
   {/capture}
   {$post['comments'][$i]['title'] = $title}
