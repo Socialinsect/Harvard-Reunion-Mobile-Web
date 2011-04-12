@@ -701,8 +701,17 @@ class Schedule {
       if (strtolower($multipleLocations) == 'yes') {
         $location['multiple'] = true;
       }
-      if ($fbPlaceId) {
+      /*if ($fbPlaceId) {
         $location['fbPlaceId'] = $fbPlaceId;
+      }*/
+      if (isset($location['latlon'])) {
+        $facebook = $this->getFacebookFeed();
+        if (!$facebook->needsLogin()) {
+          $places = $facebook->findPlaces($placeTitle, $location['latlon']);
+          if (count($places)) {
+            $location['fbPlaceId'] = $places[0]['id'];
+          }
+        }
       }
       if ($fqPlaceId) {
         $location['fqPlaceId'] = $fqPlaceId;
