@@ -80,6 +80,7 @@ class MapProjection
         if (isset($xy['x'], $xy['y'])) {
             $this->adjustedX = $xy['x'];
             $this->adjustedY = $xy['y'];
+            $this->phi = $this->lambda = null;
         }
     }
 
