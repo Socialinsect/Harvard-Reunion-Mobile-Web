@@ -19,9 +19,10 @@
   padding: 6px;
   text-decoration: none;
   color: white;
-  font-size: 82.353%;
-  line-height: 1.25em;
+  font-size: 76.47%;
+  line-height: 1.1em;
   text-align: center;
+  color: #ccc8c6;
 }
 
 .photos .wrapper {
@@ -37,6 +38,9 @@
   max-width: 100%;
   max-height: 100%;
   vertical-align: middle;
+}
+.when {
+	padding-top: 4px;
 }
 li {
   overflow: hidden;

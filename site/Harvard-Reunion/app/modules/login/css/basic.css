@@ -1,3 +1,11 @@
+body {
+	background: #736d69;
+}
+
+h1 {
+	color: #fff;
+}
+
 h2 {
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 	font-size: 100%;
@@ -8,6 +16,7 @@ h2 {
 #intro {
 	font-size: 88.23%;
 	line-height: 1.25em;
+	color: #d7e2e3;
 }
 
 .or {
@@ -37,9 +46,18 @@ label {
 	line-height: 1.2em;
 }
 
+.ribbon a {
+	color: #fff;
+}
+
+.or {
+	color: #b5b1af;
+}
+
 table.inputs {
   margin-top: .5em;
 }
+
 table.signinbuttons {
   
 }

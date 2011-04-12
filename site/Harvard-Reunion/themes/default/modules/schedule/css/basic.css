@@ -1,0 +1,11 @@
+.dateHeader {
+  font: 100%/1.33em Georgia, serif;
+  color: white;
+  background: #736e6a;
+  margin: 0;
+  padding: 14px 10px 4px 2px;
+}
+
+#navbar2 {
+  margin-top: -8px;
+}

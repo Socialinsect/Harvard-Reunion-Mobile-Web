@@ -4,6 +4,14 @@
 	color: #222;
 }
 
+.slugline {
+	color: #000;
+}
+
+#storysubhead, #storysubhead  a {
+	color: #5d5955;
+}
+
 .byline {
     font-size: 84%;
 }
@@ -11,4 +19,12 @@
 .dek {
 	font: 120%/1.25em Georgia, serif;
     color: #554c41;
+}
+
+#story, #story a {
+	color: #242322;
+}
+
+#story a:hover {
+	color: #c00;
 }
