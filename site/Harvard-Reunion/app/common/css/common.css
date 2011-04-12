@@ -24,41 +24,40 @@
 
 #navbar2 .postControl {
   display: inline-block;
-  height: 32px;
-  width: 32px;
-  background-color: blue;
+  height: 36px;
+  width: 40px;
   background-repeat: no-repeat;
   background-position: top left;
-  background-size: 32px;
-  margin: 6px;
+  background-size: 40px;
+  margin: 5px 8px;
 }
 
 #navbar2 #prev {
   position: absolute;
   top: 0;
   left: 0;
-  background-image: url('/common/images/button-prev.png');
+  background-image: url('/common/images/button-navbar2-prev.png');
 }
 
 #navbar2 #next {
   position: absolute;
   top: 0;
   right: 0;
-  background-image: url('/common/images/button-next.png');
+  background-image: url('/common/images/button-navbar2-next.png');
 }
 
 #navbar2 #comment {
-  background-image: url('/common/images/button-comment.png');
+  background-image: url('/common/images/button-navbar2-comment.png');
 }
 #navbar2 #bookmark {
-  background-image: url('/common/images/button-bookmark.png');
+  background-image: url('/common/images/button-navbar2-bookmark.png');
 }
-#navbar2 #bookmark.on {
-  background-image: url('/common/images/button-unbookmark.png');
+#navbar2 .on #bookmark {
+  background-image: url('/common/images/button-navbar2-unbookmark.png');
 }
 #navbar2 #like {
-  background-image: url('/common/images/button-like.png');
+  background-image: url('/common/images/button-navbar2-like.png');
 }
 #navbar2 #like.liked {
-  background-image: url('/common/images/button-unlike.png');
+  background-image: url('/common/images/button-navbar2-unlike.png');
 }
