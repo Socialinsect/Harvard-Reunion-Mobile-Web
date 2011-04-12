@@ -59,24 +59,27 @@ class SiteLoginWebModule extends LoginWebModule
             break;
             
         case 'login':
-            if (isset($this->args['login_cancel'])) {
-              $this->redirectTo('index', array(
-                'url' => $url,
-              ));
-            }
-        
             $login          = $this->argVal($_POST, 'loginUser', '');
             $password       = $this->argVal($_POST, 'loginPassword', '');
             $authorityIndex = $this->getArg('authority', AuthenticationAuthority::getDefaultAuthenticationAuthorityIndex());
             
+            if (isset($this->args['login_cancel'])) {
+              if ($this->isLoggedIn($authorityIndex)) {
+                $this->redirectTo('logout', array(
+                  'authority' => $authorityIndex,
+                  'hard'      => true,
+                ));
+                
+              } else {
+                $this->redirectTo('index', array(
+                  'url' => $url,
+                ));
+              }
+            }
+            
             $this->assign('authority', $authorityIndex);
             $this->assign('url', $url);
 
-            if ($authorityIndex != 'anonymous' && (empty($login) || empty($password))) {
-              $this->setTemplatePage($authorityIndex);
-              $this->assign('authFailed', true);
-              break;
-            }
             
             $options = array(
                 'url'       => $url,
@@ -100,7 +103,6 @@ class SiteLoginWebModule extends LoginWebModule
                 $user = $this->getUser($authorityIndex);
                 if ($user->needsCollegeIndex() && isset($_POST['collegeIndex'])) {
                     $user->setCollegeIndex($_POST['collegeIndex']);
-                    error_log(print_r($this->getUser($authorityIndex), true));
                 }
                 
                 if ($user->needsCollegeIndex()) {
@@ -112,8 +114,10 @@ class SiteLoginWebModule extends LoginWebModule
                 }
                 
             } else {
-                if (empty($login)) {
-                    $this->redirectTo('index', $options);
+                if ($authorityIndex != 'anonymous' && (empty($login) || empty($password))) {
+                  $this->setTemplatePage($authorityIndex);
+                  $this->assign('authFailed', true);
+                  break;
                 }
                 
                 if ($authority = AuthenticationAuthority::getAuthenticationAuthority($authorityIndex)) {

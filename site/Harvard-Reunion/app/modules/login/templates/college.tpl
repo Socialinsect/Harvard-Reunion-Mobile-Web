@@ -17,10 +17,7 @@
       </select>
     </p>
     
-    <div class="signinbuttons">
-      <input class="signinbutton submit" name="login_submit" type="submit" value="Enter"/>
-      <a class="signinbutton cancel" href="{$cancelURL}">Cancel</a>
-    </div>
+    {include file="findInclude:modules/{$moduleID}/templates/buttons.tpl" submitText="Enter" cancelText="Cancel"}
   </form>
   
   <div class="clear"></div>
