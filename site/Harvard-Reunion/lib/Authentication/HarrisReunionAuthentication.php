@@ -25,6 +25,7 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
               'dana.park'      => 'danapark',
               'dan.smith'      => 'dansmith',
               'pat.leary'      => 'patleary',
+              'sam.fisher'     => 'samfisher',
               'chris.doe'      => 'chrisdoe',
             );
             

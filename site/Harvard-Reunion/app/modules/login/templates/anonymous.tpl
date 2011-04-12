@@ -5,7 +5,7 @@
 
   <h3>Enter anonymously by selecting your graduation year:</h3>
 
-  <form id="signin" name="signin" action="login" method="POST" onsubmit="return validateAnonymousForm()">
+  <form id="signin" name="signin" action="login" method="POST" onsubmit="return validateAnonymousForm();">
     <input type="hidden" name="authority" value="anonymous" />
     <input type="hidden" name="url" value="{$url|escape}" />
     <p>
