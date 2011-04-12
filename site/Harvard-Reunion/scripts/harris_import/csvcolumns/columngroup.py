@@ -251,6 +251,11 @@ class ColumnGroup(object):
                            for col_name, col in self
                            if select_func(col_name)])
 
+    def replace(self, **new_cols):
+        """Return a new ColumnGroup that has the specified columns replaced with
+        new column values."""
+        return ColumnGroup([(col_name, new_cols.get(col_name, col))
+                            for col_name, col in self])
 
     def split(self, *col_names):
         return self.select(*col_names), self.reject(*col_names)

@@ -27,6 +27,10 @@ from csvcolumns.column import DataColumn
 from csvcolumns.transform import MethodTransform
 
 import config
+import testdata
+
+# Because it's late and I don't want to lookup optparse docs right now...
+ANONYMIZE = True
 
 def main(class_year, infile_name, outfile_base):
     infile_cols = parse_doc(infile_name)
@@ -38,6 +42,12 @@ def main(class_year, infile_name, outfile_base):
 
     # Extract event cols, keep the Event ID, strip Event Name, sort cols by ID
     event_cols = select_event_cols(all_cols).sort_columns()
+
+    # If we need to anonymize our data, do so here...
+    if ANONYMIZE:
+        # Not only do we put fake users, but also specific test users per class
+        user_cols = testdata.anonymize_users(user_cols, class_year)
+        event_cols = testdata.anonymize_events(event_cols)
 
     # Pull the user cols and event cols together, sort rows by email (the first 
     # col) This is a little ugly because if you change the column order, it 
