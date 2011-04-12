@@ -615,7 +615,7 @@ class FacebookGroup {
       $html = '<iframe id="videoFrame" src="http://www.youtube.com/embed/'.$videoID.
         '" width="640" height="390" frameborder="0"></iframe>';
     
-    } else if (preg_match(';clip_id=(.+);', $source, $matches)) {
+    } else if (preg_match(';clip_id=([^&]+);', $source, $matches)) {
       $videoID = $matches[1];
       $videoInfo = json_decode(file_get_contents(
         "http://vimeo.com/api/v2/video/{$videoID}.json"), true);
