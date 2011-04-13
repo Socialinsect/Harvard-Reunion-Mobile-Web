@@ -13,7 +13,7 @@
         <h2>{$scheduleInfo['title']}</h2>
       {/if}
       <p>
-        <a href="{$logoutURL}" onclick="return confirmLogout()">
+        <a href="{$logoutURL}"{if $userInfo['fullname']} onclick="return confirmLogout()"{/if}>
           <span>{if $userInfo['fullname']}Sign out{else}Sign in{/if}</span> &gt;
         </a>
       </p>

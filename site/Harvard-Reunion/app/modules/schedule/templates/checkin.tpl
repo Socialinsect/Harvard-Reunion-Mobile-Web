@@ -4,7 +4,7 @@
   <h3>{$eventTitle}</h3>
 </div>
 
-{if !$checkedIn}
+{if !$state['checkedin']}
   <div class="focal checkinForm">
     Check in to {$eventTitle}
   
@@ -18,7 +18,7 @@
   </div>
 {/if}
 
-<div id="checkins">
+<div id="autoupdateContainer">
   {include file="findInclude:modules/$moduleID/templates/checkinContent.tpl" state=$state}
 </div>
 

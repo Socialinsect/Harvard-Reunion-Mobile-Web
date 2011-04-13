@@ -32,29 +32,5 @@ function updateRecentMessage() {
 }
 
 function confirmLogout() {
-  return (confirm("Are you sure you want to sign in as a different user? Events you've bookmarked in this website may be forgotten."));
-}
-
-function initMessageList() {
-  // cache updates approximately every 20 seconds
-  setInterval(updateMessageList, 20000);
-}
-
-function updateMessageList() {
-  var httpRequest = new XMLHttpRequest();
-  httpRequest.onreadystatechange = function() {
-    if (httpRequest.readyState == 4 && httpRequest.responseText.length) {
-      document.getElementById('listContainer').innerHTML = httpRequest.responseText;
-    }
-  };
-  httpRequest.open("GET", MESSAGE_LIST_AJAX_URL, true);
-  httpRequest.send(null);
-}
-
-function validateTextInputForm(textId, message) {
-    if(document.getElementById(textId).value=="") {
-        alert(message);
-        return false;
-    }
-    return true;
+  return confirm("Are you sure you want to sign out?");
 }

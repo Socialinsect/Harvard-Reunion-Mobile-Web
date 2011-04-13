@@ -113,9 +113,10 @@ class SiteHomeWebModule extends HomeWebModule {
           $this->assign('groupName', $facebook->getGroupFullName());
           
         } else {
+          $this->addInternalJavascript('/common/javascript/lib/utils.js');
           $this->addInlineJavascript(
-            'var MESSAGE_LIST_AJAX_URL = "'.URL_PREFIX.$this->id.'/facebookContent"');
-          $this->addOnLoad('initMessageList();');
+            'var CONTENT_AJAX_URL = "'.URL_PREFIX.$this->id.'/facebookContent"');
+          $this->addOnLoad('autoupdateContent();');
         
           $this->assign('user',          $facebook->getUserFullName());
           $this->assign('groupName',     $facebook->getGroupFullName());
@@ -132,10 +133,11 @@ class SiteHomeWebModule extends HomeWebModule {
         break;
       
       case 'twitter':
+        $this->addInternalJavascript('/common/javascript/lib/utils.js');
         $this->addInlineJavascript(
-          'var MESSAGE_LIST_AJAX_URL = "'.URL_PREFIX.$this->id.'/twitterContent"');
-        $this->addOnLoad('initMessageList();');
-
+          'var CONTENT_AJAX_URL = "'.URL_PREFIX.$this->id.'/twitterContent"');
+        $this->addOnLoad('autoupdateContent();');
+        
         $this->assign('hashtag',    $this->schedule->getTwitterHashTag());
         $this->assign('tweetURL',   $twitter->getTweetURL());
         $this->assign('twitterURL', $twitter->getFeedURL());
@@ -144,6 +146,10 @@ class SiteHomeWebModule extends HomeWebModule {
        
       case 'twitterContent':
         $this->assign('posts', $twitter->getRecentTweets());
+        break;
+     
+      case 'commentsContent':
+        $this->assign('post', array('comments' => $facebook->getComments($this->getArg('id'))));
         break;
      
       case 'add':

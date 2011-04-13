@@ -143,12 +143,12 @@ class SitePhotosWebModule extends WebModule {
           }
         }
         
-        $commentURL = URL_BASE.API_URL_PREFIX."/home/comments?".http_build_query(array(
+        $commentURL = URL_PREFIX."home/commentsContent?".http_build_query(array(
           'id' => $postId,
         ));
-        $this->addInternalJavascript('/common/javascript/lib/messagelist.js');
-        $this->addInlineJavascript('var MESSAGE_LIST_AJAX_URL = "'.$commentURL.'"');
-        $this->addOnLoad('initMessageList();');
+        $this->addInternalJavascript('/common/javascript/lib/utils.js');
+        $this->addInlineJavascript('var CONTENT_AJAX_URL = "'.$commentURL.'"');
+        $this->addOnLoad('autoupdateContent();');
 
         $this->assign('photo', $postDetails);
         break;

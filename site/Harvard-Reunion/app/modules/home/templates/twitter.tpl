@@ -7,7 +7,7 @@
   {/block}
 </div>
 
-<div id="listContainer">
+<div id="autoupdateContainer">
   {include file="findInclude:modules/$moduleID/templates/twitterContent.tpl" posts=$posts}
 </div>
 

@@ -502,11 +502,12 @@ class SiteScheduleWebModule extends WebModule {
           $this->assign('state', $venueCheckinState);
         }
         
-        $this->addOnLoad('initCheckins();');        
+        $this->addInternalJavascript('/common/javascript/lib/utils.js');
         $this->addInlineJavascript(
-          'var CHECKIN_CONTENT_URL = "'.URL_PREFIX.$this->id.'/checkinContent?'.
+          'var CONTENT_AJAX_URL = "'.URL_PREFIX.$this->id.'/checkinContent?'.
             http_build_query(array('venue' => $venue)).'"');
-      
+        $this->addOnLoad('autoupdateContent();');
+        
         $this->assign('eventTitle', $this->getArg('eventTitle'));
         $this->assign('hiddenArgs', array(
           'venue'     => $venue,

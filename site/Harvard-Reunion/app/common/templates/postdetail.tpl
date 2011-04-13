@@ -32,9 +32,9 @@
   {$post['comments'][$i]['title'] = $title}
 {/foreach}
 
-{if count($post['comments'])}
-  {include file="findInclude:common/templates/navlist.tpl" navlistItems=$post['comments'] navlistID="listContainer" accessKey=false}
-{/if}
+<div id="autoupdateContainer">
+  {include file="findInclude:common/templates/postdetailContent.tpl" post=$post}
+</div>
   
 <div class="focal fbPostForm">
   <form method="get" action="comment">

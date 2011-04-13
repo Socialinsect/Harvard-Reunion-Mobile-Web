@@ -21,7 +21,7 @@
     </form>
   </div>
   
-  <div id="listContainer">
+  <div id="autoupdateContainer">
     {include file="findInclude:modules/$moduleID/templates/facebookContent.tpl" posts=$posts}
   </div>
   
