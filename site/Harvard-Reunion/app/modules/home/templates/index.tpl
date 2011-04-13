@@ -25,6 +25,8 @@
 
 {include file="findInclude:common/templates/springboard.tpl" springboardItems=$modules springboardID="homegrid"}
 
+<div class="separator"></div>
+
 {block name="social"}
   <div id="social">
     <div class="links">

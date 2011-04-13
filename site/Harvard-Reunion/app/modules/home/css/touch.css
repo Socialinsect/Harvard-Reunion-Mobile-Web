@@ -219,3 +219,9 @@ form input[type=submit] {
 .fbPostForm {
   overflow: hidden;
 }
+
+.springboard + div.separator {
+  clear: both;
+  height: 18px;
+  float: none;
+}
