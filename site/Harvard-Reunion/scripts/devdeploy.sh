@@ -12,7 +12,6 @@ mkdir -p $DEPLOY_DIR
 
 if [ -d $DEPLOY_DIR/$REPO_NAME ]; then
   cd $REPO_DIR
-  git stash
   git pull
 else
   cd $DEPLOY_DIR
