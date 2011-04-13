@@ -4,19 +4,35 @@ class SiteLoginWebModule extends LoginWebModule
 {
 
   protected function initializeForPage() {
+    $nativeApp = $this->getArg('nativeApp', false);
+    
+    // Default args to pass through forms and urls
+    $defaultArgs = array();
+    if ($nativeApp) {
+        $defaultArgs['nativeApp'] = 1;
+    }
+    
     // return url
     $url = $this->getArg('url');
     if (!$url || strpos($url, URL_PREFIX.'info/') === 0) {
-      $url = URL_PREFIX.ltrim($this->buildURLForModule('home', 'index'), '/');
+        $url = URL_PREFIX.ltrim($this->buildURLForModule('home', 'index', $defaultArgs), '/');
     }
+    $defaultArgs['url'] = $url;
+
+    $this->assign('defaultArgs', $defaultArgs);
+
     $session  = $this->getSession();
 
+    // Always allow the user to remain logged in for the full duration
+    $remainLoggedInTime = Kurogo::getOptionalSiteVar('AUTHENTICATION_REMAIN_LOGGED_IN_TIME', 0);
+    $session->setRemainLoggedIn($remainLoggedInTime);
+    
     switch ($this->page) {
         case 'logoutConfirm':
             $authorityIndex = $this->getArg('authority');
             
             if (!$this->isLoggedIn($authorityIndex)) {
-                $this->redirectTo('index', array());
+                $this->redirectTo('index', $defaultArgs);
                 
             } elseif ($user = $this->getUser($authorityIndex)) {
                 $authority = $user->getAuthenticationAuthority();
@@ -24,13 +40,13 @@ class SiteLoginWebModule extends LoginWebModule
                 $this->setTemplatePage('message');
                 $this->assign('message', "You are logged in as ".$user->getFullName().
                     ($multipleAuthorities ? ' (' . $authority->getAuthorityTitle() . ')' : ''));
-                $this->assign('url', $this->buildURL('logout', array(
-                    'authority' => $authorityIndex
-                )));
+                $this->assign('url', $this->buildURL('logout', array_merge($defaultArgs, array(
+                    'authority' => $authorityIndex,
+                ))));
                 $this->assign('linkText', 'Logout');
                 
             } else {
-                $this->redirectTo('index', array());
+                $this->redirectTo('index', $defaultArgs);
             }
             break;
             
@@ -54,7 +70,7 @@ class SiteLoginWebModule extends LoginWebModule
               header("Location: $url");
               exit();
             } else {
-              $this->redirectTo('index', array());
+              $this->redirectTo('index', $defaultArgs);
             }
             break;
             
@@ -65,39 +81,31 @@ class SiteLoginWebModule extends LoginWebModule
             
             if (isset($this->args['login_cancel'])) {
               if ($this->isLoggedIn($authorityIndex)) {
-                $this->redirectTo('logout', array(
+                $this->redirectTo('logout', array_merge($defaultArgs, array(
                   'authority' => $authorityIndex,
                   'hard'      => true,
-                ));
+                )));
                 
               } else {
-                $this->redirectTo('index', array(
-                  'url' => $url,
-                ));
+                $this->redirectTo('index', $defaultArgs);
               }
             }
             
-            $this->assign('authority', $authorityIndex);
-            $this->assign('url', $url);
-
-            
-            $options = array(
-                'url'       => $url,
-                'authority' => $authorityIndex
-            );
+            $options = array_merge($defaultArgs, array(
+                'authority' => $authorityIndex,
+            ));
             
             $referrer = $this->argVal($_SERVER, 'HTTP_REFERER', '');
-            $session->setRemainLoggedIn($this->getArg('remainLoggedIn', 0));
             
-            $this->assign('cancelURL', $this->buildURL('logout', array('authority'=>$authorityIndex)));
+            $this->assign('cancelURL', $this->buildURL('logout', $options));
             
-            $noReunionOptions = array(
+            $noReunionOptions = array_merge($defaultArgs, array(
                 'authority' => $authorityIndex,
                 'hard'      => true,
-                'url'       => URL_PREFIX.ltrim($this->buildURL('index', array(
+                'url'       => URL_PREFIX.ltrim($this->buildURL('index', array_merge($defaultArgs, array(
                     'noreunion' => 'true',
-                )), '/'),
-            );
+                ))), '/'),
+            ));
 
             if ($this->isLoggedIn($authorityIndex)) {
                 $user = $this->getUser($authorityIndex);
@@ -160,23 +168,28 @@ class SiteLoginWebModule extends LoginWebModule
             
             } elseif ($this->getArg('noreunion', false)) {
                 $this->setTemplatePage('noreunion');
-                $this->assign('loginURL', $this->buildURL('index'));
+                $this->assign('loginURL', $this->buildURL('index', $defaultArgs));
             
             } elseif ($authority = $this->getArg('authority')) {
                 if ($authority == 'anonymous') {
-                  $this->assign('reunionYears', Schedule::getAllReunionYears());
+                    $this->assign('reunionYears', Schedule::getAllReunionYears());
                 }
-            
                 $this->setTemplatePage($authority);
-                $this->assign('url', $url);
             
             } else {
-                $this->assign('harrisURL',    $this->buildURL($this->page, array('authority'=>'harris', 'url'=>$url)));
-                $this->assign('anonymousURL', $this->buildURL($this->page, array('authority'=>'anonymous', 'url'=>$url)));
-                $this->assign('suppressiOSLink', $this->getArg('nativeApp', false));
+                $harrisArgs = array_merge($defaultArgs, array(
+                    'authority' => 'harris', 
+                ));
+                $anonymousArgs = array_merge($defaultArgs, array(
+                    'authority' => 'anonymous', 
+                ));
+            
+                $this->assign('harrisURL',       $this->buildURL($this->page, $harrisArgs));
+                $this->assign('anonymousURL',    $this->buildURL($this->page, $anonymousArgs));
+                $this->assign('suppressiOSLink', $nativeApp);
             }
             break;
-    }
+      }
   }
 
 }

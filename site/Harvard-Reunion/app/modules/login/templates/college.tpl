@@ -6,8 +6,10 @@
   <h3>This graduation class has separate reunions for Harvard and Radcliffe.  Please select which reunion you will be attending:</h3>
   
   <form id="signin" name="signin" action="login" method="POST" onsubmit="return validateSelectCollegeForm();">
+    {foreach $defaultArgs as $arg => $value}
+      <input type="hidden" name="{$arg}" value="{$value}" />
+    {/foreach}
     <input type="hidden" name="authority" value="harris" />
-    <input type="hidden" name="url" value="{$url|escape}" />
     
     <p>
       <select id="collegeIndex" name="collegeIndex">

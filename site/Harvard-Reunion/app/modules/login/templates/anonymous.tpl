@@ -6,8 +6,10 @@
   <h3>Enter anonymously by selecting your graduation year:</h3>
 
   <form id="signin" name="signin" action="login" method="POST" onsubmit="return validateAnonymousForm();">
+    {foreach $defaultArgs as $arg => $value}
+      <input type="hidden" name="{$arg}" value="{$value}" />
+    {/foreach}
     <input type="hidden" name="authority" value="anonymous" />
-    <input type="hidden" name="url" value="{$url|escape}" />
     <p>
       <select id="year" name="loginUser">
         <option value="" selected></option>
