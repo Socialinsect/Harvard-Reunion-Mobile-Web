@@ -21,23 +21,9 @@
     </form>
   </div>
   
-  {foreach $posts as $i => $post}
-    {capture name="title" assign="title"}
-      {block name="facebookPost"}
-        &ldquo;{$post['message']}&rdquo; 
-        <span class="smallprint"> -&nbsp;{$post['author']['name']}, {$post['when']['shortDelta']}</span>
-      {/block}
-    {/capture}
-    {$posts[$i]['title'] = $title}
-  {/foreach}
-  
-  {if !count($posts)}
-    {$empty = array()}
-    {$empty['title'] = 'No posts for '|cat:$groupName}
-    {$posts[] = $empty}
-  {/if}
-  
-  {include file="findInclude:common/templates/navlist.tpl" navlistItems=$posts navlistID="listContainer"}
+  <div id="listContainer">
+    {include file="findInclude:modules/$moduleID/templates/facebookContent.tpl" posts=$posts}
+  </div>
   
 {block name="facebookFooter"}
   <div class="nonfocal">

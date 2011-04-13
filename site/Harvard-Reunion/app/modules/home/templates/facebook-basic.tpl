@@ -6,12 +6,6 @@
   <input type="submit" value="Share" />
 {/block}
 
-{block name="facebookPost"}
-  "{$post['message']}"<br/>
-  <span class="smallprint"> - {$post['author']['name']}, {$post['when']['delta']}</span>
-  {if !$lastPost}<br/>{/if}
-{/block}
-
 {block name="facebookFooter"}
   <p class="nonfocal smallprint">
     Signed in as {$user} (<a href="{$switchUserURL}">change</a>)

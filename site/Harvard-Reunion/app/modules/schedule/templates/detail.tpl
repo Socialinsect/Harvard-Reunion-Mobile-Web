@@ -16,18 +16,9 @@
       </div>
     {/if}
   {/block}
-  {if $fbCheckinURL || $fqCheckinURL || $fbCheckedIn || $fqCheckedIn}
+  {if $checkinURL}
     <div class="checkin">Check in: 
-      {if $fqCheckedIn}
-        <span id="fqCheckin" class="checkedin">foursquare</span> 
-      {elseif $fqCheckinURL}
-        <a id="fqCheckin" href="{$fqCheckinURL}">foursquare</a> 
-      {/if} 
-      {if $fbCheckedIn}
-        <span id="fbCheckin" class="checkedin">Facebook</span>
-      {elseif $fbCheckinURL}
-        <a id="fbCheckin" href="{$fbCheckinURL}">Facebook</a>
-      {/if} 
+      <a id="fqCheckin" href="{$checkinURL}"{if $checkedIn} class="checkedin"{/if}>foursquare</a>
     </div>
   {/if}
 </div>

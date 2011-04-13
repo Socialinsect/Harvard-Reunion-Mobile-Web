@@ -114,7 +114,7 @@ class SiteHomeWebModule extends HomeWebModule {
           
         } else {
           $this->addInlineJavascript(
-            'var MESSAGE_LIST_AJAX_URL = "'.URL_BASE.API_URL_PREFIX.'/'.$this->id.'/facebook"');
+            'var MESSAGE_LIST_AJAX_URL = "'.URL_PREFIX.$this->id.'/facebookContent"');
           $this->addOnLoad('initMessageList();');
         
           $this->assign('user',          $facebook->getUserFullName());
@@ -125,9 +125,15 @@ class SiteHomeWebModule extends HomeWebModule {
         }
         break;
       
+      case 'facebookContent':
+        if (!$facebook->needsLogin() && $facebook->isMemberOfGroup()) {
+          $this->assign('posts', $facebook->getGroupStatusMessages());
+        }
+        break;
+      
       case 'twitter':
         $this->addInlineJavascript(
-          'var MESSAGE_LIST_AJAX_URL = "'.URL_BASE.API_URL_PREFIX.'/'.$this->id.'/twitter"');
+          'var MESSAGE_LIST_AJAX_URL = "'.URL_PREFIX.$this->id.'/twitterContent"');
         $this->addOnLoad('initMessageList();');
 
         $this->assign('hashtag',    $this->schedule->getTwitterHashTag());
@@ -135,7 +141,11 @@ class SiteHomeWebModule extends HomeWebModule {
         $this->assign('twitterURL', $twitter->getFeedURL());
         $this->assign('posts',      $twitter->getRecentTweets());
         break;
-      
+       
+      case 'twitterContent':
+        $this->assign('posts', $twitter->getRecentTweets());
+        break;
+     
       case 'add':
         $message = $this->getArg('message');
         $type = $this->getArg('type');

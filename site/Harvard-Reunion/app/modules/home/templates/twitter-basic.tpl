@@ -9,12 +9,6 @@
   </tr></table>
 {/block}
 
-{block name="tweetContent"}
-  "{$post['message']}"<br/>
-  <span class="smallprint"> - {$post['author']['name']}, {$post['when']['delta']}</span>
-  {if !$lastPost}<br/>{/if}
-{/block}
-
 {block name="twitterFooter"}
   <p class="nonfocal smallprint">
     View tweets for {$hashtag} at <a href="{$twitterURL}">twitter.com</a>

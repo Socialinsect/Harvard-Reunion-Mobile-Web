@@ -23,7 +23,7 @@ class SiteScheduleWebModule extends WebModule {
     
     // '.' in cookie names doesn't work properly with the PHP $_COOKIE variable
     $categoryCookieName = self::CATEGORY_COOKIE_PREFIX.
-      urlencode(str_replace('.', '_', $this->user->getUserID()));
+      urlencode(str_replace(array('.', ':'), array('_', '_'), $this->user->getUserID()));
     
     if (isset($this->args['category'], $categories[$this->args['category']])) {
       $category = $this->args['category'];
@@ -408,47 +408,25 @@ class SiteScheduleWebModule extends WebModule {
         $checkinThresholdStart = time() - ($event->get_end() - $event->get_start()) - 60*15;
         $checkinThresholdEnd = $checkinThresholdStart + ($event->get_end() - $event->get_start()) + 60*15;
         
-        if (isset($info['location'], $info['location']['fbPlaceId'])) {
-          $facebook = $this->schedule->getFacebookFeed();
-          if (!$facebook->needsLogin()) {
-            $checkedIn = $facebook->isCheckedIn($info['location']['fbPlaceId'], $checkinThresholdStart);
-          }
-          
-          if ($checkedIn) { 
-            $this->assign('fbCheckedIn', true);
-          } else {
-            $this->assign('fbCheckinURL', $this->buildBreadcrumbURL('checkin', array(
-              'service'    => 'facebook',
-              'eventURL'   => FULL_URL_PREFIX.ltrim(
-                $this->buildBreadcrumbURL($this->page, $this->args, false), '/'),
-              'eventTitle' => $info['title'],
-              'place'      => $info['location']['fbPlaceId'],
-              'latitude'   => $latitude, 
-              'longitude'  => $longitude
-            ), false));
-          }
-        }
-        
         $checkedIn = false;
-        if (isset($info['location'], $info['location']['fqPlaceId'])) {        
+        if (isset($info['location'], $info['location']['foursquareId'])) {        
           $foursquare = $this->schedule->getFoursquareFeed();
           if (!$foursquare->needsLogin()) {
-            $checkedIn = $foursquare->isCheckedIn($info['location']['fqPlaceId'], $checkinThresholdStart);
+            $checkedIn = $foursquare->isCheckedIn($info['location']['foursquareId'], $checkinThresholdStart);
           }
           
           if ($checkedIn) { 
-            $this->assign('fqCheckedIn', true);
-          } else {
-            $this->assign('fqCheckinURL', $this->buildBreadcrumbURL('checkin', array(
-              'service'    => 'foursquare',
-              'eventURL'   => FULL_URL_PREFIX.ltrim(
-                $this->buildBreadcrumbURL($this->page, $this->args, false), '/'),
-              'eventTitle' => $info['title'],
-              'place'      => $info['location']['fqPlaceId'],
-              'latitude'   => $latitude, 
-              'longitude'  => $longitude
-            ), false));
+            $this->assign('checkedIn', true);
           }
+
+          $this->assign('checkinURL', $this->buildBreadcrumbURL('checkin', array(
+            'eventURL'   => FULL_URL_PREFIX.ltrim(
+              $this->buildBreadcrumbURL($this->page, $this->args, false), '/'),
+            'eventTitle' => $info['title'],
+            'venue'      => $info['location']['foursquareId'],
+            'latitude'   => $latitude, 
+            'longitude'  => $longitude
+          )));
         }
         
         $this->assign('eventId',              $eventId);
@@ -516,52 +494,48 @@ class SiteScheduleWebModule extends WebModule {
         break;
         
       case 'checkin':
-        $service = $this->getArg('service');
-        $eventURL = $this->getArg('eventURL');
+        $venue = $this->getArg('venue');
+        $foursquare = $this->schedule->getFoursquareFeed();
         
+        $venueCheckinState = $foursquare->getVenueCheckinState($venue);
+        if ($venueCheckinState) {
+          $this->assign('state', $venueCheckinState);
+        }
+        
+        $this->addOnLoad('initCheckins();');        
+        $this->addInlineJavascript(
+          'var CHECKIN_CONTENT_URL = "'.URL_PREFIX.$this->id.'/checkinContent?'.
+            http_build_query(array('venue' => $venue)).'"');
+      
         $this->assign('eventTitle', $this->getArg('eventTitle'));
-        $this->assign('service',    $service);
-        $this->assign('serviceName', ($service == 'foursquare') ? $service : ucfirst($service));
-        $this->assign('cancelURL',  $eventURL);
         $this->assign('hiddenArgs', array(
-          'service'   => $service,
-          'place'     => $this->getArg('place'),
+          'venue'     => $venue,
           'latitude'  => $this->getArg('latitude'),
           'longitude' => $this->getArg('longitude'),
-          'eventURL'  => $eventURL,
+          'eventURL'  => $this->getArg('eventURL'),
         ));
+        break;
+        
+      case 'checkinContent':
+        $venue = $this->getArg('venue');
+        $foursquare = $this->schedule->getFoursquareFeed();
+        
+        $venueCheckinState = $foursquare->getVenueCheckinState($venue);
+        if ($venueCheckinState) {
+          $this->assign('state', $venueCheckinState);
+        }
         break;
       
       case 'addCheckin':
-        $service   = $this->getArg('service');
-        $place     = $this->getArg('place');
+        $venue     = $this->getArg('venue');
         $message   = $this->getArg('message');
         $latitude  = $this->getArg('latitude');
         $longitude = $this->getArg('longitude');
         $eventURL  = $this->getArg('eventURL');
         
-        $coords = null;
         if ($latitude && $longitude) {
-          $coords = array($latitude, $longitude);
-        }
-          
-        if ($service == 'facebook' && $place) {
-          $facebook = $this->schedule->getFacebookFeed();
-          if ($facebook->needsLogin()) {
-            $loginURL = $facebook->getLoginURL();
-            header("Location: $loginURL");
-            exit();
-          }
-          $facebook->addCheckin($place, $message, $coords);
-        
-        } else if ($service == 'foursquare' && $latitude && $longitude) {
           $foursquare = $this->schedule->getFoursquareFeed();
-          if ($foursquare->needsLogin()) {
-            $loginURL = $foursquare->getLoginURL();
-            header("Location: $loginURL");
-            exit();
-          }
-          $foursquare->addCheckin($place, $message, $coords);
+          $foursquare->addCheckin($venue, $message, array($latitude, $longitude));
         }
         
         if ($eventURL) {

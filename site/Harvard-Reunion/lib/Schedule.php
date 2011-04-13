@@ -642,21 +642,19 @@ class Schedule {
     $locationTitle = $event->get_attribute('Location Name');
     $locationBuildingID = $event->get_attribute('Building ID');
     $trumbaLocation = $event->get_attribute('location');
-    $fbPlaceId = $event->get_attribute('Facebook Place');
-    $fqPlaceId = $event->get_attribute('Foursquare Place');
+    $foursquareId = $event->get_attribute('Foursquare Place');
     if ($locationTitle || $locationBuilding || $trumbaLocation) {
       $location = array(
-        'title'     => null,
-        'building'  => null,
-        'latlon'    => null,
-        'address'   => array(
-          'street'  => null,
-          'city'    => null,
-          'state'   => null,
+        'title'        => null,
+        'building'     => null,
+        'latlon'       => null,
+        'address'      => array(
+          'street'     => null,
+          'city'       => null,
+          'state'      => null,
         ),
-        'multiple'  => false,
-        'fbPlaceId' => null,
-        'fqPlaceId' => null,
+        'multiple'     => false,
+        'foursquareId' => null,
       )
       ;
       if ($locationTitle) {
@@ -701,20 +699,8 @@ class Schedule {
       if (strtolower($multipleLocations) == 'yes') {
         $location['multiple'] = true;
       }
-      /*if ($fbPlaceId) {
-        $location['fbPlaceId'] = $fbPlaceId;
-      }*/
-      if (isset($location['latlon'])) {
-        $facebook = $this->getFacebookFeed();
-        if (!$facebook->needsLogin()) {
-          $places = $facebook->findPlaces($placeTitle, $location['latlon']);
-          if (count($places)) {
-            $location['fbPlaceId'] = $places[0]['id'];
-          }
-        }
-      }
-      if ($fqPlaceId) {
-        $location['fqPlaceId'] = $fqPlaceId;
+      if ($foursquareId) {
+        $location['foursquareId'] = $foursquareId;
       }
       
       $info['location'] = $location;

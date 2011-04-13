@@ -28,6 +28,13 @@ class Foursquare {
       'path'          => 'venues/',
       'includeParams' => false,
     ),
+    'hereNow' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::NOCACHE_LIFETIME,
+      'path'          => 'venues/',
+      'suffix'        => '/herenow',
+      'includeParams' => false,
+    ),
     'checkins' => array(
       'cache'         => null,
       'cacheLifetime' => self::NOCACHE_LIFETIME,
@@ -89,6 +96,21 @@ class Foursquare {
     return $fullName;
   }
   
+  public function getUserId() {
+    $id = null;
+    
+    $results = $this->api('users', 'self');
+    //error_log(print_r($results, true));
+    
+    if (isset($results['response'], 
+              $results['response']['user'], 
+              $results['response']['user']['id'])) {
+      $id = $results['response']['user']['id'];
+    }
+    
+    return $id;
+  }
+  
   public function findVenues($venueTitle, $coords) {
     $args = array(
       'll'    => implode(',', $coords),
@@ -118,6 +140,59 @@ class Foursquare {
     }
     
     return $venues;
+  }
+  
+  public function getVenueCheckinState($venueId) {
+    $venueCheckinState = array(
+      'checkedin'  => false,
+      'checkins'   => array(),
+      'otherCount' => 0,
+    );
+
+    $results = $this->api('hereNow', $venueId);
+    //error_log(print_r($results, true));
+    if (isset($results['response'],  
+              $results['response']['hereNow'], 
+              $results['response']['hereNow']['items'])) {
+      
+      $myId = $this->getUserId();
+      
+      foreach ($results['response']['hereNow']['items'] as $item) {
+        if ($item['type'] != 'checkin' || !isset($item['user'])) { continue; }
+        
+        if ($item['user']['id'] == $myId) {
+          $venueCheckinState['checkedin'] = true;
+        } else {
+          $venueCheckinState['otherCount']++;
+        }
+        
+        $parts = array();
+        if (isset($item['user']['firstName'])) {
+          $parts[] = $item['user']['firstName'];
+        }
+        if (isset($item['user']['lastName'])) {
+          $parts[] = $item['user']['lastName'];
+        }
+        
+        $checkin = array(
+          'id' => $item['user']['id'],
+          'name' => implode(' ', $parts),
+          'when' => array(
+            'time'       => $item['createdAt'],
+            'delta'      => FacebookGroup::relativeTime(intval($item['createdAt'])),
+            'shortDelta' => FacebookGroup::relativeTime(intval($item['createdAt']), true),
+          ),
+        );
+        
+        if (isset($item['shout'])) {
+          $checkin['message'] = $item['shout'];
+        }
+        
+        $venueCheckinState['checkins'][] = $checkin;
+      }
+    }
+    
+    return $venueCheckinState;
   }
   
   public function isCheckedIn($venueId, $afterTimestamp) {
@@ -310,7 +385,11 @@ class Foursquare {
     }
     
     $cache = $this->getCacheForQuery($type);
+    
     $path = $this->queryConfig[$type]['path'].$id;
+    if (isset($this->queryConfig[$type]['suffix'])) {
+      $path .= $this->queryConfig[$type]['suffix'];
+    }
     
     $cacheName = implode('_', array($type, $id));
     if ($this->queryConfig[$type]['includeParams']) {
