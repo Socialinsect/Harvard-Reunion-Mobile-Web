@@ -595,6 +595,30 @@ class Schedule {
     return $feed->getItem($eventId, $start);
   }
   
+  public function getBriefEventInfo($event) {
+    $info = array(
+      'id' => $event->get_uid(),
+    );
+    
+    //
+    // Simple fields
+    //
+    $simpleFields = array(
+      'title'       => 'summary',
+      'datetime'    => 'datetime',
+    );
+    foreach ($simpleFields as $key => $attribute) {
+      $value = $event->get_attribute($attribute);
+      if ($value) {
+        $info[$key] = $value;
+      } else {
+        $info[$key] = null;
+      }
+    }
+    
+    return $info;
+  }
+  
   public function getEventInfo($event) {
     $info = array(
       'id'           => $event->get_uid(),

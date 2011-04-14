@@ -4,8 +4,12 @@
 class SiteScheduleAPIModule extends APIModule {
   protected $id = 'schedule';
   
-  private function formatEventResponse($schedule, $event) {
-    $info = $schedule->getEventInfo($event);
+  private function formatEventResponse($schedule, $event, $brief=false) {
+    if ($brief) {
+      $info = $schedule->getBriefEventInfo($event);
+    } else {
+      $info = $schedule->getEventInfo($event);
+    }
     
     $info['start']  = $event->get_start();
     $info['end']    = $event->get_end();
@@ -54,7 +58,7 @@ class SiteScheduleAPIModule extends APIModule {
         $events = $schedule->getEvents($category);
 
         foreach($events as $event) {
-          $eventResponse[] = $this->formatEventResponse($schedule, $event);
+          $eventResponse[] = $this->formatEventResponse($schedule, $event, true);
         }
 
         $response = array(
@@ -74,7 +78,7 @@ class SiteScheduleAPIModule extends APIModule {
         $id    = $this->getArg('id');
         $start = $this->getArg('start', time());
         
-        $event = $schedule->getEvent($eventId, $start);
+        $event = $schedule->getEvent($id, $start);
         if (!$event) {
           $error = new KurogoError(
             5,
