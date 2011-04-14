@@ -48,40 +48,7 @@ class SiteScheduleWebModule extends WebModule {
   
     switch ($type) {
       case 'datetime':
-        $allDay = $value instanceOf DayRange;
-        $sameAMPM = date('a', $value->get_start()) == date('a', $value->get_end());
-        $sameDay = false;
-        if ($value->get_end() && $value->get_end() != $value->get_start()) {
-          $startDate = intval(date('Ymd', $value->get_start()));
-          $endDate = intval(date('Ymd', $value->get_end()));
-          
-          $sameDay = $startDate == $endDate;
-          if (!$sameDay) {
-            $endIsBefore5am = intval(date('H', $value->get_end())) < 5;
-            if ($endIsBefore5am && ($endDate - $startDate == 1)) {
-              $sameDay = true;
-            }
-          }
-        }
-        $valueForType = date("l, F j", $value->get_start());
-        if ($allDay) {
-          if (!$sameDay) {
-            $valueForType .= date(" - l, F j", $value->get_end());
-          }
-        } else {
-          $valueForType .= ($sameDay ? '<br/>' : ', ').date('g:i', $value->get_start());
-          if (!$sameAMPM) {
-            $valueForType .= date('a', $value->get_start());
-          }
-          if (!$sameDay) {
-            $valueForType .= date(" - l, F j, ", $value->get_end());
-          } else if ($sameAMPM) {
-            $valueForType .= '-';
-          } else {
-            $valueForType .= ' - ';
-          }
-          $valueForType .= date("g:ia", $value->get_end());
-        }
+        $valueForType = $this->datetimeText($value, false, '<br/>');
         break;
 
       case 'url':
@@ -135,20 +102,71 @@ class SiteScheduleWebModule extends WebModule {
     return $urlForType;
   }
 
-  private function timeText($event, $timeOnly=false) {
-    if ($timeOnly) {
-      $sameAMPM = date('a', $event->get_start()) == date('a', $event->get_end());
-    
-      $timeString = date(' g:i', $event->get_start());
-      if (!$sameAMPM) {
-        $timeString .= date('a', $event->get_start());
+  private function datetimeText($datetime, $timeOnly=false, $separator='') {
+    $start = $datetime->get_start();
+    $end = $datetime->get_end();
+  
+    $string = '';
+  
+    if ($end == $start) {
+      if (!$timeOnly) {
+        $string .= date('l, F j', $start).$separator;
       }
-      $timeString .= ($sameAMPM ? '-' : ' - ').date("g:ia", $event->get_end());
-      
-      return $timeString;
+      $string .= date('g:ia', $start);
+        
     } else {
-      return strval($event->get_range());
+      $allDay = $datetime instanceOf DayRange;
+      
+      $startDay = intval(date('Ymd', $start));
+      $endDay   = intval(date('Ymd', $end));
+        
+      $sameDay = $startDay == $endDay;
+      if (!$sameDay) {
+        $endIsBefore5am = intval(date('H', $end)) < 5;
+        if ($endIsBefore5am && ($endDay - $startDay == 1)) {
+          $sameDay = true;
+        }
+      }
+      
+      if ($allDay) {
+        if (!$timeOnly) {
+          $string .= date('l, F j', $start);
+          if (!$sameDay) {
+            $string .= date(' - l, F j', $end);
+          }
+        }
+        $string .= $separator;
+        if ($sameDay || !$timeOnly) {
+          $string .= 'All day';
+        } else {
+          $string .= ($endDay - $startDay).' days';
+        }
+        
+      } else {
+        $sameAMPM = date('a', $start) == date('a', $end);
+  
+        if (!$timeOnly) {
+          $string .= date('l, F j', $start).($sameDay ? $separator : ', ');
+        }
+        
+        $string .= date('g:i', $start);
+        
+        if (!$sameAMPM) {
+          $string .= date('a', $start);
+        }
+        
+        if (!$sameDay && !$timeOnly) {
+          $string .= $separator.' - '.date('l, F j, ', $end);
+        } else if ($sameAMPM) {
+          $string .= '-';
+        } else {
+          $string .= ' - ';
+        }
+        $string .= date('g:ia', $end);
+      }
     }
+
+    return $string;
   }
   
   private function detailURL($event, $addBreadcrumb=true, $noBreadcrumbs=false) {
@@ -224,7 +242,7 @@ class SiteScheduleWebModule extends WebModule {
           $eventInfo = array(
             'url'      => $this->detailURL($event),
             'title'    => $event->get_summary(),
-            'subtitle' => $this->timeText($event, true),
+            'subtitle' => $this->datetimeText($event->get_attribute('datetime'), true),
           );
           if ($this->hasBookmark($event->get_uid())) {
             $eventInfo['class'] = 'bookmarked';
