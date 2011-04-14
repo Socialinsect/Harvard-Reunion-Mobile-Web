@@ -62,3 +62,10 @@
 #navbar2 #like.liked {
   background-image: url('/common/images/button-navbar2-unlike.png');
 }
+
+.focal .comment {
+  padding-top: 18px;
+}
+.focal .comment:first-child {
+  padding-top: 0;
+}

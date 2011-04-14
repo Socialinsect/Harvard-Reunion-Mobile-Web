@@ -1,8 +1,7 @@
-{include file="findExtends:common/templates/postdetailContent.tpl"}
+{extends file="findExtends:common/templates/postdetailContent.tpl"}
 
-{block name="comment"}
-  "{$comment['message']}"
-  <br/>
+{block name="commentContent"}
+  "{$comment['message']}"<br/>
   <span class="smallprint"> - {$comment['author']['name']}, {$comment['when']['delta']}</span>
-  <br/>
+  <br/>{if !$lastComment}<br/>{/if}
 {/block}
