@@ -278,6 +278,50 @@ class SiteScheduleWebModule extends WebModule {
         //error_log(print_r($info, true));
 
         $sections = array();
+
+        // Checkins
+        if (isset($info['location'], $info['location']['foursquareId'])) { 
+          $now = time();
+          $checkinThresholdStart = $event->get_start() - 60*15;
+          $checkinThresholdEnd = $event->get_end() + 60*15;
+          
+          // debugging:
+          $checkinThresholdStart = time() - ($event->get_end() - $event->get_start()) - 60*15;
+          $checkinThresholdEnd = $checkinThresholdStart + ($event->get_end() - $event->get_start()) + 60*15;
+          
+          if ($now >= $checkinThresholdStart && $now <= $checkinThresholdEnd) {
+            $foursquare = $this->schedule->getFoursquareFeed();
+
+            $latitude = 0;
+            $longitude = 0;
+            if (isset($info['location']['latlon'])) {
+              list($latitude, $longitude) = $info['location']['latlon'];
+            }
+
+            $checkin = array(
+              'title' => 'foursquare checkin',
+              'class' => 'fqCheckin',
+              'url'   => $this->buildBreadcrumbURL('checkin', array(
+                'eventTitle' => $info['title'],
+                'venue'      => $info['location']['foursquareId'],
+                'latitude'   => $latitude, 
+                'longitude'  => $longitude
+              ))
+            );
+            
+            $checkinState = array(
+              'checkedin'   => false,
+              'otherCount'  => 0,
+              'friendCount' => 0,
+            );
+            if (!$foursquare->needsLogin()) {
+              $checkinState = $foursquare->getVenueCheckinState($info['location']['foursquareId']);
+            }
+            $this->assign('checkinState', $checkinState);
+            
+            $sections['checkin'] = array($checkin);
+          }
+        }
         
         // Info
         $locationSection = array();
@@ -327,14 +371,14 @@ class SiteScheduleWebModule extends WebModule {
           if ($info['registration']['registered']) {
             $registered = true;
             
-            if ($this->pagetype == 'basic') {
+            if ($this->pagetype == 'basic' || $this->pagetype == 'touch') {
               $registration['title'] = '<img src="/common/images/badge-confirmed.gif"/> Registration Confirmed';
             } else {
               // No <a> tag so we need to wrap in a div
               $registration['title'] = '<div class="register confirmed"><div class="icon"></div>Registration Confirmed</div>';
             }
           } else {
-            if ($this->pagetype == 'basic') {
+            if ($this->pagetype == 'basic' || $this->pagetype == 'touch') {
               $registration['label'] = '<img src="/common/images/badge-register.gif"/> ';
             } else {
               $registration['title'] = '<div class="icon"></div>'.$registration['title'];
@@ -409,39 +453,7 @@ class SiteScheduleWebModule extends WebModule {
             $sections[$section][] = $item;
           }          
         }
-        //error_log(print_r($sections, true));
-        
-        $latitude = 0;
-        $longitude = 0;
-        if (isset($info['location']['latlon'])) {
-          list($latitude, $longitude) = $info['location']['latlon'];
-        }
-        
-        // Checkins
-        $checkedIn = false;
-        $checkinThresholdStart = $event->get_start() - 60*15;
-        $checkinThresholdEnd = $event->get_end() + 60*15;
-        
-        // debugging:
-        $checkinThresholdStart = time() - ($event->get_end() - $event->get_start()) - 60*15;
-        $checkinThresholdEnd = $checkinThresholdStart + ($event->get_end() - $event->get_start()) + 60*15;
-        
-        $checkedIn = false;
-        if (isset($info['location'], $info['location']['foursquareId'])) {        
-          $foursquare = $this->schedule->getFoursquareFeed();
-          if (!$foursquare->needsLogin()) {
-            $venueCheckinState = $foursquare->getVenueCheckinState($info['location']['foursquareId']);
-            $checkedIn = $venueCheckinState['checkedin'];
-          }
-          
-          $this->assign('checkedIn', $checkedIn);
-          $this->assign('checkinURL', $this->buildBreadcrumbURL('checkin', array(
-            'eventTitle' => $info['title'],
-            'venue'      => $info['location']['foursquareId'],
-            'latitude'   => $latitude, 
-            'longitude'  => $longitude
-          )));
-        }
+        //error_log(print_r($sections, true));        
         
         $this->assign('eventId',              $eventId);
         $this->assign('eventTitle',           $info['title']);

@@ -69,17 +69,20 @@
   background: transparent url('/common/images/badge-confirmed.png') no-repeat left;
 }
 
-#fqCheckin {
-  display: inline-block;
+a.fqCheckin {
   padding-left: 30px;
-  background: transparent url('/common/images/button-facebook.png') no-repeat 2px center;
-  background-size: 24px;
-  line-height: 24px;
-  color: white;
-  text-decoration: none;
 }
+
 #fqCheckin {
-  background-image: url('/common/images/button-foursquare.png')
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  background: transparent url('/common/images/button-foursquare.png') no-repeat 0px center;
+  background-size: 24px;
+  height: 24px;
+  width: 24px;
+  line-height: 24px;
+  margin-top: -12px;
 }
 #fqCheckin.checkedin {
   background-image: url('/common/images/button-foursquare-checkedin.png')

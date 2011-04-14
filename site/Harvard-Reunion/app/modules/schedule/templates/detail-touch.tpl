@@ -2,11 +2,15 @@
 
 {block name="bookmark"}
   <p id="bookmark" class="{$bookmarkStatus}">
-      Bookmark
-      {if $registered}
-        <span class="fineprint"> (registered)</span>
-      {else}
-        <span class="fineprint"> (<a href="{$bookmarkURL}">{$bookmarkAction}</a>)</span>
-      {/if}
+    Bookmark
+    {if $registered}
+      <span class="smallprint"> (registered)</span>
+    {else}
+      <span class="smallprint"> (<a href="{$bookmarkURL}">{$bookmarkAction}</a>)</span>
+    {/if}
   </p>
+{/block}
+
+{block name="checkinLabel"}
+  <img src="/common/images/button-foursquare.gif" /> 
 {/block}

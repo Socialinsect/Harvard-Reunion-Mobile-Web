@@ -10,3 +10,7 @@
     {/if}
   </p>
 {/block}
+
+{block name="checkinLabel"}
+  <img src="/common/images/button-foursquare.gif" /> 
+{/block}
