@@ -69,7 +69,6 @@
   background: transparent url('/common/images/badge-confirmed.png') no-repeat left;
 }
 
-#fbCheckin,
 #fqCheckin {
   display: inline-block;
   padding-left: 30px;
@@ -82,13 +81,12 @@
 #fqCheckin {
   background-image: url('/common/images/button-foursquare.png')
 }
-#fbCheckin.checkedin {
-  background-image: url('/common/images/button-facebook-checkedin.png')
-}
 #fqCheckin.checkedin {
   background-image: url('/common/images/button-foursquare-checkedin.png')
 }
-
+.fqPhoto {
+  vertical-align: text-top;
+}
 .cancelButton {
   float: right;
   padding-right: .5em;

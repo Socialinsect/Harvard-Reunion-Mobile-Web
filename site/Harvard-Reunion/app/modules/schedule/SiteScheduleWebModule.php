@@ -430,16 +430,12 @@ class SiteScheduleWebModule extends WebModule {
         if (isset($info['location'], $info['location']['foursquareId'])) {        
           $foursquare = $this->schedule->getFoursquareFeed();
           if (!$foursquare->needsLogin()) {
-            $checkedIn = $foursquare->isCheckedIn($info['location']['foursquareId'], $checkinThresholdStart);
+            $venueCheckinState = $foursquare->getVenueCheckinState($info['location']['foursquareId']);
+            $checkedIn = $venueCheckinState['checkedin'];
           }
           
-          if ($checkedIn) { 
-            $this->assign('checkedIn', true);
-          }
-
+          $this->assign('checkedIn', $checkedIn);
           $this->assign('checkinURL', $this->buildBreadcrumbURL('checkin', array(
-            'eventURL'   => FULL_URL_PREFIX.ltrim(
-              $this->buildBreadcrumbURL($this->page, $this->args, false), '/'),
             'eventTitle' => $info['title'],
             'venue'      => $info['location']['foursquareId'],
             'latitude'   => $latitude, 
@@ -521,20 +517,32 @@ class SiteScheduleWebModule extends WebModule {
         }
         
         $this->addInternalJavascript('/common/javascript/lib/utils.js');
-        $this->addInlineJavascript(
-          'var CONTENT_AJAX_URL = "'.URL_PREFIX.$this->id.'/checkinContent?'.
-            http_build_query(array('venue' => $venue)).'"');
-        $this->addOnLoad('autoupdateContent();');
+        
+        $this->addOnLoad('autoupdateContent("autoupdateHeader", "'.URL_PREFIX.$this->id.'/checkinHeaderContent?'.
+            http_build_query(array('venue' => $venue)).'");');
+            
+        $this->addOnLoad('autoupdateContent("autoupdateContent", "'.URL_PREFIX.$this->id.'/checkinContent?'.
+            http_build_query(array('venue' => $venue)).'");');
         
         $this->assign('eventTitle', $this->getArg('eventTitle'));
         $this->assign('hiddenArgs', array(
           'venue'     => $venue,
           'latitude'  => $this->getArg('latitude'),
           'longitude' => $this->getArg('longitude'),
-          'eventURL'  => $this->getArg('eventURL'),
+          'returnURL' => FULL_URL_PREFIX.ltrim($this->buildBreadcrumbURL($this->page, $this->args, false), '/'),
         ));
         break;
         
+      case 'checkinHeaderContent':
+        $venue = $this->getArg('venue');
+        $foursquare = $this->schedule->getFoursquareFeed();
+        
+        $venueCheckinState = $foursquare->getVenueCheckinState($venue);
+        if ($venueCheckinState) {
+          $this->assign('state', $venueCheckinState);
+        }
+        break;
+      
       case 'checkinContent':
         $venue = $this->getArg('venue');
         $foursquare = $this->schedule->getFoursquareFeed();
@@ -550,15 +558,15 @@ class SiteScheduleWebModule extends WebModule {
         $message   = $this->getArg('message');
         $latitude  = $this->getArg('latitude');
         $longitude = $this->getArg('longitude');
-        $eventURL  = $this->getArg('eventURL');
+        $returnURL = $this->getArg('returnURL');
         
         if ($latitude && $longitude) {
           $foursquare = $this->schedule->getFoursquareFeed();
           $foursquare->addCheckin($venue, $message, array($latitude, $longitude));
         }
         
-        if ($eventURL) {
-          header("Location: $eventURL");
+        if ($returnURL) {
+          header("Location: $returnURL");
           exit();
         } else {
           $this->redirectTo('index');

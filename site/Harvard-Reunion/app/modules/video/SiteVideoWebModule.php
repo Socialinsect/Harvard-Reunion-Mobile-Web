@@ -152,8 +152,7 @@ class SiteVideoWebModule extends WebModule {
           'id' => $postId,
         ));
         $this->addInternalJavascript('/common/javascript/lib/utils.js');
-        $this->addInlineJavascript('var CONTENT_AJAX_URL = "'.$commentURL.'"');
-        $this->addOnLoad('autoupdateContent();');
+        $this->addOnLoad('autoupdateContent("autoupdateContainer", "'.$commentURL.'");');
 
         $this->assign('video', $postDetails);
         break;

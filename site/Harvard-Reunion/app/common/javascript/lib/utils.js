@@ -1,18 +1,19 @@
-function autoupdateContent() {
+function autoupdateContent($id, $url) {
   // cache updates approximately every 20 seconds
+  var updateContent = function () {
+    var httpRequest = new XMLHttpRequest();
+    httpRequest.onreadystatechange = function() {
+      if (httpRequest.readyState == 4) {
+        document.getElementById($id).innerHTML = httpRequest.responseText;
+      }
+    };
+    httpRequest.open("GET", $url, true);
+    httpRequest.send(null);
+  }
+
   setInterval(updateContent, 20000);
 }
 
-function updateContent() {
-  var httpRequest = new XMLHttpRequest();
-  httpRequest.onreadystatechange = function() {
-    if (httpRequest.readyState == 4) {
-      document.getElementById('autoupdateContainer').innerHTML = httpRequest.responseText;
-    }
-  };
-  httpRequest.open("GET", CONTENT_AJAX_URL, true);
-  httpRequest.send(null);
-}
 
 function validateTextInputForm(textId, message) {
     if(document.getElementById(textId).value=="") {

@@ -114,9 +114,7 @@ class SiteHomeWebModule extends HomeWebModule {
           
         } else {
           $this->addInternalJavascript('/common/javascript/lib/utils.js');
-          $this->addInlineJavascript(
-            'var CONTENT_AJAX_URL = "'.URL_PREFIX.$this->id.'/facebookContent"');
-          $this->addOnLoad('autoupdateContent();');
+          $this->addOnLoad('autoupdateContent("autoupdateContainer", "'.URL_PREFIX.$this->id.'/facebookContent");');
         
           $this->assign('user',          $facebook->getUserFullName());
           $this->assign('groupName',     $facebook->getGroupFullName());
@@ -134,9 +132,7 @@ class SiteHomeWebModule extends HomeWebModule {
       
       case 'twitter':
         $this->addInternalJavascript('/common/javascript/lib/utils.js');
-        $this->addInlineJavascript(
-          'var CONTENT_AJAX_URL = "'.URL_PREFIX.$this->id.'/twitterContent"');
-        $this->addOnLoad('autoupdateContent();');
+        $this->addOnLoad('autoupdateContent("autoupdateContainer", "'.URL_PREFIX.$this->id.'/twitterContent");');
         
         $this->assign('hashtag',    $this->schedule->getTwitterHashTag());
         $this->assign('tweetURL',   $twitter->getTweetURL());
