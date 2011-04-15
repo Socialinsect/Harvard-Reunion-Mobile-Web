@@ -684,7 +684,7 @@ class Schedule {
     $placeTitle = '';
     $locationTitle = $event->get_attribute('Location Name');
     $locationBuildingID = $event->get_attribute('Building ID');
-    $trumbaLocation = $event->get_attribute('location');
+    $trumbaLocation = $event->get_attribute('Location');
     $foursquareId = $event->get_attribute('Foursquare Place');
     if ($locationTitle || $locationBuilding || $trumbaLocation) {
       $location = array(
@@ -733,7 +733,7 @@ class Schedule {
       }
       
       if ($trumbaLocation) {
-        if (preg_match('/^([\-\.0-9]+),([\-\.0-9]+)$/', $trumbaLocation, $matches)) {
+        if (preg_match(';<Latitude>([^<]+)</Latitude>.*<Longitude>([^<]+)</Longitude>;', $trumbaLocation, $matches)) {
           $location['latlon'] = array($matches[1], $matches[2]);
         }
       }
