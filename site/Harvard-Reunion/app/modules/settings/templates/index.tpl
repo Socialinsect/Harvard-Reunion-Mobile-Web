@@ -81,7 +81,7 @@
       <span class="loggedout">Not signed in</span>
     {/if}
     <br/>
-    Used for photos, videos, updates and checkins
+    Used for photos, videos and updates
     <br/>
     {if $info['facebook']['username']}
       Tap to sign out

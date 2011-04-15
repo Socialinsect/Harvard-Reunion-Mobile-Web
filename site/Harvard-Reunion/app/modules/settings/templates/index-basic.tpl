@@ -50,7 +50,7 @@
   {/capture}
   {$item['title'] = $title}
   {capture name="subtitle" assign="subtitle"}
-    Used for photos, videos, updates and checkins<br/>
+    Used for photos, videos and updates<br/>
   {/capture}
   {$item['subtitle'] = $subtitle}
 {/block}
@@ -72,7 +72,6 @@
   {/capture}
   {$item['title'] = $title}
   {capture name="subtitle" assign="subtitle"}
-    
     Used for checkins
   {/capture}
   {$item['subtitle'] = $subtitle}
