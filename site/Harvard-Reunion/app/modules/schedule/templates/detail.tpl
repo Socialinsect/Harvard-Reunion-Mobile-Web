@@ -21,7 +21,11 @@
 {if isset($sections['checkin'], $sections['checkin'][0])}
   {capture name="label" assign="label"}
     {block name="checkinLabel"}
-      <div id="fqCheckin" class="icon {if $checkinState['checkedin']}checkedin{/if}"></div>
+      {if $checkinState['checkedin']}
+        <img id="fqCheckin" src="/common/images/button-foursquare-checkedin{$imageExt}" /> 
+      {else}
+        <img id="fqCheckin" src="/common/images/button-foursquare{$imageExt}" /> 
+      {/if}
     {/block}
   {/capture}
   {$sections['checkin'][0]['label'] = $label}

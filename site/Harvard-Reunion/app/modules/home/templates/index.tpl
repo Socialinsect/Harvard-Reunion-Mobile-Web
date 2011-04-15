@@ -31,10 +31,10 @@
   <div id="social">
     <div class="links">
       <a class="facebookLink" href="{$socialInfo['facebook']['url']}">
-        <div class="wrapper">{$socialInfo['facebook']['name']}</div>
+        <img src="/common/images/button-facebook{$imageExt}" />{$socialInfo['facebook']['name']}
       </a>
       <a class="twitterLink" href="{$socialInfo['twitter']['url']}">
-        <div class="wrapper">{$socialInfo['twitter']['name']}</div>
+        <img src="/common/images/button-twitter{$imageExt}" />{$socialInfo['twitter']['name']}
       </a>
     </div>
     <div id="recentContainer" class="recent {$socialInfo['recent']['type']}">

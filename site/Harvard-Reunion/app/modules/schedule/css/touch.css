@@ -24,48 +24,36 @@
   padding-right: 40px;
 }
 
-.nav li .register {
-  position: relative;
-  padding-left: 27px;
+.nav li div.register,
+.nav li div.register + .smallprint {
+  padding-left: 22px;
 }
 
-.nav li .register .icon {
+.nav li img.register  {
   position: absolute;
   top: 50%;
-  left: 3px;
-  margin-top: -12px;
-  height: 20px;
-  width: 20px;
-  background: transparent url('/common/images/badge-register.gif') no-repeat left;
-  background-size: 17px;
+  left: 8px;
+  margin-top: -8px;
+  height: 17px;
+  width: 17px;
 }
 
-.nav li .confirmed {
-  margin-left: -8px;
-}
-
-.nav li .confirmed .icon {
-  background: transparent url('/common/images/badge-confirmed.gif') no-repeat left;
-}
-
-#fbCheckin,
-#fqCheckin {
-  display: inline-block;
+a.fqCheckin {
   padding-left: 30px;
-  background: transparent url('/common/images/button-facebook.gif') no-repeat 2px center;
-  background-size: 24px;
-  line-height: 24px;
-  color: white;
-  text-decoration: none;
 }
 #fqCheckin {
-  background-image: url('/common/images/button-foursquare.gif')
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  height: 17px;
+  width: 17px;
+  margin-top: -9px;
 }
-#fbCheckin .checkedin {
-  background-image: url('/common/images/button-facebook-checkedin.gif')
+#fqCheckin.checkedin {
+  background-image: url('/common/images/button-foursquare-checkedin.png')
 }
-#fqCheckin .checkedin {
-  background-image: url('/common/images/button-foursquare-checkedin.gif')
+.fqPhoto {
+  vertical-align: text-top;
 }
 
 .cancelButton {
