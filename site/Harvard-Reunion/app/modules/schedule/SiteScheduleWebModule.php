@@ -6,30 +6,21 @@
 
 includePackage('Maps');
 
-define('SCHEDULE_COOKIE_DURATION', 160 * 24 * 60 * 60);
-
 class SiteScheduleWebModule extends WebModule {
   protected $id = 'schedule';
   protected $user = null;
   protected $schedule = null;
-  protected $bookmarks = array();
-  const BOOKMARKS_COOKIE_PREFIX   = 'ScheduleBookmarks_';
-  const BOOKMARKS_COOKIE_DURATION = SCHEDULE_COOKIE_DURATION;
-  const CATEGORY_COOKIE_PREFIX    = 'ScheduleCategory_';
-  const CATEGORY_COOKIE_DURATION  = SCHEDULE_COOKIE_DURATION;
   
   protected function getCategory($categories) {
     $category = $this->schedule->getDefaultCategory();
     
-    // '.' in cookie names doesn't work properly with the PHP $_COOKIE variable
-    $categoryCookieName = self::CATEGORY_COOKIE_PREFIX.
-      urlencode(str_replace(array('.', ':'), array('_', '_'), $this->user->getUserID()));
+    $categoryCookieName = $this->configModule.'category_'.$this->schedule->getScheduleId();
     
     if (isset($this->args['category'], $categories[$this->args['category']])) {
       $category = $this->args['category'];
       
       // Remember cookie
-      $expires = time() + self::CATEGORY_COOKIE_DURATION;
+      $expires = time() + Kurogo::getOptionalSiteVar('TAB_COOKIE_LIFESPAN', 3600);
       setCookie($categoryCookieName, $category, $expires, COOKIE_PATH);
       
     } else if (isset($_COOKIE[$categoryCookieName], $categories[$_COOKIE[$categoryCookieName]])) {
@@ -40,7 +31,7 @@ class SiteScheduleWebModule extends WebModule {
   }
   
   protected function getBookmarkCookie() {
-    return self::BOOKMARKS_COOKIE_PREFIX.$this->schedule->getScheduleId();
+    return $this->configModule.'bookmarks_'.$this->schedule->getScheduleId();
   }
   
   private function valueForType($type, $value) {

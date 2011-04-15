@@ -597,7 +597,9 @@ class Schedule {
   
   public function getBriefEventInfo($event) {
     $info = array(
-      'id' => $event->get_uid(),
+      'id'         => $event->get_uid(),
+      'title'      => '',
+      'registered' => false,
     );
     
     //
@@ -614,6 +616,9 @@ class Schedule {
       } else {
         $info[$key] = null;
       }
+    }
+    if ($event->get_attribute('Event ID')) {
+      $info['registered'] =  $this->isRegisteredForEvent($event);
     }
     
     return $info;

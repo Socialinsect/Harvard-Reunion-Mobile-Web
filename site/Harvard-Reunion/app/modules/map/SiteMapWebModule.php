@@ -8,6 +8,24 @@ includePackage('Maps');
 require_once realpath(LIB_DIR.'/Maps/ArcGISParser.php');
 
 class SiteMapWebModule extends MapWebModule {
+  protected $schedule = null;
+  
+  protected function getSchedule() {
+    if (!$this->schedule) {
+      $user = $this->getUser('HarvardReunionUser');
+      $this->schedule = new Schedule($user);
+    }
+    
+    return $this->schedule;
+  }
+  
+  protected function getBookmarkCookie() {
+    $schedule = $this->getSchedule();
+
+    return $this->configModule.'bookmarks_'.$schedule->getScheduleId();
+  }
+
+
   public function getBuildingDataById($buildingId) {
     $buildingData = array();
   
@@ -190,8 +208,7 @@ class SiteMapWebModule extends MapWebModule {
   }
   
   private function getEventDetails($eventId, $start) {
-    $user = $this->getUser('HarvardReunionUser');
-    $schedule = new Schedule($user);
+    $schedule = $this->getSchedule();
     
     $event = $schedule->getEvent($eventId, $start);
     if (!$event) {
