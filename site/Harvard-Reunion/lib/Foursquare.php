@@ -338,14 +338,27 @@ class Foursquare {
     } 
   }
   
-  public function getLogoutUrl() {
+  public function getLogoutUrl($redirectTo='') {
     return FULL_URL_PREFIX.'home/fqLogout?'.http_build_query(array(
-      'url' => $this->getCurrentUrl(),
+      'url' => $redirectTo ? $redirectTo : $this->getCurrentUrl(),
     ));
   }
   
   public function getLogoutRedirectURL($redirectURL) {
     return $redirectURL;
+  }
+  
+  public function getUserURL() {
+    switch($GLOBALS['deviceClassifier']->getPageType()) {
+      case 'basic':
+      case 'touch':
+        $siteType = 'mobile';
+        
+      default:
+        $siteType = 'touch';
+    }
+  
+    return 'https://foursquare.com/'.$siteType.'/user/'.$this->getUserId();
   }
     
   protected function getCurrentUrl() {

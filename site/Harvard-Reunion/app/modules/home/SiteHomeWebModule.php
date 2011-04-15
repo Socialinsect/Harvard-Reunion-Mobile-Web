@@ -181,7 +181,7 @@ class SiteHomeWebModule extends HomeWebModule {
       case 'fbLogout':
         $url = $this->getArg('next', FULL_URL_PREFIX.'home/');
         
-        $facebook->expireSession('null');
+        $facebook->expireSession();
         $redirect = $facebook->getLogoutRedirectURL($url);
         error_log("fbLogout: Redirecting to $redirect");
         header("Location: $redirect");
@@ -202,6 +202,9 @@ class SiteHomeWebModule extends HomeWebModule {
         exit();
         
       case 'fqLogout':
+        // This currently doesn't work because foursquare doesn't have a 
+        // static logout url (all logout urls need a hex key)
+        // Leaving this here for when they add it.
         $foursquare = $this->schedule->getFoursquareFeed();
       
         $url = $this->getArg('url', FULL_URL_PREFIX.'home/');
