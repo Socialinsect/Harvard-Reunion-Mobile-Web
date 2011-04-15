@@ -3,7 +3,7 @@
 {block name="bookmark"}
   <p id="bookmark">
     Bookmark
-    {if $registered}
+    {if $attending}
       <span class="fineprint"> (registered)</span>
     {else}
       <span class="fineprint"> (<a href="{$bookmarkURL}">{$bookmarkAction}</a>)</span>

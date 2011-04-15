@@ -4,7 +4,7 @@
   <h2>{$eventTitle}</h2>
   <p>{$eventDate}</p>
   {block name="bookmark"}
-    {if $registered}
+    {if $attending}
       <div id="bookmarkContainer">
         <a href="javascript:void(0)" onclick="alert('Events you have registered for cannot be removed from your schedule.'); return false;"><div id="bookmark" class="on"></div></a>
       </div>

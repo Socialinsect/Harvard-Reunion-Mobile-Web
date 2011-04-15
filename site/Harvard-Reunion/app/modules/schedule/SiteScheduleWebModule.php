@@ -221,25 +221,27 @@ class SiteScheduleWebModule extends WebModule {
         
         $eventDays = array();
         foreach($events as $event) {
-          $date = date('Y-m-d', $event->get_start());
+          $info = $this->schedule->getBriefEventInfo($event);
+        
+          $date = date('Y-m-d', $info['datetime']->get_start());
           
           if (!isset($eventDays[$date])) {
             $eventDays[$date] = array(
-              'title'  => date('l, F j, Y', $event->get_start()),
+              'title'  => date('l, F j, Y', $info['datetime']->get_start()),
               'events' => array(),
             );
           }
           
           $eventInfo = array(
             'url'      => $this->detailURL($event),
-            'title'    => $event->get_summary(),
-            'subtitle' => $this->datetimeText($event->get_attribute('datetime'), true),
+            'title'    => $info['title'],
+            'subtitle' => $this->datetimeText($info['datetime'], true),
           );
           if ($this->hasBookmark($event->get_uid())) {
             $eventInfo['class'] = 'bookmarked';
           }
           
-          if ($this->schedule->isRegisteredForEvent($event)) {
+          if ($info['attending']) {
             $eventInfo['class'] = 'bookmarked';
           }
           
@@ -264,7 +266,7 @@ class SiteScheduleWebModule extends WebModule {
 
         //error_log(print_r($event, true));
         $info = $this->schedule->getEventInfo($event);
-        $registered = false;
+        $attending = $info['attending'];
         $requiresRegistration = false;
         //error_log(print_r($info, true));
 
@@ -351,6 +353,7 @@ class SiteScheduleWebModule extends WebModule {
           $sections['location'] = $locationSection; 
         }
         
+        // Registration
         $registrationSection = array();
         if ($info['registration']) {
           $requiresRegistration = true;
@@ -360,8 +363,6 @@ class SiteScheduleWebModule extends WebModule {
           );
           
           if ($info['registration']['registered']) {
-            $registered = true;
-            
             if ($this->pagetype == 'basic' || $this->pagetype == 'touch') {
               $registration['title'] = '<img src="/common/images/badge-confirmed.gif"/> Registration Confirmed';
             } else {
@@ -450,7 +451,7 @@ class SiteScheduleWebModule extends WebModule {
         $this->assign('eventTitle',           $info['title']);
         $this->assign('eventDate',            $this->valueForType('datetime', $info['datetime']));
         $this->assign('sections',             $sections);
-        $this->assign('registered',           $registered);
+        $this->assign('attending',            $attending);
         $this->assign('requiresRegistration', $requiresRegistration);
         //error_log(print_r($sections, true));
         break;
