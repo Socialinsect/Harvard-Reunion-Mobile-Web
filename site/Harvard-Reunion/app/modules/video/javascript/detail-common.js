@@ -25,5 +25,7 @@ function resizeVideoFrame() {
     
     videoFrame.width = newWidth;
     videoFrame.height = newHeight;
+    
+    alert(newWidth+' x '+newHeight);
   }
 }
