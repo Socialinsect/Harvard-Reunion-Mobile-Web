@@ -210,7 +210,7 @@ class Foursquare {
     return $venueCheckinState;
   }
     
-  public function addCheckin($venueId, $message, $coords) {
+  public function addCheckin($venueId, $message, $coords=null) {
     $realVenueId = $venueId;
   
     $results = $this->api('venues', $venueId);
