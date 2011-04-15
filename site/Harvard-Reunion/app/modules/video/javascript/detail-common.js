@@ -6,7 +6,7 @@ function resizeVideoFrame() {
   
   if (videoFrame && videoWrapper) {
     if (videoFrameOriginalRatio === null) {
-      videoFrameOriginalRatio = videoFrame.offsetHeight/videoFrame.offsetWidth;
+      videoFrameOriginalRatio = videoFrame.height/videoFrame.width;
     }
     
     var newWidth = videoWrapper.offsetWidth;
