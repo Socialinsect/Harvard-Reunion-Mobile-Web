@@ -103,7 +103,7 @@ class SiteMapWebModule extends MapWebModule {
       return $this->buildBreadcrumbURL('detail', $params, true);
     }
     
-    parent::detailURLForBookmark($aBookmark);
+    return parent::detailURLForBookmark($aBookmark);
   }
 
   protected function generateBookmarkOptions($cookieID) {
