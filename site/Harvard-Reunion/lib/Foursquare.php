@@ -279,6 +279,17 @@ class Foursquare {
     return null;
   }
   
+  private function getDisplayType() {
+    switch ($GLOBALS['deviceClassifier']->getPageType()) {
+      case 'basic':
+      case 'touch':
+        return 'wap';
+        
+      default:
+        return 'touch';
+    }
+  }
+
   public function needsLogin() {
     return $this->getSession() == null;
   }
@@ -298,7 +309,7 @@ class Foursquare {
     return "https://foursquare.com/oauth2/$page?".http_build_query(array(
       'client_id'     => $this->clientId,
       'response_type' => 'code',
-      'display'       => 'touch',
+      'display'       => $this->getDisplayType(),
       'redirect_uri'  => $this->authorizeURL($this->getCurrentUrl()),
     ));
   }
