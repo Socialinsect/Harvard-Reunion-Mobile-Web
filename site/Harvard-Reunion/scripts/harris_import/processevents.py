@@ -248,17 +248,16 @@ if __name__ == '__main__':
     # data file because of cases like Harvard and Radcliffe differntiating their
     # Harvard and Radcliffe grads (like 1961R), which doesn't come through in 
     # the Harris feed.
-    parser = OptionParser()
-    parser.add_option("-a", "--anonymize", action="store_true", dest="anonymize")
-    parser.add_option("-d", "--debug", action="store_true", dest="debug_mode")
+    usage = "Usage: %prog [options] class_year harris_input_file output_db_file"
+    parser = OptionParser(usage=usage)
+    parser.add_option("-a", "--anonymize", action="store_true", dest="anonymize",
+                      help="Replace names and user-event details in the data " \
+                           "file with generated test data.")
+    parser.add_option("-d", "--debug", action="store_true", dest="debug_mode",
+                      help="Generate debug CSV files that dump out the " \
+                           "contents of the output database file.")
     options, args = parser.parse_args()
     
-    if len(args) != 3:
-        print "Usage: processevents.py [class_year] [Harris input file] " \
-              "[output file base]\n" \
-              "  Example: processevents.py harris25th.txt 1975_35th\n\n" \
-              "  Will create: 1975_35th.db, 1975_35th-events.csv, etc."
-
     class_year, infile_name, outfile_base = args
 
     main(class_year, 
