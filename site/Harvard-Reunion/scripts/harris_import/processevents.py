@@ -28,6 +28,7 @@ import sqlite3
 import string
 import sys
 from itertools import izip
+from optparse import OptionParser
 
 from csvcolumns.columngroup import ColumnGroup
 from csvcolumns.column import DataColumn
@@ -39,7 +40,7 @@ import testdata
 # Because it's late and I don't want to lookup optparse docs right now...
 ANONYMIZE = True
 
-def main(class_year, infile_name, outfile_base):
+def main(class_year, infile_name, outfile_base, anonymize=False, debug_mode=False):
     infile_cols = parse_doc(infile_name)
     all_cols = infile_cols + \
                non_harris_event_cols(class_year, infile_cols.num_rows)
@@ -50,9 +51,8 @@ def main(class_year, infile_name, outfile_base):
     # Extract event cols, keep the Event ID, strip Event Name, sort cols by ID
     event_cols = select_event_cols(all_cols).sort_columns()
 
-    # If we need to anonymize our data, do so here...
-    if ANONYMIZE:
-        # Not only do we put fake users, but also specific test users per class
+    # Not only do we put fake users, but also specific test users per class
+    if anonymize:
         user_cols = testdata.anonymize_users(user_cols, class_year)
         event_cols = testdata.anonymize_events(event_cols)
 
@@ -248,14 +248,21 @@ if __name__ == '__main__':
     # data file because of cases like Harvard and Radcliffe differntiating their
     # Harvard and Radcliffe grads (like 1961R), which doesn't come through in 
     # the Harris feed.
-    if len(sys.argv) != 4:
+    parser = OptionParser()
+    parser.add_option("-a", "--anonymize", action="store_true", dest="anonymize")
+    parser.add_option("-d", "--debug", action="store_true", dest="debug_mode")
+    options, args = parser.parse_args()
+    
+    if len(args) != 3:
         print "Usage: processevents.py [class_year] [Harris input file] " \
               "[output file base]\n" \
               "  Example: processevents.py harris25th.txt 1975_35th\n\n" \
               "  Will create: 1975_35th.db, 1975_35th-events.csv, etc."
 
-    class_year = sys.argv[1]
-    infile_name = sys.argv[2]
-    outfile_base = sys.argv[3]
+    class_year, infile_name, outfile_base = args
 
-    main(class_year, infile_name, outfile_base)
+    main(class_year, 
+         infile_name,
+         outfile_base,
+         anonymize=options.anonymize,
+         debug_mode=options.debug_mode)
