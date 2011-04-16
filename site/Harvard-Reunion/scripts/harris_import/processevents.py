@@ -36,9 +36,7 @@ from csvcolumns.transform import MethodTransform
 
 import config
 import testdata
-
-# Because it's late and I don't want to lookup optparse docs right now...
-ANONYMIZE = True
+from testdata import anonymize_events, anonymize_users
 
 def main(class_year, infile_name, outfile_base, anonymize=False, debug_mode=False):
     infile_cols = parse_doc(infile_name)
@@ -47,58 +45,43 @@ def main(class_year, infile_name, outfile_base, anonymize=False, debug_mode=Fals
     
     # Basic user info like name, graduating year, email
     user_cols = select_user_cols(all_cols)
+    user_cols = anonymize_users(user_cols, class_year) if anonyimize else user_cols
 
     # Extract event cols, keep the Event ID, strip Event Name, sort cols by ID
     event_cols = select_event_cols(all_cols).sort_columns()
+    event_cols = anonymize_events(event_cols) if anonymize else event_cols
 
-    # Not only do we put fake users, but also specific test users per class
-    if anonymize:
-        user_cols = testdata.anonymize_users(user_cols, class_year)
-        event_cols = testdata.anonymize_events(event_cols)
-
-    # Pull the user cols and event cols together, sort rows by email (the first 
-    # col) This is a little ugly because if you change the column order, it 
-    # changes the sort order. TODO: Have this take args for what to sort by.
-    sorted_by_email = (user_cols + event_cols).sort_rows()
-
-    # Filter out the Voided status rows
-    active = sorted_by_email.reject_rows_by_value("status", "Voided")
+    # Remove orders that were voided by the user
+    active = (user_cols + event_cols).reject_rows_by_value("status", "Voided")
 
     # Merge together rows that represent multiple orders from the same person 
     # by looking for orders with the same email address (it must be sorted so
-    # that records to be merged are grouped together -- we're sorted by email)
-    merged = active.merge_rows(lambda row: row["email"], merge_func=merge_rows)
+    # that records to be merged are grouped together -- we're sorting by email)
+    merged = active.sort_rows().merge_rows(lambda row: row["email"], 
+                                           merge_func=merge_rows)
 
     # Account for package deals where signing up for one event actually means
     # you're attending multiple ones -- even some that aren't in Harris
     final = add_packages(merged, class_year)
 
-    # By this point, we've more or less got a clean data file. Now we start to
-    # transform it to what we need for our SQL tables. The CSV files are just
-    # for debugging purposes.
-    final.write(outfile_base + "-filtered.csv")
-
-    dbconn = sqlite3.connect(outfile_base + ".db")
-
-    # Write our EVENTS table
     events_table = make_events_table(all_cols.column_names)
-    events_table.write(outfile_base + "-events.csv")
-    events_table.write_db_table(dbconn, "events", primary_key="event_id")
-
-    # Write our USERS table
-    users_table = merged.select("user_id", "email", "status", "prefix",
-                                "first_name", "last_name", "suffix", 
-                                "class_year")
-    users_table.write(outfile_base + "-users.csv")
-    users_table.write_db_table(dbconn, "users", primary_key="user_id",
-                               indexes=["email", "status", "first_name", "last_name"])
-
-    # Write our USERS_EVENTS table
+    users_table = final.select("user_id", "email", "status", "prefix",
+                               "first_name", "last_name", "suffix", "class_year")
     users_events_table = make_users_events_table(event_cols.column_names, final)
-    users_events_table.write(outfile_base + "-users_events.csv")
+
+    if debug_mode:
+        final.write(outfile_base + "-filtered.csv")
+        events_table.write(outfile_base + "-events.csv")
+        users_table.write(outfile_base + "-users.csv")
+        users_events_table.write(outfile_base + "-users_events.csv")
+
+    # Write our DB...
+    dbconn = sqlite3.connect(outfile_base + ".db")
+    events_table.write_db_table(dbconn, "events", primary_key="event_id")
+    users_table.write_db_table(dbconn, "users", primary_key="user_id",
+                               indexes=["email", "first_name", "last_name"])
     users_events_table.write_db_table(dbconn, "users_events", 
                                       indexes=["user_id", "event_id", "value"])
-
     dbconn.close()
 
 #################### Parse and Extract ####################
