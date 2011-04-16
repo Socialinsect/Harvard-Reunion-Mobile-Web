@@ -45,50 +45,38 @@
   padding-right: 0px;
 }
 
-.nav li .register {
-  position: relative;
-  padding-left: 27px;
+.nav li div.register,
+.nav li div.register + .smallprint {
+  padding-left: 22px;
 }
 
-.nav li .register .icon {
+.nav li img.register  {
   position: absolute;
   top: 50%;
-  left: 3px;
-  margin-top: -12px;
+  left: 8px;
+  margin-top: -10px;
   height: 20px;
   width: 20px;
-  background: transparent url('/common/images/badge-register.png') no-repeat left;
-  background-size: 20px;
 }
 
-.nav li .confirmed {
-  margin-left: -8px;
-}
-
-.nav li .confirmed .icon {
-  background: transparent url('/common/images/badge-confirmed.png') no-repeat left;
-}
-
-#fbCheckin,
-#fqCheckin {
-  display: inline-block;
+a.fqCheckin {
   padding-left: 30px;
-  background: transparent url('/common/images/button-facebook.png') no-repeat 2px center;
-  background-size: 24px;
-  line-height: 24px;
-  color: white;
-  text-decoration: none;
 }
+
 #fqCheckin {
-  background-image: url('/common/images/button-foursquare.png')
-}
-#fbCheckin.checkedin {
-  background-image: url('/common/images/button-facebook-checkedin.png')
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  height: 24px;
+  width: 24px;
+  margin-top: -12px;
 }
 #fqCheckin.checkedin {
   background-image: url('/common/images/button-foursquare-checkedin.png')
 }
-
+.fqPhoto {
+  vertical-align: text-top;
+}
 .cancelButton {
   float: right;
   padding-right: .5em;

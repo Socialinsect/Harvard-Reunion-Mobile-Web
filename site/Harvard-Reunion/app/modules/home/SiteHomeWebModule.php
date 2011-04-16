@@ -113,9 +113,8 @@ class SiteHomeWebModule extends HomeWebModule {
           $this->assign('groupName', $facebook->getGroupFullName());
           
         } else {
-          $this->addInlineJavascript(
-            'var MESSAGE_LIST_AJAX_URL = "'.URL_PREFIX.$this->id.'/facebookContent"');
-          $this->addOnLoad('initMessageList();');
+          $this->addInternalJavascript('/common/javascript/lib/utils.js');
+          $this->addOnLoad('autoupdateContent("autoupdateContainer", "'.URL_PREFIX.$this->id.'/facebookContent");');
         
           $this->assign('user',          $facebook->getUserFullName());
           $this->assign('groupName',     $facebook->getGroupFullName());
@@ -132,10 +131,9 @@ class SiteHomeWebModule extends HomeWebModule {
         break;
       
       case 'twitter':
-        $this->addInlineJavascript(
-          'var MESSAGE_LIST_AJAX_URL = "'.URL_PREFIX.$this->id.'/twitterContent"');
-        $this->addOnLoad('initMessageList();');
-
+        $this->addInternalJavascript('/common/javascript/lib/utils.js');
+        $this->addOnLoad('autoupdateContent("autoupdateContainer", "'.URL_PREFIX.$this->id.'/twitterContent");');
+        
         $this->assign('hashtag',    $this->schedule->getTwitterHashTag());
         $this->assign('tweetURL',   $twitter->getTweetURL());
         $this->assign('twitterURL', $twitter->getFeedURL());
@@ -144,6 +142,10 @@ class SiteHomeWebModule extends HomeWebModule {
        
       case 'twitterContent':
         $this->assign('posts', $twitter->getRecentTweets());
+        break;
+     
+      case 'commentsContent':
+        $this->assign('post', array('comments' => $facebook->getComments($this->getArg('id'))));
         break;
      
       case 'add':
@@ -179,7 +181,7 @@ class SiteHomeWebModule extends HomeWebModule {
       case 'fbLogout':
         $url = $this->getArg('next', FULL_URL_PREFIX.'home/');
         
-        $facebook->expireSession('null');
+        $facebook->expireSession();
         $redirect = $facebook->getLogoutRedirectURL($url);
         error_log("fbLogout: Redirecting to $redirect");
         header("Location: $redirect");
@@ -200,6 +202,9 @@ class SiteHomeWebModule extends HomeWebModule {
         exit();
         
       case 'fqLogout':
+        // This currently doesn't work because foursquare doesn't have a 
+        // static logout url (all logout urls need a hex key)
+        // Leaving this here for when they add it.
         $foursquare = $this->schedule->getFoursquareFeed();
       
         $url = $this->getArg('url', FULL_URL_PREFIX.'home/');

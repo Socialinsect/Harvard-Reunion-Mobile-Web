@@ -4,17 +4,17 @@
 {$item = array()}
 {block name="harrisLogin"}
   {capture name="title" assign="title"}
-    You are signed in  
     {if $info['harris']['authority'] == 'anonymous'}
-      anonymously as class of {$info['harris']['year']} 
+      You are viewing the class of {$info['harris']['year']} 
     {else}
-      as {$info['harris']['fullname']} '{$info['harris']['shortYear']} 
+      You are signed in as {$info['harris']['fullname']} '{$info['harris']['shortYear']} 
     {/if}
-    ({$info['harris']['number']}th&nbsp;Reunion)
+    ({$info['harris']['number']}th&nbsp;Reunion) 
+    {if $info['harris']['authority'] == 'anonymous'}anonymously {/if}
   {/capture}
   {$item['title'] = $title}
   {capture name="subtitle" assign="subtitle"}
-    {if $info['authority'] == 'anonymous'}
+    {if $info['harris']['authority'] == 'anonymous'}
       Tap to sign in
     {else}
       Tap to sign out
@@ -81,7 +81,7 @@
       <span class="loggedout">Not signed in</span>
     {/if}
     <br/>
-    Used for photos, videos, updates and checkins
+    Used for photos, videos and updates
     <br/>
     {if $info['facebook']['username']}
       Tap to sign out

@@ -83,13 +83,6 @@ class SiteHomeAPIModule extends APIModule {
         $this->setResponseVersion(1);
         break;
         
-      case 'comments':
-        $postId = $this->getArg('id');
-        
-        $this->setResponse($facebook->getComments($postId));
-        $this->setResponseVersion(1);
-        break;
-        
       default:
         $this->invalidCommand();
         break;

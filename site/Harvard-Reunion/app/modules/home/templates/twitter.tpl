@@ -2,12 +2,12 @@
 
 <div class="nonfocal">
   {block name="twitterHeader"}
-    <a class="tweetButton" href="{$tweetURL}"><span class="tweetLink">tweet</span></a>
+    <a class="tweetButton" href="{$tweetURL}"><img src="/common/images/button-twitter{$imageExt}" width="24" height="24" /> tweet</a>
     <h2>{$hashtag}</h2>
   {/block}
 </div>
 
-<div id="listContainer">
+<div id="autoupdateContainer">
   {include file="findInclude:modules/$moduleID/templates/twitterContent.tpl" posts=$posts}
 </div>
 

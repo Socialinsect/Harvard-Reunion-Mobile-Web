@@ -1,6 +1,9 @@
 div.videoWrapper {
-  max-width: 100%;
+  width: 100%;
   overflow: hidden;
+}
+div.videoWrapper + .nonfocal {
+  text-align: center;
 }
 
 .nav a.author {

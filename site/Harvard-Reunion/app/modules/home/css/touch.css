@@ -96,23 +96,26 @@
   color: #eee;
   text-decoration: none;
   display: block;
+  position: relative;
+  padding-left: 28px;
 }
 
 #social .links a:first-child {
   margin-bottom: 5px;
 }
-#social .links a .wrapper {
-  background: transparent no-repeat left center;
-  background-size: 24px;
-  padding-left: 29px;
-  height: 30px;
+#social .links a:first-child {
+  margin-bottom: 5px;
 }
-#social .links .facebookLink .wrapper {
-  background-image: url('/common/images/button-facebook.gif');
+#social .links a img {
+  position: absolute;
+  top: 50%;
+  left: 6px;
+  margin-top: -9px;
+}
+#social .links .facebookLink {
   line-height: 15px;
 }
-#social .links .twitterLink .wrapper {
-  background-image: url('/common/images/button-twitter.gif');
+#social .links .twitterLink {
   line-height: 30px;
 }
 
@@ -203,19 +206,23 @@ form input[type=submit] {
 .tweetButton {
   display: block;
   float: right;
-}
-.tweetLink,
-.fbpostsLink {
-  display: inline-block;
+  position: relative;
   padding-left: 30px;
-  background: transparent url('/common/images/button-twitter.gif') no-repeat left center;
-  background-size: 24px;
   line-height: 24px;
 }
-.fbpostsLink {
-  background: transparent url('/common/images/button-facebook.gif') no-repeat left center;
+.tweetButton img {
+  position: absolute;
+  top: 50%;
+  left: 0px;
+  margin-top: -12px;
 }
 
 .fbPostForm {
   overflow: hidden;
+}
+
+.springboard + div.separator {
+  clear: both;
+  height: 18px;
+  float: none;
 }

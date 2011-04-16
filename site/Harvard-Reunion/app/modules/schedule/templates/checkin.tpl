@@ -4,10 +4,12 @@
   <h3>{$eventTitle}</h3>
 </div>
 
-{if !$checkedIn}
+<div id="autoupdateHeader">
+  {include file="findInclude:modules/$moduleID/templates/checkinHeaderContent.tpl" state=$state}
+</div>
+
+{if !$state['checkedin']}
   <div class="focal checkinForm">
-    Check in to {$eventTitle}
-  
     <form method="get" action="addCheckin">
       <textarea rows="3" name="message" id="messageText" placeholder="Add a shout with this checkin"></textarea>
       <input type="submit" name="submit" value="Check In" />
@@ -18,7 +20,7 @@
   </div>
 {/if}
 
-<div id="checkins">
+<div id="autoupdateContent">
   {include file="findInclude:modules/$moduleID/templates/checkinContent.tpl" state=$state}
 </div>
 

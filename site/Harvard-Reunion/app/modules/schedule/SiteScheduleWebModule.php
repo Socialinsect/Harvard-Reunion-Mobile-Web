@@ -6,30 +6,21 @@
 
 includePackage('Maps');
 
-define('SCHEDULE_COOKIE_DURATION', 160 * 24 * 60 * 60);
-
 class SiteScheduleWebModule extends WebModule {
   protected $id = 'schedule';
   protected $user = null;
   protected $schedule = null;
-  protected $bookmarks = array();
-  const BOOKMARKS_COOKIE_PREFIX   = 'ScheduleBookmarks_';
-  const BOOKMARKS_COOKIE_DURATION = SCHEDULE_COOKIE_DURATION;
-  const CATEGORY_COOKIE_PREFIX    = 'ScheduleCategory_';
-  const CATEGORY_COOKIE_DURATION  = SCHEDULE_COOKIE_DURATION;
   
   protected function getCategory($categories) {
     $category = $this->schedule->getDefaultCategory();
     
-    // '.' in cookie names doesn't work properly with the PHP $_COOKIE variable
-    $categoryCookieName = self::CATEGORY_COOKIE_PREFIX.
-      urlencode(str_replace(array('.', ':'), array('_', '_'), $this->user->getUserID()));
+    $categoryCookieName = $this->configModule.'category_'.$this->schedule->getScheduleId();
     
     if (isset($this->args['category'], $categories[$this->args['category']])) {
       $category = $this->args['category'];
       
       // Remember cookie
-      $expires = time() + self::CATEGORY_COOKIE_DURATION;
+      $expires = time() + Kurogo::getOptionalSiteVar('TAB_COOKIE_LIFESPAN', 3600);
       setCookie($categoryCookieName, $category, $expires, COOKIE_PATH);
       
     } else if (isset($_COOKIE[$categoryCookieName], $categories[$_COOKIE[$categoryCookieName]])) {
@@ -40,7 +31,7 @@ class SiteScheduleWebModule extends WebModule {
   }
   
   protected function getBookmarkCookie() {
-    return self::BOOKMARKS_COOKIE_PREFIX.$this->schedule->getScheduleId();
+    return $this->configModule.'bookmarks_'.$this->schedule->getScheduleId();
   }
   
   private function valueForType($type, $value) {
@@ -48,40 +39,7 @@ class SiteScheduleWebModule extends WebModule {
   
     switch ($type) {
       case 'datetime':
-        $allDay = $value instanceOf DayRange;
-        $sameAMPM = date('a', $value->get_start()) == date('a', $value->get_end());
-        $sameDay = false;
-        if ($value->get_end() && $value->get_end() != $value->get_start()) {
-          $startDate = intval(date('Ymd', $value->get_start()));
-          $endDate = intval(date('Ymd', $value->get_end()));
-          
-          $sameDay = $startDate == $endDate;
-          if (!$sameDay) {
-            $endIsBefore5am = intval(date('H', $value->get_end())) < 5;
-            if ($endIsBefore5am && ($endDate - $startDate == 1)) {
-              $sameDay = true;
-            }
-          }
-        }
-        $valueForType = date("l, F j", $value->get_start());
-        if ($allDay) {
-          if (!$sameDay) {
-            $valueForType .= date(" - l, F j", $value->get_end());
-          }
-        } else {
-          $valueForType .= ($sameDay ? '<br/>' : ', ').date('g:i', $value->get_start());
-          if (!$sameAMPM) {
-            $valueForType .= date('a', $value->get_start());
-          }
-          if (!$sameDay) {
-            $valueForType .= date(" - l, F j, ", $value->get_end());
-          } else if ($sameAMPM) {
-            $valueForType .= '-';
-          } else {
-            $valueForType .= ' - ';
-          }
-          $valueForType .= date("g:ia", $value->get_end());
-        }
+        $valueForType = $this->datetimeText($value, false, '<br/>');
         break;
 
       case 'url':
@@ -135,20 +93,71 @@ class SiteScheduleWebModule extends WebModule {
     return $urlForType;
   }
 
-  private function timeText($event, $timeOnly=false) {
-    if ($timeOnly) {
-      $sameAMPM = date('a', $event->get_start()) == date('a', $event->get_end());
-    
-      $timeString = date(' g:i', $event->get_start());
-      if (!$sameAMPM) {
-        $timeString .= date('a', $event->get_start());
+  private function datetimeText($datetime, $timeOnly=false, $separator='') {
+    $start = $datetime->get_start();
+    $end = $datetime->get_end();
+  
+    $string = '';
+  
+    if ($end == $start) {
+      if (!$timeOnly) {
+        $string .= date('l, F j', $start).$separator;
       }
-      $timeString .= ($sameAMPM ? '-' : ' - ').date("g:ia", $event->get_end());
-      
-      return $timeString;
+      $string .= date('g:ia', $start);
+        
     } else {
-      return strval($event->get_range());
+      $allDay = $datetime instanceOf DayRange;
+      
+      $startDay = intval(date('Ymd', $start));
+      $endDay   = intval(date('Ymd', $end));
+        
+      $sameDay = $startDay == $endDay;
+      if (!$sameDay) {
+        $endIsBefore5am = intval(date('H', $end)) < 5;
+        if ($endIsBefore5am && ($endDay - $startDay == 1)) {
+          $sameDay = true;
+        }
+      }
+      
+      if ($allDay) {
+        if (!$timeOnly) {
+          $string .= date('l, F j', $start);
+          if (!$sameDay) {
+            $string .= date(' - l, F j', $end);
+          }
+        }
+        $string .= $separator;
+        if ($sameDay || !$timeOnly) {
+          $string .= 'All day';
+        } else {
+          $string .= ($endDay - $startDay).' days';
+        }
+        
+      } else {
+        $sameAMPM = date('a', $start) == date('a', $end);
+  
+        if (!$timeOnly) {
+          $string .= date('l, F j', $start).($sameDay ? $separator : ', ');
+        }
+        
+        $string .= date('g:i', $start);
+        
+        if (!$sameAMPM) {
+          $string .= date('a', $start);
+        }
+        
+        if (!$sameDay && !$timeOnly) {
+          $string .= $separator.' - '.date('l, F j, ', $end);
+        } else if ($sameAMPM) {
+          $string .= '-';
+        } else {
+          $string .= ' - ';
+        }
+        $string .= date('g:ia', $end);
+      }
     }
+
+    return $string;
   }
   
   private function detailURL($event, $addBreadcrumb=true, $noBreadcrumbs=false) {
@@ -212,25 +221,27 @@ class SiteScheduleWebModule extends WebModule {
         
         $eventDays = array();
         foreach($events as $event) {
-          $date = date('Y-m-d', $event->get_start());
+          $info = $this->schedule->getBriefEventInfo($event);
+        
+          $date = date('Y-m-d', $info['datetime']->get_start());
           
           if (!isset($eventDays[$date])) {
             $eventDays[$date] = array(
-              'title'  => date('l, F j, Y', $event->get_start()),
+              'title'  => date('l, F j, Y', $info['datetime']->get_start()),
               'events' => array(),
             );
           }
           
           $eventInfo = array(
             'url'      => $this->detailURL($event),
-            'title'    => $event->get_summary(),
-            'subtitle' => $this->timeText($event, true),
+            'title'    => $info['title'],
+            'subtitle' => $this->datetimeText($info['datetime'], true),
           );
           if ($this->hasBookmark($event->get_uid())) {
             $eventInfo['class'] = 'bookmarked';
           }
           
-          if ($this->schedule->isRegisteredForEvent($event)) {
+          if ($info['attending']) {
             $eventInfo['class'] = 'bookmarked';
           }
           
@@ -255,11 +266,55 @@ class SiteScheduleWebModule extends WebModule {
 
         //error_log(print_r($event, true));
         $info = $this->schedule->getEventInfo($event);
-        $registered = false;
+        $attending = $info['attending'];
         $requiresRegistration = false;
         //error_log(print_r($info, true));
 
         $sections = array();
+
+        // Checkins
+        if (isset($info['location'], $info['location']['foursquareId'])) { 
+          $now = time();
+          $checkinThresholdStart = $event->get_start() - 60*15;
+          $checkinThresholdEnd = $event->get_end() + 60*15;
+          
+          // debugging:
+          $checkinThresholdStart = time() - ($event->get_end() - $event->get_start()) - 60*15;
+          $checkinThresholdEnd = $checkinThresholdStart + ($event->get_end() - $event->get_start()) + 60*15;
+          
+          if ($now >= $checkinThresholdStart && $now <= $checkinThresholdEnd) {
+            $foursquare = $this->schedule->getFoursquareFeed();
+
+            $latitude = 0;
+            $longitude = 0;
+            if (isset($info['location']['latlon'])) {
+              list($latitude, $longitude) = $info['location']['latlon'];
+            }
+
+            $checkin = array(
+              'title' => 'foursquare checkin',
+              'class' => 'fqCheckin',
+              'url'   => $this->buildBreadcrumbURL('checkin', array(
+                'eventTitle' => $info['title'],
+                'venue'      => $info['location']['foursquareId'],
+                'latitude'   => $latitude, 
+                'longitude'  => $longitude
+              ))
+            );
+            
+            $checkinState = array(
+              'checkedin'   => false,
+              'otherCount'  => 0,
+              'friendCount' => 0,
+            );
+            if (!$foursquare->needsLogin()) {
+              $checkinState = $foursquare->getVenueCheckinState($info['location']['foursquareId']);
+            }
+            $this->assign('checkinState', $checkinState);
+            
+            $sections['checkin'] = array($checkin);
+          }
+        }
         
         // Info
         $locationSection = array();
@@ -298,30 +353,22 @@ class SiteScheduleWebModule extends WebModule {
           $sections['location'] = $locationSection; 
         }
         
+        // Registration
         $registrationSection = array();
         if ($info['registration']) {
           $requiresRegistration = true;
           $registration = array(
             'title' => 'Registration Required',
-            'class' => 'external register',
+            'class' => 'external',
           );
           
           if ($info['registration']['registered']) {
-            $registered = true;
+            $registration['label'] = '<img class="register confirmed" src="/common/images/badge-confirmed'.$this->imageExt.'"/>';
+            $registration['title'] = 'Registration Confirmed';
             
-            if ($this->pagetype == 'basic') {
-              $registration['title'] = '<img src="/common/images/badge-confirmed.gif"/> Registration Confirmed';
-            } else {
-              // No <a> tag so we need to wrap in a div
-              $registration['title'] = '<div class="register confirmed"><div class="icon"></div>Registration Confirmed</div>';
-            }
           } else {
-            if ($this->pagetype == 'basic') {
-              $registration['label'] = '<img src="/common/images/badge-register.gif"/> ';
-            } else {
-              $registration['title'] = '<div class="icon"></div>'.$registration['title'];
-            }
-
+            $registration['label'] = '<img class="register" src="/common/images/badge-register'.$this->imageExt.'"/> ';
+            
             if (isset($info['registration']['url'])) {
               $printableURL = preg_replace(
                 array(';http://([^/]+)/$;', ';http://;'), 
@@ -335,6 +382,11 @@ class SiteScheduleWebModule extends WebModule {
               $registration['title'] .= ' ('.$info['registration']['fee'].')';
             }
           }
+            
+          if ($this->pagetype != 'basic') {
+            $registration['title'] = '<div class="register">'.$registration['title'].'</div>';
+          }
+          
           $registrationSection[] = $registration;
         }
 
@@ -391,49 +443,13 @@ class SiteScheduleWebModule extends WebModule {
             $sections[$section][] = $item;
           }          
         }
-        //error_log(print_r($sections, true));
-        
-        $latitude = 0;
-        $longitude = 0;
-        if (isset($info['location']['latlon'])) {
-          list($latitude, $longitude) = $info['location']['latlon'];
-        }
-        
-        // Checkins
-        $checkedIn = false;
-        $checkinThresholdStart = $event->get_start() - 60*15;
-        $checkinThresholdEnd = $event->get_end() + 60*15;
-        
-        // debugging:
-        $checkinThresholdStart = time() - ($event->get_end() - $event->get_start()) - 60*15;
-        $checkinThresholdEnd = $checkinThresholdStart + ($event->get_end() - $event->get_start()) + 60*15;
-        
-        $checkedIn = false;
-        if (isset($info['location'], $info['location']['foursquareId'])) {        
-          $foursquare = $this->schedule->getFoursquareFeed();
-          if (!$foursquare->needsLogin()) {
-            $checkedIn = $foursquare->isCheckedIn($info['location']['foursquareId'], $checkinThresholdStart);
-          }
-          
-          if ($checkedIn) { 
-            $this->assign('checkedIn', true);
-          }
-
-          $this->assign('checkinURL', $this->buildBreadcrumbURL('checkin', array(
-            'eventURL'   => FULL_URL_PREFIX.ltrim(
-              $this->buildBreadcrumbURL($this->page, $this->args, false), '/'),
-            'eventTitle' => $info['title'],
-            'venue'      => $info['location']['foursquareId'],
-            'latitude'   => $latitude, 
-            'longitude'  => $longitude
-          )));
-        }
+        //error_log(print_r($sections, true));        
         
         $this->assign('eventId',              $eventId);
         $this->assign('eventTitle',           $info['title']);
         $this->assign('eventDate',            $this->valueForType('datetime', $info['datetime']));
         $this->assign('sections',             $sections);
-        $this->assign('registered',           $registered);
+        $this->assign('attending',            $attending);
         $this->assign('requiresRegistration', $requiresRegistration);
         //error_log(print_r($sections, true));
         break;
@@ -502,20 +518,33 @@ class SiteScheduleWebModule extends WebModule {
           $this->assign('state', $venueCheckinState);
         }
         
-        $this->addOnLoad('initCheckins();');        
-        $this->addInlineJavascript(
-          'var CHECKIN_CONTENT_URL = "'.URL_PREFIX.$this->id.'/checkinContent?'.
-            http_build_query(array('venue' => $venue)).'"');
-      
+        $this->addInternalJavascript('/common/javascript/lib/utils.js');
+        
+        $this->addOnLoad('autoupdateContent("autoupdateHeader", "'.URL_PREFIX.$this->id.'/checkinHeaderContent?'.
+            http_build_query(array('venue' => $venue)).'");');
+            
+        $this->addOnLoad('autoupdateContent("autoupdateContent", "'.URL_PREFIX.$this->id.'/checkinContent?'.
+            http_build_query(array('venue' => $venue)).'");');
+        
         $this->assign('eventTitle', $this->getArg('eventTitle'));
         $this->assign('hiddenArgs', array(
           'venue'     => $venue,
           'latitude'  => $this->getArg('latitude'),
           'longitude' => $this->getArg('longitude'),
-          'eventURL'  => $this->getArg('eventURL'),
+          'returnURL' => FULL_URL_PREFIX.ltrim($this->buildBreadcrumbURL($this->page, $this->args, false), '/'),
         ));
         break;
         
+      case 'checkinHeaderContent':
+        $venue = $this->getArg('venue');
+        $foursquare = $this->schedule->getFoursquareFeed();
+        
+        $venueCheckinState = $foursquare->getVenueCheckinState($venue);
+        if ($venueCheckinState) {
+          $this->assign('state', $venueCheckinState);
+        }
+        break;
+      
       case 'checkinContent':
         $venue = $this->getArg('venue');
         $foursquare = $this->schedule->getFoursquareFeed();
@@ -531,15 +560,15 @@ class SiteScheduleWebModule extends WebModule {
         $message   = $this->getArg('message');
         $latitude  = $this->getArg('latitude');
         $longitude = $this->getArg('longitude');
-        $eventURL  = $this->getArg('eventURL');
+        $returnURL = $this->getArg('returnURL');
         
         if ($latitude && $longitude) {
           $foursquare = $this->schedule->getFoursquareFeed();
           $foursquare->addCheckin($venue, $message, array($latitude, $longitude));
         }
         
-        if ($eventURL) {
-          header("Location: $eventURL");
+        if ($returnURL) {
+          header("Location: $returnURL");
           exit();
         } else {
           $this->redirectTo('index');

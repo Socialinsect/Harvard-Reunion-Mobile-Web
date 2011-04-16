@@ -26,3 +26,7 @@
 #social .links .twitterLink .wrapper {
   background-image: url('/common/images/button-twitter24.png');
 }
+
+.springboard + div.separator {
+  height: 10px;
+}

@@ -46,7 +46,8 @@ class SiteSettingsWebModule extends WebModule {
           'foursquare' => array(
             'username'  => $foursquare->needsLogin() ? null : $foursquare->getUserFullName(),
             'fullname'  => $foursquare->needsLogin() ? null : $foursquare->getUserFullName(),
-            'toggleURL' => $foursquare->needsLogin() ? $foursquare->getLoginURL(true) : $foursquare->getLogoutURL(),
+            'toggleURL' => $foursquare->needsLogin() ? 
+              $foursquare->getLoginURL(true) : $this->buildBreadcrumbURL('foursquare', array()),
           ),
           'twitter' => array(
             'hashtag'   => $schedule->getTwitterHashTag(),
@@ -66,6 +67,20 @@ class SiteSettingsWebModule extends WebModule {
         $user->setShowHomeFacebookPosts($this->getArg('showFacebook', false));
         
         $this->redirectTo('index');
+        break;
+        
+      case 'foursquare':
+        $foursquare = $schedule->getFoursquareFeed();
+        
+        if ($foursquare->needsLogin()) {
+          $this->redirectTo('index');
+        }      
+
+        $this->assign('username',      $foursquare->getUserFullName());
+        $this->assign('returnURL',     $this->buildURL('index'));
+        $this->assign('foursquareURL', $foursquare->getUserURL());
+
+        $foursquare->setSession(null);
         break;
     }
   }

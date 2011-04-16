@@ -11,8 +11,10 @@
   {/if}
 
   <form id="signin" name="signin" action="login" method="POST">
+    {foreach $defaultArgs as $arg => $value}
+      <input type="hidden" name="{$arg}" value="{$value}" />
+    {/foreach}
     <input type="hidden" name="authority" value="harris" />
-    <input type="hidden" name="url" value="{$url|escape}" />
   
     {block name="inputs"}
       <p><label for="username">User ID:</label>

@@ -1,20 +1,13 @@
 {extends file="findExtends:modules/$moduleID/templates/index.tpl"}
 
 {block name="harrisLogin"}
-  {capture name="label" assign="label"}
-    You are signed in  
-    {if $info['harris']['authority'] == 'anonymous'}
-      anonymously as class of {$info['harris']['year']} 
-    {else}
-      as {$info['harris']['fullname']} '{$info['harris']['shortYear']} 
-    {/if}
-    ({$info['harris']['number']}th&nbsp;Reunion) 
-  {/capture}
-  {$item['label'] = $label}
+  {$smarty.block.parent}
+  {$item['label'] = $title}
   {capture name="title" assign="title"}
     <span class="smallprint">({if $info['authority'] == 'anonymous'}sign in{else}sign out{/if})</span>
   {/capture}
   {$item['title'] = $title}
+  {$item['subtitle'] = null}
 {/block}
 
 {block name="facebookCheckbox"}
@@ -50,7 +43,7 @@
   {/capture}
   {$item['title'] = $title}
   {capture name="subtitle" assign="subtitle"}
-    Used for photos, videos, updates and checkins<br/>
+    Used for photos, videos and updates<br/>
   {/capture}
   {$item['subtitle'] = $subtitle}
 {/block}
@@ -72,7 +65,6 @@
   {/capture}
   {$item['title'] = $title}
   {capture name="subtitle" assign="subtitle"}
-    
     Used for checkins
   {/capture}
   {$item['subtitle'] = $subtitle}

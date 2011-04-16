@@ -595,13 +595,10 @@ class Schedule {
     return $feed->getItem($eventId, $start);
   }
   
-  public function getEventInfo($event) {
+  public function getBriefEventInfo($event) {
     $info = array(
-      'id'           => $event->get_uid(),
-      'category'     => null,
-      'location'     => null,
-      'registration' => null,
-      'attendees'    => array(),
+      'id'        => $event->get_uid(),
+      'attending' => $this->isRegisteredForEvent($event),
     );
     
     //
@@ -610,6 +607,26 @@ class Schedule {
     $simpleFields = array(
       'title'       => 'summary',
       'datetime'    => 'datetime',
+    );
+    foreach ($simpleFields as $key => $attribute) {
+      $value = $event->get_attribute($attribute);
+      if ($value) {
+        $info[$key] = $value;
+      } else {
+        $info[$key] = null;
+      }
+    }
+    
+    return $info;
+  }
+  
+  public function getEventInfo($event) {
+    $info = $this->getBriefEventInfo($event);
+    
+    //
+    // Additional simple fields
+    //
+    $simpleFields = array(
       'description' => 'Details',
       'url'         => 'url',
       'phone'       => 'Phone',
@@ -625,8 +642,32 @@ class Schedule {
     }
     
     //
+    // Registration
+    //
+    $info['registration'] = null;
+    
+    $registrationRequired = $event->get_attribute('Registration Required');
+    if (strtolower($registrationRequired) == 'yes') {
+      $info['registration'] = array(
+        'url'        => 'http://alumni.harvard.edu/',
+        'fee'        => '',
+        'registered' => $info['attending'],
+      );
+      $fee = $event->get_attribute('Registration Fee');
+      if ($fee) {
+        $info['registration']['fee'] = $fee;
+      }
+      $url = $event->get_attribute('Registration URL');
+      if ($url) {
+        $info['registration']['url'] = $url;
+      }
+    }
+    
+    //
     // Categories
     //
+    $info['category'] = null;
+    
     $categories = $this->getEventCategories();
     foreach ($categories as $category => $title) {
       if ($this->eventMatchesCategory($event, $category)) {
@@ -638,10 +679,12 @@ class Schedule {
     //
     // Location
     //
+    $info['location'] = null;
+    
     $placeTitle = '';
     $locationTitle = $event->get_attribute('Location Name');
     $locationBuildingID = $event->get_attribute('Building ID');
-    $trumbaLocation = $event->get_attribute('location');
+    $trumbaLocation = $event->get_attribute('Location');
     $foursquareId = $event->get_attribute('Foursquare Place');
     if ($locationTitle || $locationBuilding || $trumbaLocation) {
       $location = array(
@@ -690,7 +733,7 @@ class Schedule {
       }
       
       if ($trumbaLocation) {
-        if (preg_match('/^([\-\.0-9]+),([\-\.0-9]+)$/', $trumbaLocation, $matches)) {
+        if (preg_match(';<Latitude>([^<]+)</Latitude>.*<Longitude>([^<]+)</Longitude>;', $trumbaLocation, $matches)) {
           $location['latlon'] = array($matches[1], $matches[2]);
         }
       }
@@ -707,28 +750,11 @@ class Schedule {
     }
     
     //
-    // Registration
+    // Attendees
     //
-    $registrationRequired = $event->get_attribute('Registration Required');
-    if (strtolower($registrationRequired) == 'yes') {
-      $info['registration'] = array(
-        'url'        => 'http://alumni.harvard.edu/',
-        'fee'        => '',
-        'registered' => $this->isRegisteredForEvent($event),
-      );
-      $fee = $event->get_attribute('Registration Fee');
-      if ($fee) {
-        $info['registration']['fee'] = $fee;
-      }
-      $url = $event->get_attribute('Registration URL');
-      if ($url) {
-        $info['registration']['url'] = $url;
-      }
-    }
-    
     $info['attendees'] = array();
     if ($event->get_attribute('Event ID')) {
-      $info['attendees'] =  $this->getAttendeesRegisteredForEvent($event);
+      $info['attendees'] = $this->getAttendeesRegisteredForEvent($event);
     }
     
     return $info;
