@@ -86,7 +86,7 @@ def main(class_year, infile, db_path, anonymize=False, debug_mode=False):
     dbconn.close()
 
 #################### Parse and Extract ####################
-def parse_doc(infile_name):
+def parse_doc(infile):
     return ColumnGroup.from_csv(infile, 
                                 delimiter="\t",
                                 force_unique_col_names=True,
