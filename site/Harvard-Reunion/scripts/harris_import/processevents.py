@@ -15,6 +15,13 @@ Helpful convention:
 Encoding:
 * The data created is encoded as Latin-1. We change this to UTF-8 when we write
   out the data file and when we insert values into the database.
+
+Hashing and Caching:
+* The csvcolumns library has some exotic and unnecessary caching and hashing 
+  code because it was meant to handle a different problem where the data sets
+  were much larger, performance was really critical, and access was almost 
+  entirely column-oriented. While a lot of that is tossed out the window for 
+  this application, I didn't pull them out of the library.
 """
 import os.path
 import sqlite3
