@@ -65,7 +65,3 @@ def anonymize_events(event_cols):
     should work for most cases."""
     normalize_to_ones = MethodTransform(lambda x: "1" if x else "")
     return normalize_to_ones(event_cols)
-
-
-if __name__ == '__main__':
-    main(sys.argv[1])
