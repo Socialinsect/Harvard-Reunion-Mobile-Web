@@ -38,14 +38,14 @@ import config
 import testdata
 from testdata import anonymize_events, anonymize_users
 
-def main(class_year, infile_name, outfile_base, anonymize=False, debug_mode=False):
-    infile_cols = parse_doc(infile_name)
+def main(class_year, infile, db_path, anonymize=False, debug_mode=False):
+    infile_cols = parse_doc(infile)
     all_cols = infile_cols + \
                non_harris_event_cols(class_year, infile_cols.num_rows)
     
     # Basic user info like name, graduating year, email
     user_cols = select_user_cols(all_cols)
-    user_cols = anonymize_users(user_cols, class_year) if anonyimize else user_cols
+    user_cols = anonymize_users(user_cols, class_year) if anonymize else user_cols
 
     # Extract event cols, keep the Event ID, strip Event Name, sort cols by ID
     event_cols = select_event_cols(all_cols).sort_columns()
@@ -64,19 +64,20 @@ def main(class_year, infile_name, outfile_base, anonymize=False, debug_mode=Fals
     # you're attending multiple ones -- even some that aren't in Harris
     final = add_packages(merged, class_year)
 
+    # Now slice it up into tables...
     events_table = make_events_table(all_cols.column_names)
     users_table = final.select("user_id", "email", "status", "prefix",
                                "first_name", "last_name", "suffix", "class_year")
     users_events_table = make_users_events_table(event_cols.column_names, final)
 
     if debug_mode:
-        final.write(outfile_base + "-filtered.csv")
-        events_table.write(outfile_base + "-events.csv")
-        users_table.write(outfile_base + "-users.csv")
-        users_events_table.write(outfile_base + "-users_events.csv")
+        final.write(db_path + ".csv")
+        events_table.write(db_path + "-events.csv")
+        users_table.write(db_path + "-users.csv")
+        users_events_table.write(db_path + "-users_events.csv")
 
     # Write our DB...
-    dbconn = sqlite3.connect(outfile_base + ".db")
+    dbconn = sqlite3.connect(db_path)
     events_table.write_db_table(dbconn, "events", primary_key="event_id")
     users_table.write_db_table(dbconn, "users", primary_key="user_id",
                                indexes=["email", "first_name", "last_name"])
@@ -86,12 +87,10 @@ def main(class_year, infile_name, outfile_base, anonymize=False, debug_mode=Fals
 
 #################### Parse and Extract ####################
 def parse_doc(infile_name):
-    with open(infile_name, "U") as infile:
-        full_doc = ColumnGroup.from_csv(infile, 
-                                        delimiter="\t",
-                                        force_unique_col_names=True,
-                                        encoding="latin-1")
-        return full_doc
+    return ColumnGroup.from_csv(infile, 
+                                delimiter="\t",
+                                force_unique_col_names=True,
+                                encoding="latin-1")
 
 def select_user_cols(col_grp):
     """Basic user information (each row is actually an order, so we can 
@@ -239,12 +238,10 @@ if __name__ == '__main__':
     parser.add_option("-d", "--debug", action="store_true", dest="debug_mode",
                       help="Generate debug CSV files that dump out the " \
                            "contents of the output database file.")
-    options, args = parser.parse_args()
-    
-    class_year, infile_name, outfile_base = args
+    opts, args = parser.parse_args()
+    class_year, infile_name, outfile_name = args
 
-    main(class_year, 
-         infile_name,
-         outfile_base,
-         anonymize=options.anonymize,
-         debug_mode=options.debug_mode)
+    with open(infile_name, "U") as infile:
+        main(class_year, infile, outfile_name, opts.anonymize, opts.debug_mode)
+
+
