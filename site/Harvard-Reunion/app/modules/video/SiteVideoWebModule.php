@@ -96,7 +96,6 @@ class SiteVideoWebModule extends WebModule {
 
         $postId = $this->getArg('id');
         
-        $this->addOnOrientationChange('setTimeout(resizeVideoFrame, 0);');
         $this->generateBookmarkOptions($postId);
         
         $postDetails = $facebook->getVideoPost($postId);
@@ -154,11 +153,9 @@ class SiteVideoWebModule extends WebModule {
         $commentURL = URL_PREFIX."home/commentsContent?".http_build_query(array(
           'id' => $postId,
         ));
-        $this->addInternalJavascript('/modules/video/javascript/lib/video.js');
-        $this->addInternalCSS('/modules/video/javascript/lib/video-js.css');
         $this->addInternalJavascript('/common/javascript/lib/utils.js');
         $this->addOnLoad('autoupdateContent("autoupdateContainer", "'.$commentURL.'");');
-        $this->addOnLoad('setupVideoPlayer();');
+        $this->addOnOrientationChange('setTimeout(resizeVideoFrame, 0);');
 
         $this->assign('video', $postDetails);
         break;

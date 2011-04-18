@@ -1,5 +1,9 @@
 div.videoWrapper {
   overflow: hidden;
+  text-align: center;
+}
+div.videoInfo {
+  text-align: center;
 }
 div.videoWrapper + .nonfocal {
   text-align: center;
@@ -31,15 +35,3 @@ div.videoWrapper + .nonfocal {
   margin-top: 0;
 }
 
-div.videoWrapper {
-  text-align: center;
-}
-
-.video-js-box {
-  width: 100% !important;
-  text-align: center !important;
-}
-
-div.videoInfo {
-  text-align: center;
-}

@@ -606,14 +606,25 @@ class FacebookGroup {
     $source = $post['source'];
     $isObject = isset($post['object_id']) && $post['object_id'];
     
+    $platform = $GLOBALS['deviceClassifier']->getPlatform();
+    $needsLink = $platform == 'blackberry' || $platform == 'bbplus' || $platform == 'android';
+
     if ($isObject) {
-      $html = '<div class="video-js-box"><video class="video-js" id="html5Movie" src="'.$source.'" controls height="340">Video format not supported by this device</video></div>';
+      if ($needsLink) {
+        $html = $this->buildLink($source, $post['picture']);
+      } else {
+        $html = '<video src="'.$source.'" controls>Video format not supported by this device</video>';
+      }
       
-    } else if (preg_match(';^http://www.youtube.com/v/([^&]+).*$;', $source, $matches)) {
+    } else if (preg_match(';^http://www.youtube.com/v/([^&?]+).*$;', $source, $matches)) {
       $videoID = $matches[1];
 
-      $html = '<iframe id="videoFrame" src="http://www.youtube.com/embed/'.$videoID.
-        '" width="240" height="195" frameborder="0"></iframe>';
+      if ($needsLink) {
+        $html = $this->buildLink('http://m.youtube.com/#/watch?v='.$videoID, $post['picture']);
+      } else {
+        $html = '<iframe id="videoFrame" src="http://www.youtube.com/embed/'.$videoID.
+          '" width="240" height="195" frameborder="0"></iframe>';
+      }
     
     } else if (preg_match(';clip_id=([^&]+);', $source, $matches)) {
       $videoID = $matches[1];
@@ -621,13 +632,21 @@ class FacebookGroup {
         "http://vimeo.com/api/v2/video/{$videoID}.json"), true);
       
       if (isset($videoInfo, $videoInfo[0], $videoInfo[0]['width'], $videoInfo[0]['height'])) {
-        $html = '<iframe id="videoFrame" src="http://player.vimeo.com/video/'.$videoID.
-          '" width="'.$videoInfo[0]['width'].'" height="'.$videoInfo[0]['height'].
-          '" frameborder="0"></iframe>';
+        if ($needsLink) {
+          $html = $this->buildLink('http://www.vimeo.com/m/#/'.$videoID, $post['picture']);
+        } else {
+          $html = '<iframe id="videoFrame" src="http://player.vimeo.com/video/'.$videoID.
+            '" width="'.$videoInfo[0]['width'].'" height="'.$videoInfo[0]['height'].
+            '" frameborder="0"></iframe>';
+        }
       }
     }
     
     return $html;
+  }
+  
+  private function buildLink($src, $img) {
+    return '<a class="movieLink" href="'.$src.'"><img src="'.$img.'" alt="Movie" /></a>';
   }
   
   //
