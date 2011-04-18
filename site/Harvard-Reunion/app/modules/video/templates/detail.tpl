@@ -19,6 +19,7 @@
     {/if}
   {/capture}
   {$video['html'] = $postHTML}
+  {$video['typeString'] = "video"}
   
   {include file="findInclude:common/templates/postdetail.tpl" post=$video}
 {/if}

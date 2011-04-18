@@ -19,6 +19,16 @@
   <div class="smallprint">
     Uploaded {$post['when']['delta']} by 
     <a class="author" href="{$post['author']['url']}">{$post['author']['name']}</a>
+    {if $post['liked'] || $post['otherLikes']}
+      <br/>
+      {if $post['liked']}
+        You {if $post['otherLikes']}and {/if}
+      {/if}
+      {if $post['otherLikes']}
+        {$post['otherLikes']} {if $post['otherLikes'] > 1}people {else}person {/if}
+      {/if}
+      like{if !$post['liked'] && $post['otherLikes'] == 1}s{/if} this {$post['typeString']}
+    {/if}
   </div>
 </div>
 

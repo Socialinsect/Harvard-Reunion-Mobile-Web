@@ -13,6 +13,7 @@
     </div>
   {/capture}
   {$photo['html'] = $postHTML}
+  {$photo['typeString'] = "photo"}
   
   {include file="findInclude:common/templates/postdetail.tpl" post=$photo}
 {/if}

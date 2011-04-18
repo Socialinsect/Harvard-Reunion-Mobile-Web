@@ -105,9 +105,12 @@ class SiteVideoWebModule extends WebModule {
         $myId = $facebook->getMyId();        
         
         $postDetails['liked'] = false;
+        $postDetails['otherLikes'] = 0;
         foreach ($facebook->getLikes($postId) as $i => $like) {
           if ($like['id'] == $myId) {
             $postDetails['liked'] = true;
+          } else {
+            $postDetails['otherLikes']++;
           }
         }
         $postDetails['likeURL'] = $this->buildBreadcrumbURL('like', array(
