@@ -25,5 +25,15 @@ function resizeVideoFrame() {
     
     videoFrame.width = newWidth;
     videoFrame.height = newHeight;
+    
+    // Fire a resize event on the iframe so it knows it has been resized
+    if (document.createEvent) {
+      var e = document.createEvent('HTMLEvents');
+      e.initEvent('resize', true, false);
+      videoFrame.dispatchEvent(e);
+    
+    } else if (document.createEventObject) {
+      videoFrame.fireEvent('onresize');
+    }
   }
 }
