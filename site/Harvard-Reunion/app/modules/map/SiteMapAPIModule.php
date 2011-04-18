@@ -9,7 +9,7 @@ class SiteMapAPIModule extends MapAPIModule
     private $fieldConfig;
     private $photoServer;
 
-    private function arrayFromMapFeature(MapFeature $feature) {
+    protected function arrayFromMapFeature(MapFeature $feature) {
         $category = $feature->getCategory();
         if (!is_array($category)) {
             $category = explode(MAP_CATEGORY_DELIMITER, $category);
