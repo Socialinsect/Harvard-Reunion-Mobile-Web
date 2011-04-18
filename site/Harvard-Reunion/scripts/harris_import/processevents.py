@@ -15,12 +15,20 @@ Helpful convention:
 Encoding:
 * The data created is encoded as Latin-1. We change this to UTF-8 when we write
   out the data file and when we insert values into the database.
+
+Hashing and Caching:
+* The csvcolumns library has some exotic and unnecessary caching and hashing 
+  code because it was meant to handle a different problem where the data sets
+  were much larger, performance was really critical, and access was almost 
+  entirely column-oriented. While a lot of that is tossed out the window for 
+  this application, I didn't pull them out of the library.
 """
 import os.path
 import sqlite3
 import string
 import sys
 from itertools import izip
+from optparse import OptionParser
 
 from csvcolumns.columngroup import ColumnGroup
 from csvcolumns.column import DataColumn
@@ -28,80 +36,61 @@ from csvcolumns.transform import MethodTransform
 
 import config
 import testdata
+from testdata import anonymize_events, anonymize_users
 
-# Because it's late and I don't want to lookup optparse docs right now...
-ANONYMIZE = True
-
-def main(class_year, infile_name, outfile_base):
-    infile_cols = parse_doc(infile_name)
+def main(class_year, infile, db_path, anonymize=False, debug_mode=False):
+    infile_cols = parse_doc(infile)
     all_cols = infile_cols + \
                non_harris_event_cols(class_year, infile_cols.num_rows)
     
     # Basic user info like name, graduating year, email
     user_cols = select_user_cols(all_cols)
+    user_cols = anonymize_users(user_cols, class_year) if anonymize else user_cols
 
     # Extract event cols, keep the Event ID, strip Event Name, sort cols by ID
     event_cols = select_event_cols(all_cols).sort_columns()
+    event_cols = anonymize_events(event_cols) if anonymize else event_cols
 
-    # If we need to anonymize our data, do so here...
-    if ANONYMIZE:
-        # Not only do we put fake users, but also specific test users per class
-        user_cols = testdata.anonymize_users(user_cols, class_year)
-        event_cols = testdata.anonymize_events(event_cols)
-
-    # Pull the user cols and event cols together, sort rows by email (the first 
-    # col) This is a little ugly because if you change the column order, it 
-    # changes the sort order. TODO: Have this take args for what to sort by.
-    sorted_by_email = (user_cols + event_cols).sort_rows()
-
-    # Filter out the Voided status rows
-    active = sorted_by_email.reject_rows_by_value("status", "Voided")
+    # Remove orders that were voided by the user
+    active = (user_cols + event_cols).reject_rows_by_value("status", "Voided")
 
     # Merge together rows that represent multiple orders from the same person 
     # by looking for orders with the same email address (it must be sorted so
-    # that records to be merged are grouped together -- we're sorted by email)
-    merged = active.merge_rows(lambda row: row["email"], merge_func=merge_rows)
+    # that records to be merged are grouped together -- we're sorting by email)
+    merged = active.sort_rows().merge_rows(lambda row: row["email"], 
+                                           merge_func=merge_rows)
 
     # Account for package deals where signing up for one event actually means
     # you're attending multiple ones -- even some that aren't in Harris
     final = add_packages(merged, class_year)
 
-    # By this point, we've more or less got a clean data file. Now we start to
-    # transform it to what we need for our SQL tables. The CSV files are just
-    # for debugging purposes.
-    final.write(outfile_base + "-filtered.csv")
-
-    dbconn = sqlite3.connect(outfile_base + ".db")
-
-    # Write our EVENTS table
+    # Now slice it up into tables...
     events_table = make_events_table(all_cols.column_names)
-    events_table.write(outfile_base + "-events.csv")
-    events_table.write_db_table(dbconn, "events", primary_key="event_id")
-
-    # Write our USERS table
-    users_table = merged.select("user_id", "email", "status", "prefix",
-                                "first_name", "last_name", "suffix", 
-                                "class_year")
-    users_table.write(outfile_base + "-users.csv")
-    users_table.write_db_table(dbconn, "users", primary_key="user_id",
-                               indexes=["email", "status", "first_name", "last_name"])
-
-    # Write our USERS_EVENTS table
+    users_table = final.select("user_id", "email", "status", "prefix",
+                               "first_name", "last_name", "suffix", "class_year")
     users_events_table = make_users_events_table(event_cols.column_names, final)
-    users_events_table.write(outfile_base + "-users_events.csv")
+
+    if debug_mode:
+        final.write(db_path + ".csv")
+        events_table.write(db_path + "-events.csv")
+        users_table.write(db_path + "-users.csv")
+        users_events_table.write(db_path + "-users_events.csv")
+
+    # Write our DB...
+    dbconn = sqlite3.connect(db_path)
+    events_table.write_db_table(dbconn, "events", primary_key="event_id")
+    users_table.write_db_table(dbconn, "users", primary_key="user_id",
+                               indexes=["email", "first_name", "last_name"])
     users_events_table.write_db_table(dbconn, "users_events", 
                                       indexes=["user_id", "event_id", "value"])
-
     dbconn.close()
 
 #################### Parse and Extract ####################
-def parse_doc(infile_name):
-    with open(infile_name, "U") as infile:
-        full_doc = ColumnGroup.from_csv(infile, 
-                                        delimiter="\t",
-                                        force_unique_col_names=True,
-                                        encoding="latin-1")
-        return full_doc
+def parse_doc(infile):
+    return ColumnGroup.from_csv(infile, 
+                                delimiter="\t",
+                                force_unique_col_names=True,
+                                encoding="latin-1")
 
 def select_user_cols(col_grp):
     """Basic user information (each row is actually an order, so we can 
@@ -241,14 +230,18 @@ if __name__ == '__main__':
     # data file because of cases like Harvard and Radcliffe differntiating their
     # Harvard and Radcliffe grads (like 1961R), which doesn't come through in 
     # the Harris feed.
-    if len(sys.argv) != 4:
-        print "Usage: processevents.py [class_year] [Harris input file] " \
-              "[output file base]\n" \
-              "  Example: processevents.py harris25th.txt 1975_35th\n\n" \
-              "  Will create: 1975_35th.db, 1975_35th-events.csv, etc."
+    usage = "Usage: %prog [options] class_year harris_input_file output_db_file"
+    parser = OptionParser(usage=usage)
+    parser.add_option("-a", "--anonymize", action="store_true", dest="anonymize",
+                      help="Replace names and user-event details in the data " \
+                           "file with generated test data.")
+    parser.add_option("-d", "--debug", action="store_true", dest="debug_mode",
+                      help="Generate debug CSV files that dump out the " \
+                           "contents of the output database file.")
+    opts, args = parser.parse_args()
+    class_year, infile_name, outfile_name = args
 
-    class_year = sys.argv[1]
-    infile_name = sys.argv[2]
-    outfile_base = sys.argv[3]
+    with open(infile_name, "U") as infile:
+        main(class_year, infile, outfile_name, opts.anonymize, opts.debug_mode)
 
-    main(class_year, infile_name, outfile_base)
+
