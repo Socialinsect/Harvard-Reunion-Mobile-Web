@@ -6,6 +6,10 @@ div.videoWrapper + .nonfocal {
   text-align: center;
 }
 
+#videoFrame {
+  overflow: hidden;
+}
+
 .nav a.author {
   display: inline;
   margin: 0;
