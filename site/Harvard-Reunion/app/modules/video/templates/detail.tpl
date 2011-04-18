@@ -9,7 +9,9 @@
 {else}
   {capture name="postHTML" assign="postHTML"}
     {if $video['embedHTML']}
-      {$video['embedHTML']}
+      <div class="videoWrapper">
+        {$video['embedHTML']}
+      </div>
     {else}
       <div class="nonfocal videoInfo">
         <h2>Video not available</h2>

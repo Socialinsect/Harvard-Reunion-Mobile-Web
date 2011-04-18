@@ -1,4 +1,7 @@
-#videoFrame + .nonfocal {
+div.videoWrapper {
+  overflow: hidden;
+}
+div.videoWrapper + .nonfocal {
   text-align: center;
 }
 
