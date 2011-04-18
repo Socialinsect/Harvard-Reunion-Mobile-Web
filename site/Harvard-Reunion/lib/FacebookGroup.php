@@ -613,7 +613,7 @@ class FacebookGroup {
       $videoID = $matches[1];
 
       $html = '<iframe id="videoFrame" src="http://www.youtube.com/embed/'.$videoID.
-        '" width="640" height="390" frameborder="0"></iframe>';
+        '" width="240" height="195" frameborder="0"></iframe>';
     
     } else if (preg_match(';clip_id=([^&]+);', $source, $matches)) {
       $videoID = $matches[1];

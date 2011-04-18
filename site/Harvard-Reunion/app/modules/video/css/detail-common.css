@@ -1,13 +1,5 @@
-div.videoWrapper {
-  width: 100%;
-  overflow: hidden;
-}
-div.videoWrapper + .nonfocal {
+#videoFrame + .nonfocal {
   text-align: center;
-}
-
-#videoFrame {
-  overflow: hidden;
 }
 
 .nav a.author {
