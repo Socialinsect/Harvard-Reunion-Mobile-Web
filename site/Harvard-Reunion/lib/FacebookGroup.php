@@ -620,7 +620,7 @@ class FacebookGroup {
       $videoID = $matches[1];
 
       if ($needsLink) {
-        $html = $this->buildLink('http://m.youtube.com/#/watch?v='.$videoID, $post['picture']);
+        $html = $this->buildLink('http://m.youtube.com/watch?v='.$videoID, $post['picture']);
       } else {
         $html = '<iframe id="videoFrame" src="http://www.youtube.com/embed/'.$videoID.
           '" width="240" height="195" frameborder="0"></iframe>';
