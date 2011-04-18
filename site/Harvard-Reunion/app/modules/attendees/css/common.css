@@ -1,0 +1,14 @@
+.nonfocal a,
+.nonfocal a:visited {
+  color: #DCDAD9;
+}
+
+a.signinbutton,
+a.signinbutton:visited {
+  text-decoration: none;
+}
+
+a.signinbutton  span,
+a.signinbutton:visited span {
+  text-decoration: underline;
+}

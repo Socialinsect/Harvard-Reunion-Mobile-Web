@@ -21,6 +21,7 @@
   {/if}
 {else}
   <div class="nonfocal">
-    <p>In order to see the list of attendees you must log in.</p>
+    <p>In order to see the list of attendees you must sign in.</p>
+    <p><a class="signinbutton" href="{$signinURL}"><span>Sign in</span> &gt;</a></p>
   </div>
 {/if}

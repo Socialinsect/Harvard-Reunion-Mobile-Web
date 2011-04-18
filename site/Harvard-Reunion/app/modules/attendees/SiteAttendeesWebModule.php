@@ -48,6 +48,19 @@ class SiteAttendeesWebModule extends WebModule
           
           $this->assign('groups',  $groups);
         }
+        
+        $authority = $user->getAuthenticationAuthorityIndex();
+        
+        if ($authority == 'anonymous') {
+          $this->assign('signinURL', $this->buildURLForModule('login', 'logout', array(
+            'authority' => $authority,
+            'hard'      => 1,
+            'url'       => URL_PREFIX.'login/?'.http_build_query(array(
+              'authority' => 'harris',
+              'url'       => URL_PREFIX.$this->buildBreadcrumbURL($this->page, $this->args, false),
+            )),
+          )));
+        }
 
         $this->assign('reunionTitle', $schedule->getReunionTitle());
         $this->assign('authority',    $user->getAuthenticationAuthorityIndex());
