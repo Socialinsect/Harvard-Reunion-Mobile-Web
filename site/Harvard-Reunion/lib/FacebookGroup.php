@@ -607,7 +607,7 @@ class FacebookGroup {
     $isObject = isset($post['object_id']) && $post['object_id'];
     
     $platform = $GLOBALS['deviceClassifier']->getPlatform();
-    $needsLink = $platform == 'blackberry' || $platform == 'bbplus' || $platform == 'android';
+    $needsLink = $platform != 'iphone' && $platform != 'ipad';
 
     if ($isObject) {
       if ($needsLink) {
