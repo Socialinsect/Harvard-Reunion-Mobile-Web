@@ -35,6 +35,11 @@ div.videoWrapper {
   text-align: center;
 }
 
+.video-js-box {
+  width: 100% !important;
+  text-align: center !important;
+}
+
 div.videoInfo {
   text-align: center;
 }

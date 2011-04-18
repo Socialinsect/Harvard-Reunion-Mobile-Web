@@ -154,8 +154,11 @@ class SiteVideoWebModule extends WebModule {
         $commentURL = URL_PREFIX."home/commentsContent?".http_build_query(array(
           'id' => $postId,
         ));
+        $this->addInternalJavascript('/modules/video/javascript/lib/video.js');
+        $this->addInternalCSS('/modules/video/javascript/lib/video-js.css');
         $this->addInternalJavascript('/common/javascript/lib/utils.js');
         $this->addOnLoad('autoupdateContent("autoupdateContainer", "'.$commentURL.'");');
+        $this->addOnLoad('setupVideoPlayer();');
 
         $this->assign('video', $postDetails);
         break;

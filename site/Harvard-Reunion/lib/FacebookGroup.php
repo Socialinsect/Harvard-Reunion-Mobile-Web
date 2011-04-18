@@ -607,7 +607,7 @@ class FacebookGroup {
     $isObject = isset($post['object_id']) && $post['object_id'];
     
     if ($isObject) {
-      $html = '<video controls><source src="'.$source.'" /></video>';
+      $html = '<div class="video-js-box"><video class="video-js" id="html5Movie" src="'.$source.'" controls height="340">Video format not supported by this device</video></div>';
       
     } else if (preg_match(';^http://www.youtube.com/v/([^&]+).*$;', $source, $matches)) {
       $videoID = $matches[1];

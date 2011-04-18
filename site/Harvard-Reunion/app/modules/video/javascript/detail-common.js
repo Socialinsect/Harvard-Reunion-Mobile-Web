@@ -26,3 +26,16 @@ function resizeVideoFrame() {
     videoFrame.height = newHeight;
   }
 }
+
+function setupVideoPlayer() {
+  setTimeout(function () {
+    var movie = document.getElementById('html5Movie');
+    if (movie) {
+      movie.width = (movie.offsetWidth < document.body.offsetWidth) ? 
+        movie.offsetWidth : document.body.offsetWidth;
+      movie.height = movie.offsetHeight;
+      console.log(movie.width + ' x '+movie.height);
+      VideoJS.setupAllWhenReady();
+    }
+  }, 500);
+}
