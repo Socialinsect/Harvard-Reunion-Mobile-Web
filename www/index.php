@@ -5,9 +5,10 @@
   */
 
 /**
-  * The initialize library sets up the environment
+  * The Kurogo library sets up the environment
   */
-require_once realpath(dirname(__FILE__).'/../lib/initialize.php');
+require_once realpath(dirname(__FILE__).'/../lib/Kurogo.php');
+$Kurogo = Kurogo::sharedInstance();
 
 //
 // Configure web application
@@ -16,7 +17,7 @@ require_once realpath(dirname(__FILE__).'/../lib/initialize.php');
 
 $path = isset($_GET['_path']) ? $_GET['_path'] : '';
 
-Initialize($path); 
+$Kurogo->initialize($path); 
 
 function _phpFile($_file) {
     if ($file = realpath_exists($_file)) {
@@ -45,8 +46,8 @@ function _outputSiteFile($matches) {
 function _outputTypeFile($matches) { 
   $file = $matches[3];
 
-  $platform = $GLOBALS['deviceClassifier']->getPlatform();
-  $pagetype = $GLOBALS['deviceClassifier']->getPagetype();
+  $platform = Kurogo::deviceClassifier()->getPlatform();
+  $pagetype = Kurogo::deviceClassifier()->getPagetype();
   
   $testDirs = array(
     THEME_DIR.'/'.$matches[1].$matches[2],
@@ -83,6 +84,44 @@ function _outputFileLoaderFile($matches) {
 
   _404();
 }
+
+/**
+  * Outputs a 404 error message
+  */
+function _404() {
+    header("HTTP/1.1 404 Not Found");
+    $url = $_SERVER['REQUEST_URI'];
+    echo <<<html
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>404 Not Found</title>
+</head><body>
+<h1>Not Found</h1>
+<p>The requested URL $url was not found on this server.</p>
+</body></html>
+
+html;
+    exit();
+}
+
+/**
+  * Will see if there is a HTTP_IF_MODIFIED_SINCE header and if the dates match it will return a 304
+  * otherwise will set the Last-Modified header
+  */
+function CacheHeaders($file)
+{
+    $mtime = gmdate('D, d M Y H:i:s', filemtime($file)) . ' GMT';
+    if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
+        if ($_SERVER['HTTP_IF_MODIFIED_SINCE'] == $mtime) {
+            header('HTTP/1.1 304 Not Modified');
+            exit();
+        }
+    }
+    
+    header("Last-Modified: $mtime");
+    return;
+}
+
 
 //
 // Handle page request
@@ -123,9 +162,6 @@ foreach ($url_patterns as $pattern_data) {
 
 // No pattern matches. Attempt to load a module
 
-$id = 'home';
-$page = 'index';
-
 $args = array_merge($_GET, $_POST);
 unset($args['_path']);
 
@@ -144,8 +180,8 @@ if (get_magic_quotes_gpc()) {
  * home is the default
  */
 if (!strlen($path) || $path == '/') {
-  $platform = strtoupper($GLOBALS['deviceClassifier']->getPlatform());
-  $pagetype = strtoupper($GLOBALS['deviceClassifier']->getPagetype());
+  $platform = strtoupper(Kurogo::deviceClassifier()->getPlatform());
+  $pagetype = strtoupper(Kurogo::deviceClassifier()->getPagetype());
 
   if (!$url = Kurogo::getOptionalSiteVar("DEFAULT-{$pagetype}-{$platform}",'','urls')) {
     if (!$url = Kurogo::getOptionalSiteVar("DEFAULT-{$pagetype}",'', 'urls')) {
@@ -194,12 +230,13 @@ if ($parts[0]==API_URL_PREFIX) {
     }    
 
     /* log the api call */
-    PageViews::log_api($id, $GLOBALS['deviceClassifier']->getPlatform());
+    PageViews::log_api($id, Kurogo::deviceClassifier()->getPlatform());
     $module->executeCommand();
 
     
 } else {
     $id = $parts[0];
+    $page = 'index';
     
     /* see if there's a redirect for this path */
     if ($url_redirects = Kurogo::getSiteSection('urls')) {
@@ -229,7 +266,7 @@ if ($parts[0]==API_URL_PREFIX) {
 
     if ($module = WebModule::factory($id, $page, $args)) {
         /* log this page view */
-        PageViews::increment($id, $GLOBALS['deviceClassifier']->getPlatform());
+        PageViews::increment($id, Kurogo::deviceClassifier()->getPlatform());
         
         $module->displayPage();
     } else {

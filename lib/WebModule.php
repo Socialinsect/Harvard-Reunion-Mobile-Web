@@ -268,7 +268,7 @@ abstract class WebModule extends Module {
   protected function buildMailToLink($to, $subject, $body) {
     $to = trim($to);
     
-    if ($to == '' && $GLOBALS['deviceClassifier']->mailToLinkNeedsAtInToField()) {
+    if ($to == '' && Kurogo::deviceClassifier()->mailToLinkNeedsAtInToField()) {
       $to = '@';
     }
 
@@ -337,9 +337,9 @@ abstract class WebModule extends Module {
 
         $this->setArgs($args);
 
-        $this->pagetype      = $GLOBALS['deviceClassifier']->getPagetype();
-        $this->platform      = $GLOBALS['deviceClassifier']->getPlatform();
-        $this->supportsCerts = $GLOBALS['deviceClassifier']->getSupportsCerts();
+        $this->pagetype      = Kurogo::deviceClassifier()->getPagetype();
+        $this->platform      = Kurogo::deviceClassifier()->getPlatform();
+        $this->supportsCerts = Kurogo::deviceClassifier()->getSupportsCerts();
 
         // Pull in fontsize
         if (isset($args['font'])) {
@@ -961,7 +961,7 @@ abstract class WebModule extends Module {
   
   protected function getPageConfig($name, $opts=0) {
     $config = ModuleConfigFile::factory($this->configModule, "page-$name", $opts);
-    $GLOBALS['siteConfig']->addConfig($config);
+    Kurogo::siteConfig()->addConfig($config);
     return $config;
   }
   
@@ -971,7 +971,7 @@ abstract class WebModule extends Module {
   
   protected function loadSiteConfigFile($name, $keyName=null, $opts=0) {
     $config = ConfigFile::factory($name, 'site', $opts);
-    $GLOBALS['siteConfig']->addConfig($config);
+    Kurogo::siteConfig()->addConfig($config);
     if ($keyName === null) { $keyName = $name; }
 
     return $this->loadConfigFile($config, $keyName);
