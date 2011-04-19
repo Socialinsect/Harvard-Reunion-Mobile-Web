@@ -136,12 +136,12 @@ select {
 	background-position: 0 -50px;
 }
 
-.submit, a.submit, a.submit:visited {
+.submit, a.submit, a.submit:visited, .nonfocal a.submit, .nonfocal a.submit:visited {
 	background: url(/common/images/signin-button-red.png);
 	color: #fff;
 }
 
-.cancel, a.cancel, a.cancel:visited {
+.cancel, a.cancel, a.cancel:visited, .nonfocal a.cancel, .nonfocal a.cancel:visited {
 	background: url(/common/images/signin-button-grey.png);
 	color: #bbb;
 }
