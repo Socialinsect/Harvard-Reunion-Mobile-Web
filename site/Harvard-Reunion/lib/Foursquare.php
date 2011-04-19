@@ -212,32 +212,28 @@ class Foursquare {
     
   public function addCheckin($venueId, $message, $coords=null) {
     $realVenueId = $venueId;
-  
+    
     $results = $this->api('venues', $venueId);
     //error_log(print_r($results, true));
     if (isset($results['response'], $results['response']['venue'])) {
       $realVenueId = $results['response']['venue']['id'];
-      
-      if (!$coords && isset($results['venue']['location']['lat'], $results['venue']['location']['lng'])) {
-        // Is a place page
-        $coords = array($results['venue']['location']['lat'], $results['venue']['location']['lng']);
-        error_log('Using venue coords '.implode(',', $coords));
-      }
     }
     
-    if ($coords) {
-      $results = $this->api('addCheckin', '', 'POST', array(
-        'venueId'   => $realVenueId,
-        'shout'     => $message, 
-        'll'        => implode(',', array_values($coords)),
-        'broadcast' => 'public',
-      ));
-      
-      // invalidate caches
-      $this->invalidateCache('venues', $realVenueId);
-      $this->invalidateCache('hereNow', $realVenueId);
-      $this->invalidateCache('checkins', $this->getUserId());
+    $params = array(
+      'venueId'   => $realVenueId,
+      'broadcast' => 'public',
+    );
+    if ($message) {
+      $params['shout'] = $message;
     }
+  
+    $results = $this->api('addCheckin', '', 'POST', $params);
+    //error_log(print_r($results, true));
+    
+    // invalidate caches
+    $this->invalidateCache('venues', $realVenueId);
+    $this->invalidateCache('hereNow', $realVenueId);
+    $this->invalidateCache('checkins', $this->getUserId());
   }
 
   public function getSession() {
@@ -359,9 +355,10 @@ class Foursquare {
         
       default:
         if ($GLOBALS['deviceClassifier']->getPlatform() == 'bbplus') {
-          return 'mobile';
+          $siteType = 'mobile';
+        } else {
+          $siteType = 'touch';
         }
-        $siteType = 'touch';
     }
   
     return 'https://foursquare.com/'.$siteType.'/user/'.$this->getUserId();
