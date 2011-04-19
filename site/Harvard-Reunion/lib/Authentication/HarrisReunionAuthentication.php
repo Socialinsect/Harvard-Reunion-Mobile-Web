@@ -72,6 +72,7 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             return AUTH_OK;
             
         } elseif (empty($result)) {
+            error_log('Harris returned empty data');
             return AUTH_ERROR;
             
         } else {

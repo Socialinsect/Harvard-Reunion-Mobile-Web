@@ -79,25 +79,14 @@ class SiteLoginWebModule extends LoginWebModule
             $password       = $this->argVal($_POST, 'loginPassword', '');
             $authorityIndex = $this->getArg('authority', AuthenticationAuthority::getDefaultAuthenticationAuthorityIndex());
             
-            if (isset($this->args['login_cancel'])) {
-              if ($this->isLoggedIn($authorityIndex)) {
-                $this->redirectTo('logout', array_merge($defaultArgs, array(
-                  'authority' => $authorityIndex,
-                  'hard'      => true,
-                )));
-                
-              } else {
-                $this->redirectTo('index', $defaultArgs);
-              }
-            }
-            
             $options = array_merge($defaultArgs, array(
                 'authority' => $authorityIndex,
             ));
             
-            $referrer = $this->argVal($_SERVER, 'HTTP_REFERER', '');
-            
-            $this->assign('cancelURL', $this->buildURL('logout', $options));
+            $logoutOptions = array_merge($defaultArgs, array(
+                'authority' => $authorityIndex,
+                'hard'      => true,
+            ));
             
             $noReunionOptions = array_merge($defaultArgs, array(
                 'authority' => $authorityIndex,
@@ -106,6 +95,17 @@ class SiteLoginWebModule extends LoginWebModule
                     'noreunion' => 'true',
                 ))), '/'),
             ));
+            
+            if (isset($this->args['login_cancel'])) {
+                if ($this->isLoggedIn($authorityIndex)) {
+                    $this->redirectTo('logout', $this->buildURL('logout', $logoutOptions));
+                
+                } else {
+                    $this->redirectTo('index', $defaultArgs);
+                }
+            }
+            
+            $this->assign('cancelURL', $this->buildURL('logout', $logoutOptions));
 
             if ($this->isLoggedIn($authorityIndex)) {
                 $user = $this->getUser($authorityIndex);
@@ -155,8 +155,9 @@ class SiteLoginWebModule extends LoginWebModule
                         break;
     
                     default:
-                        $this->setTemplatePage('login');
-                        $this->assign('message', "Login Failed. An unknown error occurred ($result)");
+                        $this->setTemplatePage('error');
+                        $this->assign('continueURL', URL_PREFIX.ltrim($this->buildURL('index', $options)));
+                        $this->assign('resultCode',  $result);
                 }
             }
             break;
