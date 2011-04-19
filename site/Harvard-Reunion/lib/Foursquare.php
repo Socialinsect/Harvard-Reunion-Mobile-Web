@@ -282,7 +282,8 @@ class Foursquare {
         return 'wap';
         
       default:
-        if ($GLOBALS['deviceClassifier']->getPlatform() == 'bbplus') {
+        $platform = $GLOBALS['deviceClassifier']->getPlatform();
+        if ($platform == 'bbplus' || $platform == 'blackberry') {
           return 'wap';
         }
         return 'touch';
@@ -354,7 +355,8 @@ class Foursquare {
         $siteType = 'mobile';
         
       default:
-        if ($GLOBALS['deviceClassifier']->getPlatform() == 'bbplus') {
+        $platform = $GLOBALS['deviceClassifier']->getPlatform();
+        if ($platform == 'bbplus' || $platform == 'blackberry') {
           $siteType = 'mobile';
         } else {
           $siteType = 'touch';
