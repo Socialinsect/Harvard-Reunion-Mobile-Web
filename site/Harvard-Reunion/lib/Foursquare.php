@@ -289,6 +289,23 @@ class Foursquare {
         return 'touch';
     }
   }
+  
+  private function getSitePath() {
+    switch($GLOBALS['deviceClassifier']->getPageType()) {
+      case 'basic':
+      case 'touch':
+        return 'mobile';
+        
+      case 'compliant':
+        $platform = $GLOBALS['deviceClassifier']->getPlatform();
+        if ($platform == 'bbplus' || $platform == 'blackberry') {
+          return 'mobile';
+        } else {
+          return 'touch';
+        }
+    }
+    return 'mobile';
+  }
 
   public function needsLogin() {
     return $this->getSession() == null;
@@ -305,12 +322,22 @@ class Foursquare {
     // get fixed.  See the following thread for more info:
     // http://groups.google.com/group/foursquare-api/browse_thread/thread/3385c4c58fe640e/ed214b861f034299
     $page = $forceDialog ? 'authorize' : 'authenticate';
+    $display = $this->getDisplayType();
     
-    return "https://foursquare.com/oauth2/$page?".http_build_query(array(
+    $loginURL = "https://foursquare.com/oauth2/$page?".http_build_query(array(
       'client_id'     => $this->clientId,
       'response_type' => 'code',
-      'display'       => $this->getDisplayType(),
+      'display'       => $display,
       'redirect_uri'  => $this->authorizeURL($this->getCurrentUrl()),
+    ));
+    
+    // The login process is really awkward if you aren't already
+    // logged into foursquare.  Also there is a bug in the wap interface 
+    // where the login link at the bottom is to the 
+    // full website which the wap browsers can't load.
+    // So we bounce the user through the login url before oauth
+    return 'https://foursquare.com/'.$this->getSitePath().'/login?'.http_build_query(array(
+      'continue' => $loginURL,
     ));
   }
   
@@ -348,22 +375,8 @@ class Foursquare {
     return $redirectURL;
   }
   
-  public function getUserURL() {
-    switch($GLOBALS['deviceClassifier']->getPageType()) {
-      case 'basic':
-      case 'touch':
-        $siteType = 'mobile';
-        
-      default:
-        $platform = $GLOBALS['deviceClassifier']->getPlatform();
-        if ($platform == 'bbplus' || $platform == 'blackberry') {
-          $siteType = 'mobile';
-        } else {
-          $siteType = 'touch';
-        }
-    }
-  
-    return 'https://foursquare.com/'.$siteType.'/user/'.$this->getUserId();
+  public function getUserURL() {error_log($GLOBALS['deviceClassifier']->getPlatform());
+    return 'https://foursquare.com/'.$this->getSitePath().'/user/'.$this->getUserId();
   }
     
   protected function getCurrentUrl() {

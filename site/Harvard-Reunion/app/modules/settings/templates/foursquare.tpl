@@ -10,6 +10,7 @@
 {$link['title'] = 'Go to foursquare.com'}
 {$link['url'] = $foursquareURL}
 {$link['class'] = 'external'}
+{$link['linkTarget'] = 'reunionFoursquare'}
 {$links[] = $link}
 
 {$link = array()}
