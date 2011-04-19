@@ -96,7 +96,15 @@ class SiteMapWebModule extends MapWebModule {
     }
     return array($imageWidth, $imageHeight);
   }
-  
+  protected function initializeMapElements($mapElement, $imgController, $imageWidth, $imageHeight) {
+    if ($imgController->isStatic() && $this->pagetype == 'compliant' && $this->platform == 'bbplus') {
+      $imgController->setImageFormat('gif');
+    }
+    
+    parent::initializeMapElements($mapElement, $imgController, $imageWidth, $imageHeight);
+  }
+
+
   protected function detailURLForBookmark($aBookmark) {
     parse_str($aBookmark, $params);
     if (isset($params['eventId'])) {
