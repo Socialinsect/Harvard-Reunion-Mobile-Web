@@ -49,15 +49,15 @@ a.bookmarked {
 
 /* Secondary nav bars */
 
-#navbar2 {
+#navbar2, #category-switcher {
 	height: 34px;
 	border-bottom: 1px solid #444;
 }
 
-#navbar2, #navbar2 * {
+#navbar2, #category-switcher, #navbar2 *, #category-switcher * {
 }
 
-#navbar2 select {
+#navbar2 select, #category-switcher select {
 	height: 32px;
 	line-height: 30px;
 	padding-top: 2px;
