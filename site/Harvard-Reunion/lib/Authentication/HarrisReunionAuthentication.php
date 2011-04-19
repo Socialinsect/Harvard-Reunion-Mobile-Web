@@ -38,7 +38,11 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
     
         $url = 'https://cayman.alumniconnections.com/olc/pub/HAA/login/app.sph/olclogin.app';
         $params = array(
-            'referer'        => "https://cayman.alumniconnections.com/olc/membersonly/HAA/login/dboard_access.cgi?key=harvard&amp;q=emreunion&amp;event_id=1763952",
+            'referer'        => 'https://cayman.alumniconnections.com/olc/membersonly/HAA/login/dboard_access.cgi?'.http_build_query(array(
+                'key'      => 'harvard',
+                'q'        => 'emreunion',
+                'event_id' => '1763952',
+              )),
             'SaFormName'     => 'SubmitLogin__Floginform_html',
             'error_redirect' => '/olc/pub/HAA/login/m_failure.cgi',
             'username'       => $login,
@@ -57,6 +61,8 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_COOKIEJAR      => CACHE_DIR . "/Harris/cookie.txt", // need cookies for it to work
             CURLOPT_COOKIEFILE     => CACHE_DIR . "/Harris/cookie.txt",
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 2,
         );
 
         $curl = curl_init();
