@@ -13,6 +13,9 @@ class SiteScheduleWebModule extends WebModule {
   
   protected function getCategory($categories) {
     $category = $this->schedule->getDefaultCategory();
+    if (!isset($categories[$category])) {
+      $category = 'mine';
+    }
     
     $categoryCookieName = $this->configModule.'category_'.$this->schedule->getScheduleId();
     
@@ -198,9 +201,6 @@ class SiteScheduleWebModule extends WebModule {
         break;
 
       case 'index':
-        $categories = array(
-          'mine' => 'My Schedule'
-        );
         $categories = array_merge(
           array('mine' => 'My Schedule'), 
           $this->schedule->getEventCategories()

@@ -313,6 +313,10 @@ class Schedule {
   }
   
   public function getDefaultCategory() {
+    $categories = $this->getEventCategories();
+    if (count($categories) == 1 && isset($categories['all'])) {
+      return 'all';
+    }
     return 'reunion';
   }
   
@@ -390,6 +394,8 @@ class Schedule {
       if (count($events) < $eventCountThreshhold) {
         $categories['all'] = 'All Events';
       }
+    } else if (!count($categories)) {
+      $categories['all'] = 'All Events';
     }
     
     return $categories;

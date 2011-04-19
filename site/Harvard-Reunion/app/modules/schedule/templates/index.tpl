@@ -31,6 +31,8 @@
   <div class="nonfocal">
     {if $category == 'mine'}
       There are no events in my schedule
+    {elseif $category == 'all'}
+      There are no events for this reunion
     {else}
       There are no {$categories[$category]|lower} for this reunion
     {/if}
