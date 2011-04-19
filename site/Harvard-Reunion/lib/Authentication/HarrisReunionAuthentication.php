@@ -49,7 +49,6 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             mkdir(CACHE_DIR . "/Harris");
         }
         
-        $curl = curl_init();
         $opts = array(
             CURLOPT_URL            => $url,
             CURLOPT_POST           => true,
@@ -60,8 +59,13 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             CURLOPT_COOKIEFILE     => CACHE_DIR . "/Harris/cookie.txt",
         );
 
+        $curl = curl_init();
         curl_setopt_array($curl, $opts);
         $result = curl_exec($curl);
+        if ($result === false) {
+          $curlError = curl_error($curl);
+        }
+        curl_close($curl);
         
         if (preg_match("#<data><status>403</status></data>#", $result)) {
             return AUTH_FAILED;
@@ -71,8 +75,8 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             $user = $this->getUser($login);
             return AUTH_OK;
             
-        } elseif (empty($result)) {
-            error_log('Harris returned empty data');
+        } elseif ($result === false) {
+            error_log("Error communicating with Harris: $curlError");
             return AUTH_ERROR;
             
         } else {
