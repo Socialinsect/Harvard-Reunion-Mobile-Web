@@ -32,10 +32,9 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             if (isset($testUsers[$login])) {
               return $testUsers[$login] == $password ? AUTH_OK : AUTH_FAILED;
             }
-                        
-            return $user ? AUTH_OK: AUTH_FAILED;
+            
+            // If not one of the test users, fall through to Harris
         }
-    
     
         $url = 'https://cayman.alumniconnections.com/olc/pub/HAA/login/app.sph/olclogin.app';
         $params = array(
@@ -92,6 +91,14 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
                         
                     } elseif (count($data) == count($fields)) {
                         $data = array_combine($fields, $data);
+                        
+                        if ($this->testing) {
+                          switch ($login) {
+                            case 'ormsbee':
+                              $data['class_year'] = '1976';
+                          }
+                        }
+                        
                         $user = new HarrisReunionUser($this);
                         $user->setUserID($login);
                         foreach ($data as $field => $value) {
