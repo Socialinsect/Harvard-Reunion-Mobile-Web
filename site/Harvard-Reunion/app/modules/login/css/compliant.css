@@ -136,7 +136,7 @@ select {
 	background-position: 0 -50px;
 }
 
-.submit {
+.submit, a.submit, a.submit:visited {
 	background: url(/common/images/signin-button-red.png);
 	color: #fff;
 }
