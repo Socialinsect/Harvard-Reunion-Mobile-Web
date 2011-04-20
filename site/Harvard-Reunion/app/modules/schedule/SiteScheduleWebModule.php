@@ -286,7 +286,7 @@ class SiteScheduleWebModule extends WebModule {
             $checkin = array(
               'title' => 'foursquare checkin',
               'class' => 'fqCheckin',
-              'url'   => $this->buildBreadcrumbURL('checkin', array(
+              'url'   => $this->buildURL('checkin', array(
                 'eventId' => $eventId,
                 'start'   => $start,
               ))
