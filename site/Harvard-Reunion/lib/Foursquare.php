@@ -322,7 +322,7 @@ class Foursquare {
     ));
   }
   
-  public function getOAuthURL($returnURL, $forceDialog=false) {
+  public function getOAuthURL($forceDialog) {
     // Currently this provides an annoying user experience.  It should
     // get fixed.  See the following thread for more info:
     // http://groups.google.com/group/foursquare-api/browse_thread/thread/3385c4c58fe640e/ed214b861f034299
