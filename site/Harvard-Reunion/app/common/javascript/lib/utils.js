@@ -3,7 +3,7 @@ function autoupdateContent($id, $url) {
   var updateContent = function () {
     var httpRequest = new XMLHttpRequest();
     httpRequest.onreadystatechange = function() {
-      if (httpRequest.readyState == 4) {
+      if (httpRequest.readyState == 4 && typeof httpRequest.responseText == 'string') {
         document.getElementById($id).innerHTML = httpRequest.responseText;
       }
     };
