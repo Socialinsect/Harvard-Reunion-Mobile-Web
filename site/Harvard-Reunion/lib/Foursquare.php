@@ -324,20 +324,11 @@ class Foursquare {
     $page = $forceDialog ? 'authorize' : 'authenticate';
     $display = $this->getDisplayType();
     
-    $loginURL = "https://foursquare.com/oauth2/$page?".http_build_query(array(
+    return "https://foursquare.com/oauth2/$page?".http_build_query(array(
       'client_id'     => $this->clientId,
       'response_type' => 'code',
       'display'       => $display,
       'redirect_uri'  => $this->authorizeURL($this->getCurrentUrl()),
-    ));
-    
-    // The login process is really awkward if you aren't already
-    // logged into foursquare.  Also there is a bug in the wap interface 
-    // where the login link at the bottom is to the 
-    // full website which the wap browsers can't load.
-    // So we bounce the user through the login url before oauth
-    return 'https://foursquare.com/'.$this->getSitePath().'/login?'.http_build_query(array(
-      'continue' => $loginURL,
     ));
   }
   
