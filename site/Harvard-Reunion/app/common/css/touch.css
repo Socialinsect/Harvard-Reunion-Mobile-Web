@@ -11,7 +11,7 @@
 #navbar2 #comment {
   background-image: url('/common/images/button-navbar2-comment.gif');
 }
-#navbar2 #bookmark {
+#navbar2 .postControl #bookmark {
   background-image: url('/common/images/button-navbar2-bookmark.gif');
 }
 #navbar2 #like {
