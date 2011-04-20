@@ -57,7 +57,7 @@
   background-size: 80px;
 }
 #navbar2 .postControl #bookmark.on {
-  background-position: 0px -40px;
+  background-position: -40px 0px;
 }
 #navbar2 #like {
   background-image: url('/common/images/button-navbar2-like.png');
