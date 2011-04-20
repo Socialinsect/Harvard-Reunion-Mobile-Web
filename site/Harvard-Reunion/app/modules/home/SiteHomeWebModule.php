@@ -6,6 +6,7 @@
 
 class SiteHomeWebModule extends HomeWebModule {
   private $schedule = null;
+  const RETURN_URL_COOKIE_NAME = 'fqReunionLoginReturnURL';
 
   protected function initializeForPage() {
     $user = $this->getUser('HarvardReunionUser');
@@ -187,20 +188,37 @@ class SiteHomeWebModule extends HomeWebModule {
         header("Location: $redirect");
         exit();
 
-      case 'fqLogin':
+      case 'fqLoginStart':
         $foursquare = $this->schedule->getFoursquareFeed();
-        //error_log(print_r($this->args, true));
-        $url  = $this->getArg('url', '');
-        $code = $this->getArg('code', false);
+
+        // foursquare redirect urls get url encoded on every hop
+        // this interacts poorly with our breadcrumb urls and causes them
+        // to become so large they break low end devices
+        // To avoid this we stash the url in a cookie and redirect back to 
+        // fqLogin which then reads the cookie and redirects back 
+        $returnURL = $this->getArg('returnURL', FULL_URL_PREFIX.'home/');
+        setcookie(self::RETURN_URL_COOKIE_NAME, $returnURL, 0, COOKIE_PATH);
         
-        if ($url) {
-          $url = base64_decode($url);
-        } else {
-          $url = FULL_URL_PREFIX.'home/';
+        // This will return from foursquare to fqLogin below
+        $url = $foursquare->getOAuthURL($this->getArg('forceDialog', false));
+      
+        error_log("fqLoginStart: Redirecting to $url");
+        header("Location: $url");
+        exit();
+        
+
+      case 'fqLogin':
+        $url = $this->argVal($_COOKIE, self::RETURN_URL_COOKIE_NAME, FULL_URL_PREFIX.'home/');
+        if (isset($_COOKIE[self::RETURN_URL_COOKIE_NAME])) {
+          // blow away cookie
+          setcookie(self::RETURN_URL_COOKIE_NAME, '', time() - 3600, COOKIE_PATH);
         }
+
+        $foursquare = $this->schedule->getFoursquareFeed();
         
+        $code = $this->getArg('code', false);
         if ($code) {
-          $foursquare->authorize($url, $code);
+          $foursquare->authorize($code);
         }
         
         error_log("fqLogin: Redirecting to $url");

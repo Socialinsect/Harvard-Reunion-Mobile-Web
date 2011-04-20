@@ -311,13 +311,18 @@ class Foursquare {
     return $this->getSession() == null;
   }
   
-  protected function authorizeURL($redirectURL) {
-    return FULL_URL_PREFIX.'home/fqLogin?'.http_build_query(array(
-      'url' => base64_encode($redirectURL),
-    ));
+  protected function getAuthorizeURL() {
+    return FULL_URL_PREFIX.'home/fqLogin';
   }
   
   public function getLoginURL($forceDialog=false) {
+    return FULL_URL_PREFIX.'home/fqLoginStart?'.http_build_query(array(
+      'returnURL'   => $this->getCurrentUrl(),
+      'forceDialog' => $forceDialog,
+    ));
+  }
+  
+  public function getOAuthURL($returnURL, $forceDialog=false) {
     // Currently this provides an annoying user experience.  It should
     // get fixed.  See the following thread for more info:
     // http://groups.google.com/group/foursquare-api/browse_thread/thread/3385c4c58fe640e/ed214b861f034299
@@ -328,11 +333,11 @@ class Foursquare {
       'client_id'     => $this->clientId,
       'response_type' => 'code',
       'display'       => $display,
-      'redirect_uri'  => $this->authorizeURL($this->getCurrentUrl()),
+      'redirect_uri'  => $this->getAuthorizeURL(),
     ));
   }
   
-  public function authorize($redirectURL, $code) {
+  public function authorize($code) {
     if ($code) {
       // must use the same redirect url passed into the first oauth call
       $url = 'https://foursquare.com/oauth2/access_token';
@@ -341,7 +346,7 @@ class Foursquare {
         'client_secret' => $this->clientSecret,
         'grant_type'    => 'authorization_code',
         'code'          => $code,
-        'redirect_uri'  => $this->authorizeURL($redirectURL),
+        'redirect_uri'  => $this->getAuthorizeURL(),
       );
 
       $results = $this->query($url, 'GET', $params);
@@ -353,7 +358,7 @@ class Foursquare {
         //error_log('Saving session '.print_r($results, true));
         $this->setSession($results);
       }
-    } 
+    }
   }
   
   public function getLogoutUrl($redirectTo='') {
