@@ -313,7 +313,7 @@ class Foursquare {
   
   protected function authorizeURL($redirectURL) {
     return FULL_URL_PREFIX.'home/fqLogin?'.http_build_query(array(
-      'url' => $redirectURL,
+      'url' => base64_encode($redirectURL),
     ));
   }
   

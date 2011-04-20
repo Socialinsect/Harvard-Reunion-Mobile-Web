@@ -190,8 +190,14 @@ class SiteHomeWebModule extends HomeWebModule {
       case 'fqLogin':
         $foursquare = $this->schedule->getFoursquareFeed();
         //error_log(print_r($this->args, true));
-        $url  = $this->getArg('url', FULL_URL_PREFIX.'home/');
+        $url  = $this->getArg('url', '');
         $code = $this->getArg('code', false);
+        
+        if ($url) {
+          $url = base64_decode($url);
+        } else {
+          $url = FULL_URL_PREFIX.'home/';
+        }
         
         if ($code) {
           $foursquare->authorize($url, $code);
