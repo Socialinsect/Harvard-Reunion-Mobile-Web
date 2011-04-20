@@ -4,7 +4,7 @@
       <a class="postControl" id="prev" href="{$post['prevURL']}"><div></div></a>
     {/if}
     <a class="postControl" id="comment" href="#commentscrolldown"><div></div></a>
-    <a class="postControl {$bookmarkStatus}" id="bookmark" href="javascript:void(0)" onclick="toggleBookmark('{$cookieName}', '{$post['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}'); return false;"><div></div></a>
+    <a class="postControl {$bookmarkStatus}" id="bookmark" onclick="toggleBookmark('{$cookieName}', '{$post['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}')"><div></div></a>
     <a class="postControl{if $post['liked']} liked{/if}" id="like" href="{$post['likeURL']}"><div></div></a>
     {if $post['nextURL']}
       <a class="postControl" id="next" href="{$post['nextURL']}"><div></div></a>
