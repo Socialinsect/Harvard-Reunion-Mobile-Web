@@ -78,7 +78,7 @@ class SiteSettingsWebModule extends WebModule {
 
         $this->assign('username',      $foursquare->getUserFullName());
         $this->assign('returnURL',     $this->buildURL('index'));
-        $this->assign('foursquareURL', $foursquare->getUserURL());
+        $this->assign('foursquareURL', $foursquare->getManualLogoutURL());
 
         $foursquare->setSession(null);
         break;

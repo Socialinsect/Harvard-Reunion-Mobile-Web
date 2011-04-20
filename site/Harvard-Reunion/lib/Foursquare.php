@@ -284,7 +284,7 @@ class Foursquare {
       default:
         $platform = $GLOBALS['deviceClassifier']->getPlatform();
         if ($platform == 'bbplus' || $platform == 'blackberry') {
-          return 'wap';
+          return 'touch';
         }
         return 'touch';
     }
@@ -366,8 +366,15 @@ class Foursquare {
     return $redirectURL;
   }
   
-  public function getUserURL() {error_log($GLOBALS['deviceClassifier']->getPlatform());
-    return 'https://foursquare.com/'.$this->getSitePath().'/user/'.$this->getUserId();
+  public function getManualLogoutURL() {
+    $path = $this->getSitePath();
+    if ($path == 'mobile') {
+      return 'https://foursquare.com/mobile/';
+    } else {
+      // No top level of touch site
+      // But touch user page has nice logout button at top
+      return "https://foursquare.com/$path/user/".$this->getUserId();
+    }
   }
     
   protected function getCurrentUrl() {
