@@ -54,6 +54,7 @@
 }
 #navbar2 #bookmark.on {
   background-image: url('/common/images/button-navbar2-unbookmark.png');
+  border: 1px solid blue;
   background-position: top left;
 }
 #navbar2 #like {
