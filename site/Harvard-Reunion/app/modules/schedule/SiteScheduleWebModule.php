@@ -312,33 +312,44 @@ class SiteScheduleWebModule extends WebModule {
         // Info
         $locationSection = array();
         if ($info['location']) {
-          $location = array(
-            'title' => self::argVal($info['location'], 'title', ''),
-          );
-          if (strtoupper($location['title']) == 'TBA') {
-            $location['title'] = 'Location '.$location['title'];
-          }
-          if (isset($info['location']['address'])) {
-            $parts = array();
-            if (isset($info['location']['address']['street'])) {
-              $parts[] = $info['location']['address']['street'];
+          if (self::argVal($info['location'], 'multiple', false)) {
+            $location = array(
+              'title' => 'Multiple locations',
+            );
+            $locationText = self::argVal($info['location'], 'title', '');
+            if ($locationText) {
+              $location['subtitle'] = $locationText;
             }
-            if (isset($info['location']['address']['city'])) {
-              $parts[] = $info['location']['address']['city'];
+
+          } else {
+            $location = array(
+              'title' => self::argVal($info['location'], 'title', ''),
+            );
+            if (strtoupper($location['title']) == 'TBA') {
+              $location['title'] = 'Location '.$location['title'];
             }
-            if (isset($info['location']['address']['state'])) {
-              $parts[] = $info['location']['address']['state'];
+            if (isset($info['location']['address'])) {
+              $parts = array();
+              if (isset($info['location']['address']['street'])) {
+                $parts[] = $info['location']['address']['street'];
+              }
+              if (isset($info['location']['address']['city'])) {
+                $parts[] = $info['location']['address']['city'];
+              }
+              if (isset($info['location']['address']['state'])) {
+                $parts[] = $info['location']['address']['state'];
+              }
+              if ($parts) {
+                $location['subtitle'] = implode(', ', $parts);
+              }
             }
-            if ($parts) {
-              $location['subtitle'] = implode(', ', $parts);
+            if (isset($info['location']['building']) || isset($info['location']['latlon'])) {
+              $location['url'] = $this->buildURLForModule('map', 'detail', array(
+                'eventId' => $eventId,
+                'start'   => $start,
+              ));
+              $location['class'] = 'map';
             }
-          }
-          if (isset($info['location']['building']) || isset($info['location']['latlon'])) {
-            $location['url'] = $this->buildURLForModule('map', 'detail', array(
-              'eventId' => $eventId,
-              'start'   => $start,
-            ));
-            $location['class'] = 'map';
           }
           $locationSection[] = $location;
         }
