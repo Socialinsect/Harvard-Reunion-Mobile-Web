@@ -194,6 +194,44 @@ class SiteMapAPIModule extends MapAPIModule
                     break;
             }
 
+        } else if ($this->command == 'places') {
+            $categoryPath = $this->getCategoriesAsArray();
+            if ($categoryPath) {
+                $this->dataController = $this->getDataController($categoryPath, $listItemPath);
+
+                // for now the iphone will only handle lat/lon
+                $dataProjection = $this->dataController->getProjection();
+                if ($dataProjection != GEOGRAPHIC_PROJECTION) {
+                    $this->outputProjector = new MapProjector();
+                    $this->outputProjector->setSrcProj($dataProjection);
+
+                    $this->inputProjector = new MapProjector();
+                    $this->inputProjector->setDstProj($dataProjection);
+                }
+
+                $listItems = $this->dataController->getListItems($listItemPath);
+                $places = array();
+                foreach ($listItems as $listItem) {
+                    if ($listItem instanceof MapFeature) {
+                        $aPlace = $this->arrayFromMapFeature($listItem);
+                        $aPlace['category'] = $categoryPath;
+                        $places[] = $aPlace;
+                    }
+                }
+
+                $response = array(
+                    'total' => count($places),
+                    'returned' => count($places),
+                    'displayField' => 'title',
+                    'results' => $places,
+                    );
+
+                $this->setResponse($response);
+                $this->setResponseVersion(1);
+            }
+
+            parent::initializeForCommand();
+
         } else {
 
             parent::initializeForCommand();
