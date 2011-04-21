@@ -607,7 +607,7 @@ class FacebookGroup {
     $isObject = isset($post['object_id']) && $post['object_id'];
     
     $platform = $GLOBALS['deviceClassifier']->getPlatform();
-    $needsLink = $platform != 'iphone' && $platform != 'ipad';
+    $needsLink = $platform != 'iphone' && $platform != 'ipad' && $platform != 'android';
 
     if ($isObject) {
       if ($needsLink) {
@@ -622,7 +622,7 @@ class FacebookGroup {
       if ($needsLink) {
         $html = $this->buildLink('http://m.youtube.com/watch?v='.$videoID, $post['picture']);
       } else {
-        $html = '<iframe id="videoFrame" src="http://www.youtube.com/embed/'.$videoID.
+        $html = '<iframe id="videoFrame" class="youtube-player" src="http://www.youtube.com/embed/'.$videoID.
           '" width="240" height="195" frameborder="0"></iframe>';
       }
     

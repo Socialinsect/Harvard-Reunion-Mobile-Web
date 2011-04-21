@@ -1,13 +1,25 @@
 <div class="postNav" id="navbar2">
   {block name="postNavigation"}
     {if $post['prevURL']}
-      <a class="postControl" href="{$post['prevURL']}"><div id="prev"></div></a>
+      <a id="prev" class="postControl" href="{$post['prevURL']}">
+        <img src="/common/images/button-navbar2-prev.png" alt="prev"/>
+      </a>
     {/if}
-    <a class="postControl" href="#commentscrolldown"><div id="comment"></div></a>
-    <a class="postControl" onclick="toggleBookmark('{$cookieName}', '{$post['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}');"><div id="bookmark" {if $bookmarkStatus == 'on'}class="on"{/if}></div></a>
-    <a class="postControl" href="{$post['likeURL']}"><div id="like"{if $post['liked']} class="liked"{/if}></div></a>
+    <a id="comment" class="postControl" href="#commentscrolldown">
+        <img src="/common/images/button-navbar2-comment.png" alt="comment"/>
+      </a>
+    <a id="bookmark" class="postControl{if $bookmarkStatus == 'on'} on{/if}" onclick="toggleBookmark('{$cookieName}', '{$post['id']}', {$expireDate}, '{$smarty.const.COOKIE_PATH}');">
+        <img class="bookmark" src="/common/images/button-navbar2-bookmark.png" alt="bookmark" />
+        <img class="unbookmark" src="/common/images/button-navbar2-unbookmark.png" alt="unbookmark"/>
+      </a>
+    <a id="like" class="postControl{if $post['liked']} liked{/if}" href="{$post['likeURL']}">
+        <img class="like" src="/common/images/button-navbar2-like.png" alt="like"/>
+        <img class="unlike" src="/common/images/button-navbar2-unlike.png" alt="unlike"/>
+      </a>
     {if $post['nextURL']}
-      <a class="postControl" href="{$post['nextURL']}"><div id="next"></div></a>
+      <a id="next" class="postControl" href="{$post['nextURL']}">
+        <img src="/common/images/button-navbar2-next.png" alt="next"/>
+      </a>
     {/if}
   {/block}
 </div>
