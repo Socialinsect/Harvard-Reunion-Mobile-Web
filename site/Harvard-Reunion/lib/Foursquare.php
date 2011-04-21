@@ -37,7 +37,7 @@ class Foursquare {
     ),
     'checkins' => array(
       'cache'         => null,
-      'cacheLifetime' => self::NOCACHE_LIFETIME,
+      'cacheLifetime' => self::SHORT_LIFETIME,
       'path'          => 'users/',
       'suffix'        => '/checkins',
       'includeParams' => false,
@@ -75,7 +75,7 @@ class Foursquare {
   }
   
   public function getUserFullName() {
-    $fullName = null;
+    $fullName = '';
     
     $results = $this->api('users', $this->getUserId());
     //error_log(print_r($results, true));
@@ -125,7 +125,10 @@ class Foursquare {
     //error_log(print_r($results, true));
     
     $venues = array();
-    if (isset($results['response'], $results['response']['groups'])) {
+    if (isset($results['error'])) {
+      return $results;
+      
+    } else if (isset($results['response'], $results['response']['groups'])) {
       foreach ($results['response']['groups'] as $group) {
         if ($group['type'] == 'places') {
           foreach ($group['items'] as $item) {
@@ -153,10 +156,13 @@ class Foursquare {
 
     $results = $this->api('venues', $venueId);
     //error_log(print_r($results, true));
-    if (isset($results['response'],  
-              $results['response']['venue'], 
-              $results['response']['venue']['hereNow'], 
-              $results['response']['venue']['hereNow']['groups'])) {
+    if (isset($results['error'])) {
+      return $results;
+      
+    } else if (isset($results['response'],  
+                     $results['response']['venue'], 
+                     $results['response']['venue']['hereNow'], 
+                     $results['response']['venue']['hereNow']['groups'])) {
       
       $myId = $this->getUserId();
       
@@ -205,6 +211,50 @@ class Foursquare {
           $venueCheckinState['checkins'][] = $checkin;
         }
       }
+      
+      if (!$venueCheckinState['checkedin']) {
+        // Sometimes foursquare doesn't show the user's own checkins via this api.  
+        // So if the user isn't checked in, make sure this is actually the case 
+        // via the checkins api
+        $results = $this->api('checkins', $this->getUserId());
+        //error_log(print_r($results, true));
+        
+        if (isset($results['response'],  
+                  $results['response']['checkins'], 
+                  $results['response']['checkins']['items'])) {
+          $newest = null;
+          foreach ($results['response']['checkins']['items'] as $item) {
+            if (!$newest || $newest['createdAt'] < $item['createdAt']) {
+              $newest = $item;
+            }
+          }
+          
+          if ($newest && $newest['createdAt'] > time() - 60*60*3) {
+            $realVenueId = $venueId;
+            
+            $results = $this->api('venues', $venueId);
+            //error_log(print_r($results, true));
+              if (isset($results['response'], $results['response']['venue'])) {
+              $realVenueId = $results['response']['venue']['id'];
+            }
+
+            if (isset($newest['venue'], $newest['venue']['id']) && $newest['venue']['id'] == $realVenueId) {
+              $checkin = array(
+                'id'     => $this->getUserId(),
+                'friend' => true,
+                'name'   => $this->getUserFullName(),
+                'when'   => array(
+                  'time'       => $newest['createdAt'],
+                  'delta'      => FacebookGroup::relativeTime(intval($newest['createdAt'])),
+                  'shortDelta' => FacebookGroup::relativeTime(intval($newest['createdAt']), true),
+                ),
+              );
+              array_unshift($venueCheckinState['checkins'], $checkin);
+              $venueCheckinState['checkedin'] = true;
+            }
+          }
+        }
+      }
     }
     
     return $venueCheckinState;
@@ -215,7 +265,10 @@ class Foursquare {
     
     $results = $this->api('venues', $venueId);
     //error_log(print_r($results, true));
-    if (isset($results['response'], $results['response']['venue'])) {
+    if (isset($results['error'])) {
+      return $results;
+      
+    } else if (isset($results['response'], $results['response']['venue'])) {
       $realVenueId = $results['response']['venue']['id'];
     }
     
@@ -229,11 +282,45 @@ class Foursquare {
   
     $results = $this->api('addCheckin', '', 'POST', $params);
     //error_log(print_r($results, true));
-    
+
     // invalidate caches
     $this->invalidateCache('venues', $realVenueId);
     $this->invalidateCache('hereNow', $realVenueId);
     $this->invalidateCache('checkins', $this->getUserId());
+    
+    if (isset($results['error'])) {
+      return $results;
+    } else if (!$results) {
+      return array('error' => 'Checkin failed.  Unknown error');
+    }
+    
+    $status = array(
+      'message' => '',
+      'points'  => 0,
+    );
+    if (isset($results['notifications'])) {
+      foreach ($results['notifications'] as $notification) {
+        if (!isset($notification['type'])) { continue; }
+        
+        if ($notification['type'] == 'message') {
+          if (!isset($notification['item'], $notification['item']['message'])) { continue; }
+          
+          $status['message'] = $notification['item']['message'];
+          
+        } else if ($notification['type'] == 'score') {
+          if (!isset($notification['item'], $notification['item']['scores'])) { continue; }
+
+          $points = 0;
+          foreach ($notification['item']['scores'] as $score) {
+            if (!isset($score['points'])) { continue; }
+            
+            $status['points'] += intval($score['points']);
+          }
+        }
+      }
+    }
+    
+    return $status;
   }
 
   public function getSession() {
@@ -470,10 +557,25 @@ class Foursquare {
         if ($this->shouldCacheResultsForQuery($type, $results)) {
           $cache->write($results, $cacheName);
         } else {
-          error_log("Error while making foursquare API request: ".
-            (isset($results['meta'], $results['meta']['errorDetail']) ? 
-              $results['meta']['errorDetail'] : "'$content'"));
-          $results = $cache->read($cacheName);
+          $foursquareStatusLink = '<a href="http://status.foursquare.com">status.foursquare.com</a>';
+        
+          if (isset($results['meta'], $results['meta']['errorDetail'])) {
+            error_log('Error while making foursquare API request: '.$results['meta']['errorDetail']);
+            $results = array('error' => 
+              str_replace(' status.foursquare.com ', ' '.$foursquareStatusLink.' ', $results['meta']['errorDetail']));
+          } else {
+            error_log("Error while making foursquare API request: '$content'");
+            $results = $cache->read($cacheName);
+            if (!$results) {
+              $results = array(
+                'error' => 'Foursquare servers are experiencing problems. '.
+                  'Please retry and check '.$foursquareStatusLink.' for updates.'
+              );
+            }
+          }
+          if (isset($results['error'])) {
+            str_replace(' status.foursquare.com ', ' '.$foursquareStatusLink.' ', $results['error']);
+          }
         }
         
       } else if ($invalidateCache) {

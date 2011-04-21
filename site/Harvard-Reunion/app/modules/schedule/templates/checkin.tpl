@@ -4,11 +4,28 @@
   <h3>{$eventTitle}</h3>
 </div>
 
+{if isset($checkinResult['error'])}
+  <div class="focal">
+    Checkin failed. {$checkinResult['error']}
+  </div>
+{elseif isset($checkinResult['message']) || isset($checkinResult['points'])}
+  <div class="focal smallprint">
+    {if $checkinResult['message']}
+      {$checkinResult['message']}
+    {else}
+      You checked in!
+    {/if}
+    {if $checkinResult['points']}
+      You earned {$checkinResult['points']} point{if $checkinResult['points'] > 1}s{/if}!
+    {/if}
+  </div>
+{/if}
+
 <div id="autoupdateHeader">
   {include file="findInclude:modules/$moduleID/templates/checkinHeaderContent.tpl" state=$state}
 </div>
 
-{if !$state['checkedin']}
+{if !$state['checkedin'] && !$state['error']}
   <div class="focal checkinForm">
     <form method="get" action="addCheckin">
       <textarea rows="3" name="message" id="messageText" placeholder="Add a shout with this checkin"></textarea>

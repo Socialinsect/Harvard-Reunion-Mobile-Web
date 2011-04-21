@@ -11,3 +11,8 @@ form input[type=submit] {
 .checkinForm form {
   margin: 0;
 }
+
+.nonfocal a,
+.nonfocal a:visited {
+  color: white;
+}

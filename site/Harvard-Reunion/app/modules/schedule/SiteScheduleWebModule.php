@@ -300,7 +300,8 @@ class SiteScheduleWebModule extends WebModule {
             
             $foursquare = $this->schedule->getFoursquareFeed();
             if (!$foursquare->needsLogin()) {
-              $checkinState = $foursquare->getVenueCheckinState($info['location']['foursquareId']);
+              $checkinState = array_merge($checkinState,
+                $foursquare->getVenueCheckinState($info['location']['foursquareId']));
             }
             $this->assign('checkinState', $checkinState);
             
@@ -502,8 +503,9 @@ class SiteScheduleWebModule extends WebModule {
         break;
         
       case 'checkin':
-        $eventId = $this->getArg('eventId');
-        $start   = $this->getArg('start', time());
+        $eventId       = $this->getArg('eventId');
+        $start         = $this->getArg('start', time());
+        $checkinResult = $this->getArg('checkinResult', '[]');
                 
         $event = $this->schedule->getEvent($eventId, $start);
         if (!$event) {
@@ -533,6 +535,7 @@ class SiteScheduleWebModule extends WebModule {
             'venue'     => $venue,
             'returnURL' => URL_PREFIX.ltrim($this->buildBreadcrumbURL($this->page, $this->args, false), '/'),
           ));
+          $this->assign('checkinResult', json_decode($checkinResult, true));
         }
         break;
         
@@ -562,13 +565,22 @@ class SiteScheduleWebModule extends WebModule {
         $returnURL = $this->getArg('returnURL');
         
         $foursquare = $this->schedule->getFoursquareFeed();
-        $foursquare->addCheckin($venue, $message);
+        $results = $foursquare->addCheckin($venue, $message);
+        
+        $checkinParams = array('checkinResult' => json_encode($results));
+        
         
         if ($returnURL) {
-          header("Location: $returnURL");
+          $parts = parse_url($returnURL);
+          $delimiter = '&';
+          if ($parts && (!isset($parts['query']) || !$parts['query'])) {
+            $delimiter = '?';
+          }
+        
+          header('Location: '.$returnURL.$delimiter.http_build_query($checkinParams));
           exit();
         } else {
-          $this->redirectTo('index');
+          $this->redirectTo('index', $checkinParams);
         }
         break;
     }
