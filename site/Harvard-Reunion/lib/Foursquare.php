@@ -463,7 +463,8 @@ class Foursquare {
       $results = $cache->read($cacheName);
       
     } else {
-      $results = json_decode($this->query($url, $method, $params), true);
+      $content = $this->query($url, $method, $params);
+      $results = json_decode($content, true);
       
       if ($shouldCache) {
         if ($this->shouldCacheResultsForQuery($type, $results)) {
@@ -471,15 +472,18 @@ class Foursquare {
         } else {
           error_log("Error while making foursquare API request: ".
             (isset($results['meta'], $results['meta']['errorDetail']) ? 
-              $results['meta']['errorDetail'] : $results));
+              $results['meta']['errorDetail'] : "'$content'"));
           $results = $cache->read($cacheName);
         }
         
       } else if ($invalidateCache) {
         $cacheFile = $cache->getFullPath($cacheName);
         if (file_exists($cacheFile)) {
-          error_log("Removing invalidated cache file '$cacheFile'");
-          @unlink($cacheFile);
+          if (@unlink($cacheFile)) {
+            error_log("Removing invalidated cache file '$cacheFile'");
+          } else {
+            error_log("Failed to remove invalidated cache file '$cacheFile'");
+          }
         }
       }
     }
