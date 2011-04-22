@@ -1,8 +1,10 @@
 {include file="findInclude:common/templates/header.tpl" customHeader=''}
 
 <div class="nonfocal">
-
   {include file="findInclude:modules/{$moduleID}/templates/banner.tpl"}
+</div>
+
+<div class="{if $tabletDisplay}loginBlock{else}nonfocal{/if}">
 
   {if $authFailed}
     <p>We're sorry, but there was a problem with your login. Please check your user ID and password (the same login you use at alumni.harvard.edu) and try again.</p>

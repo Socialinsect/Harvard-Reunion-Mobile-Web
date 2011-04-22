@@ -4,7 +4,10 @@ class SiteLoginWebModule extends LoginWebModule
 {
 
   protected function initializeForPage() {
+    $tabletDisplay = stripos($_SERVER['HTTP_USER_AGENT'], '(ipad;') !== FALSE;
     $nativeApp = $this->getArg('nativeApp', false);
+    
+    $this->assign('tabletDisplay', $tabletDisplay);
     
     // Default args to pass through forms and urls
     $defaultArgs = array();
@@ -167,15 +170,14 @@ class SiteLoginWebModule extends LoginWebModule
                 header("Location: $url");
                 exit();
             
-            } elseif (stripos($_SERVER['HTTP_USER_AGENT'], '(ipad;') !== FALSE) {
-                $this->setTemplatePage('ipadindex');
-                $this->assign('reunionYears', Schedule::getAllReunionYears());
-                $this->assign('suppressiOSLink', $nativeApp);
-            
             } elseif ($this->getArg('noreunion', false)) {
                 $this->setTemplatePage('noreunion');
                 $this->assign('loginURL', $this->buildURL('index', $defaultArgs));
             
+            } elseif ($tabletDisplay) {
+                $this->assign('reunionYears', Schedule::getAllReunionYears());
+                $this->assign('suppressiOSLink', $nativeApp);
+
             } elseif ($authority = $this->getArg('authority')) {
                 if ($authority == 'anonymous') {
                     $this->assign('reunionYears', Schedule::getAllReunionYears());
