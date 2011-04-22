@@ -536,10 +536,10 @@ class SiteScheduleWebModule extends WebModule {
           $this->addInternalJavascript('/common/javascript/lib/utils.js');
           
           $this->addOnLoad('autoupdateContent("autoupdateHeader", "'.URL_PREFIX.$this->id.'/checkinHeaderContent?'.
-              http_build_query(array('venue' => $venue)).'");');
+              http_build_query(array('venue' => $venue), null, '&').'");');
               
           $this->addOnLoad('autoupdateContent("autoupdateContent", "'.URL_PREFIX.$this->id.'/checkinContent?'.
-              http_build_query(array('venue' => $venue)).'");');
+              http_build_query(array('venue' => $venue), null, '&').'");');
         
           $this->assign('eventTitle', $info['title']);
           $this->assign('hiddenArgs', array(
@@ -588,7 +588,7 @@ class SiteScheduleWebModule extends WebModule {
             $delimiter = '?';
           }
         
-          header('Location: '.$returnURL.$delimiter.http_build_query($checkinParams));
+          header('Location: '.$returnURL.$delimiter.http_build_query($checkinParams, null, '&'));
           exit();
         } else {
           $this->redirectTo('index', $checkinParams);

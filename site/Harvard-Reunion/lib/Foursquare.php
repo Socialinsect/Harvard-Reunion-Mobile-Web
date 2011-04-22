@@ -406,7 +406,7 @@ class Foursquare {
     return FULL_URL_PREFIX.'home/fqLoginStart?'.http_build_query(array(
       'returnURL'   => $this->getCurrentUrl(),
       'forceDialog' => $forceDialog,
-    ));
+    ), null, '&');
   }
   
   public function getOAuthURL($forceDialog) {
@@ -421,7 +421,7 @@ class Foursquare {
       'response_type' => 'code',
       'display'       => $display,
       'redirect_uri'  => $this->getAuthorizeURL(),
-    ));
+    ), null, '&');
   }
   
   public function authorize($code) {
@@ -451,7 +451,7 @@ class Foursquare {
   public function getLogoutUrl($redirectTo='') {
     return FULL_URL_PREFIX.'home/fqLogout?'.http_build_query(array(
       'url' => $redirectTo ? $redirectTo : $this->getCurrentUrl(),
-    ));
+    ), null, '&');
   }
   
   public function getLogoutRedirectURL($redirectURL) {

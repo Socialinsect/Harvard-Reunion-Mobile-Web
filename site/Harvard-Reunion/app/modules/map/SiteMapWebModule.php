@@ -113,7 +113,7 @@ class SiteMapWebModule extends MapWebModule {
         'eventId' => $this->args['eventId'],
         'start' => $this->args['start'],
       );
-      $cookieID = http_build_query($cookieParams);
+      $cookieID = http_build_query($cookieParams, null, '&');
     }
     
     parent::generateBookmarkOptions($cookieID);
@@ -311,7 +311,7 @@ class SiteMapWebModule extends MapWebModule {
             'eventId' => $this->args['eventId'],
             'start' => $this->args['start'],
           );
-          $cookieID = http_build_query($cookieParams);
+          $cookieID = http_build_query($cookieParams, null, '&');
           $this->generateBookmarkOptions($cookieID);
         }
       }

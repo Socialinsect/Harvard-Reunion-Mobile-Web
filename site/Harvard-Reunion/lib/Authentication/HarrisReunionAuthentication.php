@@ -42,7 +42,7 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
                 'key'      => 'harvard',
                 'q'        => 'emreunion',
                 'event_id' => '1763952',
-              )),
+              ), null, '&'),
             'SaFormName'     => 'SubmitLogin__Floginform_html',
             'error_redirect' => '/olc/pub/HAA/login/m_failure.cgi',
             'username'       => $login,
@@ -56,7 +56,7 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
         $opts = array(
             CURLOPT_URL            => $url,
             CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => http_build_query($params),
+            CURLOPT_POSTFIELDS     => http_build_query($params, null, '&'),
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_COOKIEJAR      => CACHE_DIR . "/Harris/cookie.txt", // need cookies for it to work

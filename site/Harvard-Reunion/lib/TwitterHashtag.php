@@ -15,13 +15,13 @@ class TwitterHashtag {
   public function getTweetURL() {
     return 'http://mobile.twitter.com/?'.http_build_query(array(
       'status' => $this->hashtag,
-    ));
+    ), null, '&');
   }
   
   public function getFeedURL() {
     return 'http://mobile.twitter.com/searches?'.http_build_query(array(
       'q' => $this->hashtag,
-    ));
+    ), null, '&');
   }
   
   public function getRecentTweets() {
@@ -42,7 +42,7 @@ class TwitterHashtag {
         'q'           => $this->hashtag,
         'result_type' => 'recent',
         'rpp'         => self::TWEET_LIMIT,
-      ));
+      ), null, '&');
       $content = @file_get_contents($url);
       $this->cache->write($content, $cacheName);
     }

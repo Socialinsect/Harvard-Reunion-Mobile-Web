@@ -148,7 +148,7 @@ class SitePhotosWebModule extends WebModule {
         
         $commentURL = URL_PREFIX."home/commentsContent?".http_build_query(array(
           'id' => $postId,
-        ));
+        ), null, '&');
         $this->addInternalJavascript('/common/javascript/lib/utils.js');
         $this->addOnLoad('autoupdateContent("autoupdateContainer", "'.$commentURL.'");');
 

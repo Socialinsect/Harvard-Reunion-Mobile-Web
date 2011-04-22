@@ -51,7 +51,7 @@ class FacebookGroup {
       'cache'         => null,
       'cacheLifetime' => self::OBJECT_LIFETIME,
       'suffix'        => '',
-      'fields'        => array('source', 'height', 'width'),
+      'fields'        => null,
     ),
     'feed' => array(
       'cache'         => null,
@@ -59,6 +59,11 @@ class FacebookGroup {
       'suffix'        => '/feed',
     ),
     'feedOrder' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::FEED_LIFETIME,
+      'suffix'        => '',
+    ),
+    'photos' => array(
       'cache'         => null,
       'cacheLifetime' => self::FEED_LIFETIME,
       'suffix'        => '',
@@ -111,7 +116,8 @@ class FacebookGroup {
       'cookie' => true,
     ));
 
-    $this->groupId = $groupId;
+    $this->groupId  = $groupId;
+    $this->oldGroup = $isOldGroup;
   }
   
   public function needsLogin() {
@@ -214,15 +220,45 @@ class FacebookGroup {
     return $statuses;
   }
   
-  public function getGroupPhotos() {
-    $results = $this->getGroupPosts();
+  private static function positionSort($a, $b) {
+    return intval($a['position']) - intval($b['position']);
+  }
+  
+ 
+  private function getGroupPhotoObjects() {
+    $results = $this->fqlQuery('photos', 
+      "SELECT pid, aid, owner, object_id, src, link, caption FROM photo WHERE pid IN (SELECT pid FROM photo_tag WHERE subject = {$this->groupId} LIMIT 1000) LIMIT 1000");
     //error_log(print_r($results, true));
-
+      
     $photos = array();
-    if (isset($results['data'])) {
-      foreach ($results['data'] as $i => $post) {
-        if ($post['type'] == 'photo') {
-          $photos[] = $this->formatPost($post);
+    foreach ($results as $result) {
+      if (isset($result['object_id'])) {
+        $photo = $this->getPhotoDetails(number_format($result['object_id'], 0, '.', ''));
+        
+        $photos[] = $this->formatPhoto($photo);
+      }
+    }
+    usort($photos, array(get_class($this), 'positionSort'));
+    
+    return $photos;
+  }
+  
+  public function getGroupPhotos() {
+    if ($this->oldGroup) {
+      // In old groups, photos are only objects
+      $photos = $this->getGroupPhotoObjects();
+      
+    } else {
+      // in new groups, photos are in posts
+      $results = $this->getGroupPosts();
+      //error_log(print_r($results, true));
+  
+      $photos = array();
+      if (isset($results['data'])) {
+        foreach ($results['data'] as $i => $post) {
+          if ($post['type'] == 'photo') {
+            $photos[] = $this->formatPost($post);
+          }
         }
       }
     }
@@ -250,19 +286,34 @@ class FacebookGroup {
   // 
     
   public function getPhotoPost($postId) {
-    $post = $this->getPostDetails($postId);
-    //error_log(print_r($post, true));
-    
-    $photoDetails = $this->formatPost($post);
-    
-    if (isset($post['object_id'])) {
-      $photo = $this->getPhotoDetails($post['object_id']);
+    if ($this->oldGroup) {
+      // In old groups, photos are only objects
+      $photo = $this->getPhotoDetails($postId);
       //error_log(print_r($photo, true));
       
+      $photoDetails = $this->formatPhoto($photo);
+
       if (isset($photo['source'], $photo['height'], $photo['width'])) {
         $photoDetails['img']['src'] = $photo['source'];
         $photoDetails['img']['height'] = $photo['height'];
         $photoDetails['img']['width'] = $photo['width'];
+      }
+      
+    } else {
+      $post = $this->getPostDetails($postId);
+      //error_log(print_r($post, true));
+      
+      $photoDetails = $this->formatPost($post);
+      
+      if (isset($post['object_id'])) {
+        $photo = $this->getPhotoDetails($post['object_id']);
+        //error_log(print_r($photo, true));
+        
+        if (isset($photo['source'], $photo['height'], $photo['width'])) {
+          $photoDetails['img']['src'] = $photo['source'];
+          $photoDetails['img']['height'] = $photo['height'];
+          $photoDetails['img']['width'] = $photo['width'];
+        }
       }
     }
     
@@ -284,7 +335,7 @@ class FacebookGroup {
     
   private function getPostDetails($objectId) {
     $postDetails = $this->graphQuery('post', $objectId);
-        
+    
     // Although there are comments and likes available here do not add them
     // The cache lifetimes on the posts themselves are much longer than 
     // the lifetime on the comment and like feeds.  We would suppress these
@@ -428,9 +479,14 @@ class FacebookGroup {
   // Post Order
   //
   
-  
   public function getGroupPhotoOrder() {
-    return $this->getGroupPostOrder('photo');
+    if ($this->oldGroup) {
+      // In old groups, photos are only objects
+      return $this->getGroupPhotoObjects();
+      
+    } else {
+      return $this->getGroupPostOrder('photo');
+    }
   }
   
   public function getGroupVideoOrder() {
@@ -475,7 +531,7 @@ class FacebookGroup {
   
   private function getPhotoDetails($objectId) {
     return $this->graphQuery('photo', $objectId);
-  }  
+  }
 
   //
   // Formatting
@@ -512,7 +568,9 @@ class FacebookGroup {
   }
   
   private function formatPhoto($photo) {
-    $formatted = array();
+    $formatted = array(
+      'type' => 'photo',
+    );
     
     if (isset($photo['id'])) {
       $formatted['id'] = $photo['id'];
@@ -712,7 +770,7 @@ class FacebookGroup {
     $cache = $this->getCacheForQuery($type);
 
     $path = $id.$this->queryConfig[$type]['suffix'];
-    $cacheName = $type.'_'.($id ? $id : http_build_query($params));
+    $cacheName = $type.'_'.($id ? $id : http_build_query($params, null, '&'));
 
     $shouldCache = $cache && $method == 'GET';
     $invalidateCache = $cache && $method != 'GET';
@@ -885,8 +943,7 @@ class ReunionFacebook extends Facebook {
         'client_id'    => $this->getAppId(),
         'redirect_uri' => $this->authorizeURL($redirectURL),
         'scope'        => implode(',', $this->perms),
-      ), $params)
-    );
+      ), $params), null, '&');
   }
   
   public function authorize($redirectURL, $code) {
@@ -898,8 +955,7 @@ class ReunionFacebook extends Facebook {
           'client_secret' => $this->getApiSecret(),
           'code'          => $code,
           'redirect_uri'  => $this->authorizeURL($redirectURL),
-        )
-      );
+        ), null, '&');
       $results = @file_get_contents($url);
       
       $parts = array();
@@ -927,7 +983,7 @@ class ReunionFacebook extends Facebook {
   private function authorizeURL($redirectURL) {
     return FULL_URL_PREFIX.'home/fbLogin?'.http_build_query(array(
       'url' => $redirectURL
-    ));
+    ), null, '&');
   }
 
   // Do not set access_token or Facebook won't log you out
@@ -935,7 +991,7 @@ class ReunionFacebook extends Facebook {
     return FULL_URL_PREFIX.'home/fbLogout?'.http_build_query(
       array_merge(array(
         'next' => $this->getCurrentUrl(),
-      ), $params));
+      ), $params), null, '&');
   }
   
   public function getLogoutRedirectURL($redirectURL) {
@@ -988,7 +1044,7 @@ class ReunionFacebook extends Facebook {
       exit();
     }
         
-    error_log("Requesting {$url}?".http_build_query($params));
+    error_log("Requesting {$url}?".http_build_query($params, null, '&'));
     return parent::makeRequest($url, $params, $ch);
   }
 
