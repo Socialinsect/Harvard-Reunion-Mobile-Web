@@ -10,6 +10,38 @@
   	text-shadow: #333 0 1px 1px;
 }
 
+.ipadReunionHeader {
+	background: url(/modules/login/images/shields-big.png) no-repeat left;
+	padding-left: 144px;
+	font-size: 110%;
+	margin: 1.5em 1em;
+}
+
+.ipadReunionHeader h1 {
+	font-size: 129.4%;
+	line-height: 1.2em;
+	text-shadow: #333 0 1px 1px;  
+	padding-top: 2px;
+	margin: 6px 0 5px -2px;
+}
+
+.loginBlock {
+	padding: .25em 1em;
+	background: url(/modules/login/images/background-tile-dark.png) repeat-x left top;
+}
+.loginBlock .helptext {
+	margin: 0 12px;
+}
+.loginBlock .anonymous form p select {
+	height: 2.25em;
+}
+.loginBlock .signinbuttons {
+	margin: 1.5em 0 0 0;
+}
+.loginBlock .columns form {
+	padding-bottom: 0;
+}
+
 h2 {
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 	font-size: 100%;
@@ -157,4 +189,24 @@ select {
 .helptext a,
 .helptext a:visited {
 	color: #c1bcb9;
+}
+
+.columns {
+  overflow: hidden;
+}
+.columns > * {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.columns .harris,
+.columns .anonymous {
+  width: 44%;
+}
+
+.columns .or {
+  width: 10%;
+  text-align: center;
+  font-weight: bold;
+  vertical-align: middle;
 }
