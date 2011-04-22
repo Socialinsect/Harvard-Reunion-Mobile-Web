@@ -34,6 +34,7 @@
 }
 .loginBlock .anonymous form p select {
 	height: 2.25em;
+	margin-bottom: .25em;
 }
 .loginBlock .signinbuttons {
 	margin: 1.5em 0 0 0;
@@ -201,11 +202,11 @@ select {
 
 .columns .harris,
 .columns .anonymous {
-  width: 44%;
+  width: 45%;
 }
 
 .columns .or {
-  width: 10%;
+  width: 9.99%;
   text-align: center;
   font-weight: bold;
   vertical-align: middle;

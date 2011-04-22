@@ -1,4 +1,4 @@
-{include file="findInclude:common/templates/header.tpl" customHeader=''}
+{include file="findInclude:common/templates/header.tpl" customHeader='' scalable=false}
 
 <div class="nonfocal">
   <div class="ipadReunionHeader">
