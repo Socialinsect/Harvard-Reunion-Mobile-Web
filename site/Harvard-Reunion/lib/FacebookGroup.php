@@ -67,6 +67,7 @@ class FacebookGroup {
       'cache'         => null,
       'cacheLifetime' => self::FEED_LIFETIME,
       'suffix'        => '',
+      'perUser'       => true,
     ),
     'comments' => array(
       'cache'         => null,
@@ -714,7 +715,7 @@ class FacebookGroup {
   private function getCacheForQuery($type) {
     if (!$this->queryConfig[$type]['cache'] && $this->queryConfig[$type]['cacheLifetime'] > 0) {
       $this->queryConfig[$type]['cache'] = new DiskCache(
-        CACHE_DIR."/Facebook", $this->queryConfig[$type]['cacheLifetime'], TRUE);
+        CACHE_DIR."/Facebook/$type", $this->queryConfig[$type]['cacheLifetime'], TRUE);
     }
     
     return $this->queryConfig[$type]['cache'];
@@ -770,7 +771,7 @@ class FacebookGroup {
     $cache = $this->getCacheForQuery($type);
 
     $path = $id.$this->queryConfig[$type]['suffix'];
-    $cacheName = $type.'_'.($id ? $id : http_build_query($params, null, '&'));
+    $cacheName = $id ? $id : http_build_query($params, null, '&');
 
     $shouldCache = $cache && $method == 'GET';
     $invalidateCache = $cache && $method != 'GET';
@@ -813,7 +814,12 @@ class FacebookGroup {
     $results = array();
   
     $cache = $this->getCacheForQuery($type);
-    $cacheName = $type.'_'.($cacheSuffix ? $cacheSuffix : md5($query));
+    $cacheName = ($cacheSuffix ? $cacheSuffix : md5($query));
+    if (isset($this->queryConfig[$type], 
+              $this->queryConfig[$type]['perUser']) && 
+        $this->queryConfig[$type]['perUser']) {
+      $cacheName .= '_'.$this->getMyId();
+    }
     
     if ($cache->isFresh($cacheName)) {
       $results = $cache->read($cacheName);
