@@ -101,7 +101,7 @@ class SiteLoginWebModule extends LoginWebModule
             
             if (isset($this->args['login_cancel'])) {
                 if ($this->isLoggedIn($authorityIndex)) {
-                    $this->redirectTo('logout', $this->buildURL('logout', $logoutOptions));
+                    $this->redirectTo('logout', $logoutOptions);
                 
                 } else {
                     $this->redirectTo('index', $defaultArgs);
