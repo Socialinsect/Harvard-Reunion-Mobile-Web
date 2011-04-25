@@ -35,10 +35,11 @@
 
 .loginBlock .anonymous form p select {
 	height: 2.25em;
-	padding: 4px 6px;
+	padding: 5px 6px;
+	margin-top: 3px;
 }
 .loginBlock .signinbuttons {
-	margin: 1.75em 0 0 0;
+	margin: 31px 0 0 0;
 }
 
 .loginBlock .columns > * {

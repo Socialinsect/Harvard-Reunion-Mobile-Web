@@ -14,7 +14,7 @@
     <h3>Sign in using your alumni login:</h3>
   {/if}
 
-  <form id="signin" name="signin" action="login" method="POST">
+  <form id="signin" name="signin" action="login" method="POST" onsubmit="return validateHarrisForm();">
     {foreach $defaultArgs as $arg => $value}
       <input type="hidden" name="{$arg}" value="{$value}" />
     {/foreach}

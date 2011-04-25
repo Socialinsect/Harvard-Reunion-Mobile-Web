@@ -33,7 +33,7 @@
           {/if}
         </p>
       
-        <form id="signin" name="signin" action="login" method="POST">
+        <form id="signin" name="signin" action="login" method="POST" onsubmit="return validateHarrisForm();">
           {foreach $defaultArgs as $arg => $value}
             <input type="hidden" name="{$arg}" value="{$value}" />
           {/foreach}

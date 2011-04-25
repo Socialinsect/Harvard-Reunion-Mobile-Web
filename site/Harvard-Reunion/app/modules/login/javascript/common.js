@@ -13,3 +13,13 @@ function validateSelectCollegeForm() {
         return false;
     }
 }
+function validateHarrisForm() {
+    if (!formCancelButtonPressed && document.getElementById("username").value=="") {
+        alert("Please enter your username.")
+        return false;
+    }
+    if (!formCancelButtonPressed && document.getElementById("pwd").value=="") {
+        alert("Please enter your password.")
+        return false;
+    }
+}
