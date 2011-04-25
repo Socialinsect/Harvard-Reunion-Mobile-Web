@@ -1,5 +1,7 @@
 <?php
 
+define('AUTH_HARRIS_ERROR', -101);
+
 class HarrisReunionAuthentication extends AuthenticationAuthority
 {
     protected $returnHeaders=array();
@@ -85,6 +87,14 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             error_log("Error communicating with Harris: $curlError");
             return AUTH_ERROR;
             
+        } else if (strpos($result, '<!DOCTYPE') === 0) {
+          // User just received an interstitial page which could be a message
+          // saying their account got suspended or they need to answer a 
+          // security question because they haven't logged in in a long time
+          // Either way we need to route them to the full Harris login
+          // since these pages are not mobile-friendly or computer parsable
+          return AUTH_HARRIS_ERROR;
+          
         } else {
             error_log("Unhandled Harris output: '$result'");
             throw new Exception("Unhandled Harris output");

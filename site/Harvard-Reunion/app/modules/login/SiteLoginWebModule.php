@@ -156,7 +156,12 @@ class SiteLoginWebModule extends LoginWebModule
                         $this->setTemplatePage($authorityIndex);
                         $this->assign('authFailed', true);
                         break;
-    
+                    
+                    case AUTH_HARRIS_ERROR:
+                        $this->setTemplatePage($authorityIndex);
+                        $this->assign('authHarrisError', true);
+                        break;
+                    
                     default:
                         $this->setTemplatePage('error');
                         $this->assign('continueURL', URL_PREFIX.ltrim($this->buildURL('index', $options)));

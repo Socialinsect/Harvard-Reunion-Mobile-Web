@@ -8,6 +8,8 @@
 
   {if $authFailed}
     <p>We're sorry, but there was a problem with your login. Please check your user ID and password (the same login you use at alumni.harvard.edu) and try again.</p>
+  {elseif $authHarrisError}
+    <p>We're sorry, but there is a problem with your alumni login.  Please visit the Harvard University Alumni Affairs and Development website and <a href="https://cayman.alumniconnections.com/olc/membersonly/HAA/login/" target="reunionHarris">log in</a> to resolve this issue.
   {else}
     <h3>Sign in using your alumni login:</h3>
   {/if}
