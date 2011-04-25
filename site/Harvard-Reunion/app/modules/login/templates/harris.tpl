@@ -9,7 +9,7 @@
   {if $authFailed}
     <p>We're sorry, but there was a problem with your login. Please check your user ID and password (the same login you use at alumni.harvard.edu) and try again.</p>
   {elseif $authHarrisError}
-    <p>We're sorry, but there is a problem with your alumni login.  Please log in to the <a href="https://cayman.alumniconnections.com/olc/membersonly/HAA/login/" target="reunionHarris">Harvard University Alumni Affairs and Development website</a> to resolve this issue.</p>
+    <p>We're sorry, but there is a problem with your alumni login.  Please log in to the <a href="https://post.harvard.edu/olc/pub/HAA/login/olclogin.cgi?FNC=LogIn__Alogindefault_html" target="reunionHarris">Harvard University Alumni Affairs and Development website</a> to resolve this issue.</p>
   {else}
     <h3>Sign in using your alumni login:</h3>
   {/if}

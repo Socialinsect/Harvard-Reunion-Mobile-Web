@@ -5,11 +5,10 @@ define('AUTH_HARRIS_ERROR', -101);
 class HarrisReunionAuthentication extends AuthenticationAuthority
 {
     protected $returnHeaders=array();
-    protected $testing = true;
     
     protected function auth($login, $password, &$user) {
     
-        if ($this->testing) {
+        if (Kurogo::getSiteVar('HARRIS_TEST_USERS')) {
             $user = $this->getUser($login);
             
             $testUsers = array(
@@ -38,9 +37,9 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             // If not one of the test users, fall through to Harris
         }
     
-        $url = 'https://cayman.alumniconnections.com/olc/pub/HAA/login/app.sph/olclogin.app';
+        $url = Kurogo::getSiteVar('HARRIS_LOGIN_URL');
         $params = array(
-            'referer'        => 'https://cayman.alumniconnections.com/olc/membersonly/HAA/login/dboard_access.cgi?'.http_build_query(array(
+            'referer'        => Kurogo::getSiteVar('HARRIS_REFERER_URL').http_build_query(array(
                 'key'      => 'harvard',
                 'q'        => 'emreunion',
                 'event_id' => '1763952',
@@ -112,13 +111,6 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
                         
                     } elseif (count($data) == count($fields)) {
                         $data = array_combine($fields, $data);
-                        
-                        if ($this->testing) {
-                          switch ($login) {
-                            case 'ormsbee':
-                              $data['class_year'] = '1976';
-                          }
-                        }
                         
                         $user = new HarrisReunionUser($this);
                         $user->setUserID($login);
