@@ -1,16 +1,20 @@
 {include file="findInclude:common/templates/header.tpl" customHeader=''}
 
 <div class="nonfocal">
-
   {include file="findInclude:modules/{$moduleID}/templates/banner.tpl"}
+</div>
+
+<div class="{if $tabletDisplay}loginBlock{else}nonfocal{/if}">
 
   {if $authFailed}
     <p>We're sorry, but there was a problem with your login. Please check your user ID and password (the same login you use at alumni.harvard.edu) and try again.</p>
+  {elseif $authHarrisError}
+    <p>We're sorry, but there is a problem with your alumni login.  Please log in to the <a href="https://post.harvard.edu/olc/pub/HAA/login/olclogin.cgi?FNC=LogIn__Alogindefault_html" target="reunionHarris">Harvard University Alumni Affairs and Development website</a> to resolve this issue.</p>
   {else}
     <h3>Sign in using your alumni login:</h3>
   {/if}
 
-  <form id="signin" name="signin" action="login" method="POST">
+  <form id="signin" name="signin" action="login" method="POST" onsubmit="return validateHarrisForm();">
     {foreach $defaultArgs as $arg => $value}
       <input type="hidden" name="{$arg}" value="{$value}" />
     {/foreach}

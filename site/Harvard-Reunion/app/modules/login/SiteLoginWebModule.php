@@ -4,7 +4,10 @@ class SiteLoginWebModule extends LoginWebModule
 {
 
   protected function initializeForPage() {
+    $tabletDisplay = stripos($_SERVER['HTTP_USER_AGENT'], '(ipad;') !== FALSE;
     $nativeApp = $this->getArg('nativeApp', false);
+    
+    $this->assign('tabletDisplay', $tabletDisplay);
     
     // Default args to pass through forms and urls
     $defaultArgs = array();
@@ -98,7 +101,7 @@ class SiteLoginWebModule extends LoginWebModule
             
             if (isset($this->args['login_cancel'])) {
                 if ($this->isLoggedIn($authorityIndex)) {
-                    $this->redirectTo('logout', $this->buildURL('logout', $logoutOptions));
+                    $this->redirectTo('logout', $logoutOptions);
                 
                 } else {
                     $this->redirectTo('index', $defaultArgs);
@@ -153,7 +156,12 @@ class SiteLoginWebModule extends LoginWebModule
                         $this->setTemplatePage($authorityIndex);
                         $this->assign('authFailed', true);
                         break;
-    
+                    
+                    case AUTH_HARRIS_ERROR:
+                        $this->setTemplatePage($authorityIndex);
+                        $this->assign('authHarrisError', true);
+                        break;
+                    
                     default:
                         $this->setTemplatePage('error');
                         $this->assign('continueURL', URL_PREFIX.ltrim($this->buildURL('index', $options)));
@@ -171,6 +179,10 @@ class SiteLoginWebModule extends LoginWebModule
                 $this->setTemplatePage('noreunion');
                 $this->assign('loginURL', $this->buildURL('index', $defaultArgs));
             
+            } elseif ($tabletDisplay) {
+                $this->assign('reunionYears', Schedule::getAllReunionYears());
+                $this->assign('suppressiOSLink', $nativeApp);
+
             } elseif ($authority = $this->getArg('authority')) {
                 if ($authority == 'anonymous') {
                     $this->assign('reunionYears', Schedule::getAllReunionYears());

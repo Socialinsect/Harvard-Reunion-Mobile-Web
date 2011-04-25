@@ -655,7 +655,7 @@ class Schedule {
     $registrationRequired = $event->get_attribute('Registration Required');
     if (strtolower($registrationRequired) == 'yes') {
       $info['registration'] = array(
-        'url'        => 'http://alumni.harvard.edu/',
+        'url'        => '',
         'fee'        => '',
         'registered' => $info['attending'],
       );
@@ -711,45 +711,48 @@ class Schedule {
         $placeTitle = $locationTitle;
       }
       
-      if ($locationBuildingID) {
-        $location['building'] = $locationBuildingID;
-        
-        $mapModule = WebModule::factory('map');
-        
-        $buildingInfo = $mapModule->getBuildingDataById($locationBuildingID);
-        if (isset($buildingInfo['Address'])) {
-          $location['address']['street'] = mb_convert_case($buildingInfo['Address'], MB_CASE_TITLE);
-          
-          if (isset($buildingInfo['City'])) {
-            $location['address']['city'] = mb_convert_case($buildingInfo['City'], MB_CASE_TITLE);
-          }
-          if (isset($buildingInfo['State'])) {
-            $location['address']['state'] = $buildingInfo['State'];
-          }
-        }
-        
-        if (isset($buildingInfo['Building Name'])) {
-          $placeTitle = mb_convert_case($buildingInfo['Building Name'], MB_CASE_TITLE);
-        }
-        
-        if ($buildingInfo['coords']) {
-          $location['latlon'] = array_values($buildingInfo['coords']);
-        }
-        //error_log(print_r($buildingInfo, true));
-      }
-      
-      if ($trumbaLocation) {
-        if (preg_match(';<Latitude>([^<]+)</Latitude>.*<Longitude>([^<]+)</Longitude>;', $trumbaLocation, $matches)) {
-          $location['latlon'] = array($matches[1], $matches[2]);
-        }
+      if ($foursquareId) {
+        $location['foursquareId'] = $foursquareId;
       }
       
       $multipleLocations = $event->get_attribute('Multiple Locations');
       if (strtolower($multipleLocations) == 'yes') {
         $location['multiple'] = true;
-      }
-      if ($foursquareId) {
-        $location['foursquareId'] = $foursquareId;
+      
+      } else {
+        // Only check these fields if there is only one location
+        if ($locationBuildingID) {
+          $location['building'] = $locationBuildingID;
+          
+          $mapModule = WebModule::factory('map');
+          
+          $buildingInfo = $mapModule->getBuildingDataById($locationBuildingID);
+          if (isset($buildingInfo['Address'])) {
+            $location['address']['street'] = mb_convert_case($buildingInfo['Address'], MB_CASE_TITLE);
+            
+            if (isset($buildingInfo['City'])) {
+              $location['address']['city'] = mb_convert_case($buildingInfo['City'], MB_CASE_TITLE);
+            }
+            if (isset($buildingInfo['State'])) {
+              $location['address']['state'] = $buildingInfo['State'];
+            }
+          }
+          
+          if (isset($buildingInfo['Building Name'])) {
+            $placeTitle = mb_convert_case($buildingInfo['Building Name'], MB_CASE_TITLE);
+          }
+          
+          if ($buildingInfo['coords']) {
+            $location['latlon'] = array_values($buildingInfo['coords']);
+          }
+          //error_log(print_r($buildingInfo, true));
+        }
+        
+        if ($trumbaLocation) {
+          if (preg_match(';<Latitude>([^<]+)</Latitude>.*<Longitude>([^<]+)</Longitude>;', $trumbaLocation, $matches)) {
+            $location['latlon'] = array($matches[1], $matches[2]);
+          }
+        }
       }
       
       $info['location'] = $location;

@@ -2,6 +2,9 @@
 
 <div class="nonfocal">
   {include file="findInclude:modules/{$moduleID}/templates/banner.tpl"}
+</div>
+
+<div class="{if $tabletDisplay}loginBlock{else}nonfocal{/if}">
   
   <h3>This graduation class has separate reunions for Harvard and Radcliffe.  Please select which reunion you will be attending:</h3>
   

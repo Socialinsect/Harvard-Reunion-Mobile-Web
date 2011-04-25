@@ -44,18 +44,25 @@
     
     <script src="{$minify['js']}" type="text/javascript"></script>
 
-    {if count($onOrientationChangeBlocks)}
-      <script type="text/javascript">
-        function onOrientationChange() {ldelim}
+    <script type="text/javascript">
+      function onOrientationChange() {ldelim}
+        rotateScreen();
+        {foreach $onOrientationChangeBlocks as $script}
+          {$script}
+        {/foreach}
+      {rdelim}
+      window.addEventListener("orientationchange", onOrientationChange, false);
+      
+      {if count($onOrientationChangeBlocks)}
+        function onResize() {ldelim}
           {foreach $onOrientationChangeBlocks as $script}
             {$script}
           {/foreach}
         {rdelim}
-        window.addEventListener("orientationchange", onOrientationChange, false);
-        window.addEventListener("resize", onOrientationChange, false);
-      </script>
-    {/if}
-
+        window.addEventListener("resize", onResize, false);
+      {/if}
+    </script>
+    
     {if count($onLoadBlocks)}
       <script type="text/javascript">
         function onLoad() {ldelim}
@@ -76,8 +83,8 @@
       content="width=device-width, {if $scalable|default:true}user-scalable=yes{else}user-scalable=no, initial-scale=1.0, maximum-scale=1.0{/if}" />
   {/block}
   {block name="homeScreenIcon"}
-  <link rel="apple-touch-icon" href="/common/images/icon.png" />
-  <link rel="apple-touch-icon-precomposed" href="/common/images/icon.png" />
+  <link rel="apple-touch-icon" href="{$smarty.const.FULL_URL_BASE|nosecure}common/images/icon.png" />
+  <link rel="apple-touch-icon-precomposed" href="{$smarty.const.FULL_URL_BASE|nosecure}common/images/icon.png" />
   {/block}
   {block name="additionalHeadTags"}{/block}
 </head>
@@ -121,7 +128,7 @@
 <body class="{$configModule|capitalize}Module" 
   {block name="onLoad"}
     {if count($onLoadBlocks) || count($onOrientationChangeBlocks)}
-      onload="{if count($onLoadBlocks)}onLoad();{/if}{if count($onOrientationChangeBlocks)}onOrientationChange();{/if}"
+      onload="{if count($onLoadBlocks)}onLoad();{/if}onOrientationChange();"
     {/if}
   {/block}>
   <div id="nonfooternav">

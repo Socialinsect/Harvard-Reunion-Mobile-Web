@@ -10,6 +10,54 @@
   	text-shadow: #333 0 1px 1px;
 }
 
+.ipadReunionHeader {
+	background: url(/modules/login/images/shields-big.png) no-repeat left;
+	padding-left: 144px;
+	font-size: 110%;
+	margin: 28px 1em;
+	min-height: 75px;
+}
+
+.ipadReunionHeader h1 {
+	font-size: 129.4%;
+	line-height: 1.2em;
+	text-shadow: #333 0 1px 1px;
+	margin: 6px 0 5px -2px;
+}
+
+.loginBlock,
+.nonfocal.loginBlock {
+  margin: 0;
+	padding: 1.5em 1.75em;
+	background: rgba(0, 0, 0, 0.3);
+	overflow: hidden;
+}
+
+.loginBlock .anonymous form p select {
+	height: 2.25em;
+	padding: 5px 6px;
+	margin-top: 3px;
+}
+.loginBlock .signinbuttons {
+	margin: 31px 0 0 0;
+}
+
+.loginBlock .columns > * {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.loginBlock .columns .harris,
+.loginBlock .columns .anonymous {
+  width: 45%;
+}
+
+.loginBlock .columns .or {
+  width: 9.99%;
+  text-align: center;
+  font-weight: bold;
+}
+
 h2 {
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 	font-size: 100%;

@@ -2,6 +2,9 @@
 
 <div class="nonfocal">
   {include file="findInclude:modules/{$moduleID}/templates/banner.tpl"}
+</div>
+
+<div class="{if $tabletDisplay}loginBlock{else}nonfocal{/if}">
 
   <h3>Enter anonymously by selecting your graduation year:</h3>
 
@@ -28,7 +31,9 @@
   </form>
 
   <div class="clear"></div>
+</div>
 
+<div class="nonfocal">
   <div class="helptext">
     <p>Note: Entering this app anonymously will lock you out of private areas and personalized features. For the full reunion app experience, please <a href="index?authority=harris&url=%2Fhome%2Findex">sign in</a>.</p>
     <p>Not registered? <a href="https://post.harvard.edu/olc/pub/HAA/register/register.cgi" target="reunionHarris">Sign up</a> for an alumni login.</p>
