@@ -187,6 +187,14 @@ class Kurogo
       define('IS_SECURE', isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on');
       define('FULL_URL_BASE', 'http'.(IS_SECURE ? 's' : '').'://'.$_SERVER['HTTP_HOST'].URL_BASE);
       define('COOKIE_PATH', URL_BASE); // We are installed under URL_BASE
+
+      // make sure host is all lower case
+      if ($host != strtolower($host)) {
+        $url = 'http'.(IS_SECURE ? 's' : '').'://' . strtolower($host) . $path;
+        header("Location: $url");
+        exit();
+      }
+    
     
       //
       // Install exception handlers
@@ -371,7 +379,7 @@ class Kurogo
         //clear all folders
         
         //exclue session folder
-        $excludeDirs = array('session','.','..');
+        $excludeDirs = array('session','UserData','.','..');
         $dirs = scandir(CACHE_DIR);
         foreach ($dirs as $dir) {
             if ( is_dir(CACHE_DIR."/$dir") && !in_array($dir, $excludeDirs)) {

@@ -166,6 +166,10 @@ class AdminAPIModule extends APIModule
                     
                 foreach ($sectionData['sections'] as $section=>&$sectionFields) {
                     foreach($sectionFields as $key=>&$value) {
+                        if (isset($sectionData['fields'][$key]['type']) && $sectionData['fields'][$key]['type']=='paragraph') {
+                            $value = implode("\n\n", $value);
+                        }
+
                         $v = $this->getUnconstantedValue($value, $constant);
                         if ($constant) {
                             $value = array($constant, $v, $value);
@@ -274,10 +278,10 @@ class AdminAPIModule extends APIModule
 
         //remove blank values before validation
         if (is_array($value)) {
-            foreach ($value as $k=>&$v) {
+            foreach ($value as $k=>$v) {
                 $prefix = isset($value[$k . '_prefix']) ? $value[$k . '_prefix'] : '';
                 if ($prefix && defined($prefix)) {
-                    $v = constant($prefix) . '/' . $v;
+                    $value[$k] = constant($prefix) . '/' . $v;
                 }
                 if (isset($value[$k . '_prefix'])) {
                     unset($value[$k . '_prefix']);
@@ -286,6 +290,10 @@ class AdminAPIModule extends APIModule
                 if (isset($fieldData['fields'][$k]['omitBlankValue']) && $fieldData['fields'][$k]['omitBlankValue'] && strlen($v)==0) {
                     $changed = $changed || $config->clearVar($key, $k);
                     unset($value[$k]);
+                }
+
+                if ($fieldData['fields'][$k]['type']=='paragraph') {
+                    $value[$k] = explode("\n\n", str_replace(array("\r\n","\r"), array("\n","\n"), $v));
                 }
             }
         }
@@ -313,9 +321,6 @@ class AdminAPIModule extends APIModule
                     $v = constant($prefix) . '/' . $v;
                 }
                 
-                if ($fieldData['fields'][$k]['type']=='paragraph') {
-                    $v = explode("\n\n", str_replace(array("\r\n","\r"), array("\n","\n"), $v));
-                }
                 if (!$config->setVar($key, $k, $v, $c)) {
                     $result = false;
                 }

@@ -187,6 +187,11 @@ abstract class WebModule extends Module {
     if ($pageOnly) {
       $minifyArgs['pageOnly'] = 'true';
     }
+    
+    if ($this->id != $this->configModule) {
+      $minifyArgs['config'] = $this->configModule;
+    }
+    
     $minifyArgString = http_build_query($minifyArgs);
     
     return ($minifyArgString ? "&$minifyArgString" : '');
@@ -636,13 +641,13 @@ abstract class WebModule extends Module {
       $this->$memberName = array_unique(array_merge($this->$memberName, $arrays));
     }
   }
-  protected function addJQuery() {
-    $this->addInternalJavascript('/common/javascript/jquery.js');
+  protected function addJQuery($version='1.5.1') {
+    $this->addInternalJavascript("/common/javascript/lib/jquery-{$version}.js");
   }
 
-  protected function addJQueryUI() {
+  protected function addJQueryUI($version='1.8.11') {
     $this->addJQuery();
-    $this->addInternalJavascript('/common/javascript/jquery-ui.js');
+    $this->addInternalJavascript("/common/javascript/lib/jquery-ui-{$version}.js");
   }
   
   //
@@ -914,6 +919,12 @@ abstract class WebModule extends Module {
   protected function getPageTitle() {
     return $this->pageTitle;
   }
+  protected function setPageTitles($title) {
+    $this->setPageTitle($title);
+    $this->setBreadcrumbTitle($title);
+    $this->setBreadcrumbLongTitle($title);
+  }
+
   protected function setPageTitle($title) {
     $this->pageTitle = $title;
   }
@@ -1064,7 +1075,7 @@ abstract class WebModule extends Module {
     
     // Tablet module nav list
     if ($this->pagetype == 'tablet') {
-      $this->addInternalJavascript('/common/javascript/lib/iscroll.js');
+      $this->addInternalJavascript('/common/javascript/lib/iscroll-4.0.js');
       $this->assign('moduleNavList', $this->getModuleNavlist());
     }
             
