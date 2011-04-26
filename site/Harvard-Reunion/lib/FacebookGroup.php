@@ -697,12 +697,6 @@ class FacebookGroup {
         $src = 'http://m.youtube.com/watch?v='.$videoID;
         $img = $post['picture'];
         if (isset($videoInfo['data'])) {
-          if (isset($videoInfo['data']['content'], $videoInfo['data']['content'][6])) {
-            $src = $videoInfo['data']['content'][6]; // MPEG-4 SP video (up to 176x144) and AAC audio
-            
-          } else if (isset($videoInfo['data']['content'], $videoInfo['data']['content'][1])) {
-            $src = $videoInfo['data']['content'][1]; // H.263 video (up to 176x144) and AMR audio.
-          } 
           if (isset($videoInfo['data']['thumbnail'])) {
             if (isset($videoInfo['data']['thumbnail']['hqDefault'])) {
               $img = $videoInfo['data']['thumbnail']['hqDefault'];
@@ -750,7 +744,7 @@ class FacebookGroup {
   }
   
   private function buildLink($src, $img) {
-    return '<a class="videoLink" href="'.$src.'"><div class="playButton"></div><img src="'.$img.'" alt="Video" /></a>';
+    return '<a class="videoLink" href="'.$src.'"><div class="playButton"><div></div></div><img src="'.$img.'" alt="Video" /></a>';
   }
   
   private function getYouTubeData($id) {

@@ -1,0 +1,6 @@
+.videoLink .playButton {
+  background: none;
+  -ms-filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#B2000000,endColorstr=#B2000000);
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#B2000000,endColorstr=#B2000000);
+  zoom: 1;
+}
