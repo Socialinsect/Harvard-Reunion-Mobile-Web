@@ -97,6 +97,21 @@ class Foursquare {
     return $fullName;
   }
   
+  public function getUserPhoto() {
+    $photo = '';
+    
+    $results = $this->api('users', $this->getUserId());
+    //error_log(print_r($results, true));
+    
+    if (isset($results['response'], 
+              $results['response']['user'],
+              $results['response']['user']['photo'])) {
+      $photo = $results['response']['user']['photo'];
+    }
+    
+    return $photo;
+  }
+  
   public function getUserId() {
     $session = $this->getSession();
     if (!isset($session['uid']) || $session['uid'] == 'self') {
@@ -146,12 +161,11 @@ class Foursquare {
     return $venues;
   }
   
-  public function getVenueCheckinState($venueId) {
-    $venueCheckinState = array(
-      'checkedin'  => false,
-      'checkins'   => array(),
-      'otherCount' => 0,
-      'friendCount' => 0,
+  public function getVenueCheckins($venueId) {
+    $venueCheckins = array(
+      'self'      => array(),
+      'friends'   => array(),
+      'others'    => array(),
     );
 
     $results = $this->api('venues', $venueId);
@@ -170,17 +184,6 @@ class Foursquare {
         foreach ($group['items'] as $item) {
           if ($item['type'] != 'checkin' || !isset($item['user'])) { continue; }
           
-          if ($item['user']['id'] == $myId) {
-            $venueCheckinState['checkedin'] = true;
-          } else {
-            $venueCheckinState['otherCount']++;
-          }
-          
-          $isFriend = $item['user']['id'] != $myId && $group['type'] == 'friends';
-          if ($isFriend) {
-            $venueCheckinState['friendCount']++;
-          }
-          
           $parts = array();
           if (isset($item['user']['firstName'])) {
             $parts[] = $item['user']['firstName'];
@@ -191,7 +194,6 @@ class Foursquare {
           
           $checkin = array(
             'id'     => $item['user']['id'],
-            'friend' => $isFriend,
             'name'   => implode(' ', $parts),
             'when'   => array(
               'time'       => $item['createdAt'],
@@ -208,11 +210,19 @@ class Foursquare {
             $checkin['photo'] = $item['user']['photo'];
           }
           
-          $venueCheckinState['checkins'][] = $checkin;
+          if ($item['user']['id'] == $myId) {
+            $venueCheckins['self'][] = $checkin;
+            
+          } else if ($group['type'] == 'friends') {
+            $venueCheckins['friends'][] = $checkin;
+            
+          } else {
+            $venueCheckins['others'][] = $checkin;
+          }
         }
       }
       
-      if (!$venueCheckinState['checkedin']) {
+      if (!count($venueCheckins['self'])) {
         // Sometimes foursquare doesn't show the user's own checkins via this api.  
         // So if the user isn't checked in, make sure this is actually the case 
         // via the checkins api
@@ -241,23 +251,27 @@ class Foursquare {
             if (isset($newest['venue'], $newest['venue']['id']) && $newest['venue']['id'] == $realVenueId) {
               $checkin = array(
                 'id'     => $this->getUserId(),
-                'friend' => true,
                 'name'   => $this->getUserFullName(),
+                'photo'  => $this->getUserPhoto(),
                 'when'   => array(
                   'time'       => $newest['createdAt'],
                   'delta'      => FacebookGroup::relativeTime(intval($newest['createdAt'])),
                   'shortDelta' => FacebookGroup::relativeTime(intval($newest['createdAt']), true),
                 ),
               );
-              array_unshift($venueCheckinState['checkins'], $checkin);
-              $venueCheckinState['checkedin'] = true;
+
+              if (isset($newest['shout'])) {
+                $checkin['message'] = $newest['shout'];
+              }
+          
+              $venueCheckins['self'][] = $checkin;
             }
           }
         }
       }
     }
     
-    return $venueCheckinState;
+    return $venueCheckins;
   }
     
   public function addCheckin($venueId, $message, $coords=null) {

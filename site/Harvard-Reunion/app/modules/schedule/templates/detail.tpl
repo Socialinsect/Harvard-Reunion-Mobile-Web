@@ -19,9 +19,12 @@
 </div>
 
 {if isset($sections['checkin'], $sections['checkin'][0])}
+  {$checkedIn = count($checkins['self']) > 0}
+  {$nonSelfCount = count($checkins['friends']) + count($checkins['others'])}
+
   {capture name="label" assign="label"}
     {block name="checkinLabel"}
-      {if $checkinState['checkedin']}
+      {if $checkedIn}
         <img id="fqCheckin" src="/common/images/button-foursquare-checkedin{$imageExt}" /> 
       {else}
         <img id="fqCheckin" src="/common/images/button-foursquare{$imageExt}" /> 
@@ -31,10 +34,10 @@
   {$sections['checkin'][0]['label'] = $label}
   
   {capture name="title" assign="title"}
-    {if $checkinState['checkedin']}
-      You {if $checkinState['otherCount']}and {/if}
-      {if $checkinState['otherCount']}
-        {$checkinState['otherCount']} other {if $checkinState['otherCount'] > 1}people{else}person{/if} 
+    {if $checkedIn}
+      You {if $nonSelfCount}and {/if}
+      {if $nonSelfCount}
+        {$nonSelfCount} other {if $nonSelfCount > 1}people{else}person{/if} 
       {/if}
       are checked in
     {else}
@@ -43,10 +46,10 @@
   {/capture}
   {$sections['checkin'][0]['title'] = $title}
 
-  {if !$checkinState['checkedin'] && $checkinState['otherCount']}
+  {if !$checkedIn && $nonSelfCount}
     {capture name="subtitle" assign="subtitle"}
-      {$checkinState['otherCount']} 
-      {if $checkinState['otherCount'] > 1}people are{else}person is{/if} 
+      {$nonSelfCount} 
+      {if $nonSelfCount > 1}people are{else}person is{/if} 
       checked in
     {/capture}
     {$sections['checkin'][0]['subtitle'] = $subtitle}

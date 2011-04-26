@@ -292,18 +292,17 @@ class SiteScheduleWebModule extends WebModule {
               ))
             );
             
-            $checkinState = array(
-              'checkedin'   => false,
-              'otherCount'  => 0,
-              'friendCount' => 0,
+            $venueCheckins = array(
+              'self'    => array(),
+              'friends' => array(),
+              'others'  => array(),
             );
             
             $foursquare = $this->schedule->getFoursquareFeed();
             if (!$foursquare->needsLogin()) {
-              $checkinState = array_merge($checkinState,
-                $foursquare->getVenueCheckinState($info['location']['foursquareId']));
+              $venueCheckins = $foursquare->getVenueCheckins($info['location']['foursquareId']);
             }
-            $this->assign('checkinState', $checkinState);
+            $this->assign('checkins', $venueCheckins);
             
             $sections['checkin'] = array($checkin);
           }
@@ -528,9 +527,9 @@ class SiteScheduleWebModule extends WebModule {
           $venue = $info['location']['foursquareId'];
           $foursquare = $this->schedule->getFoursquareFeed();
         
-          $venueCheckinState = $foursquare->getVenueCheckinState($venue);
-          if ($venueCheckinState) {
-            $this->assign('state', $venueCheckinState);
+          $venueCheckins = $foursquare->getVenueCheckins($venue);
+          if ($venueCheckins) {
+            $this->assign('checkins', $venueCheckins);
           }
         
           $this->addInternalJavascript('/common/javascript/lib/utils.js');
@@ -554,9 +553,9 @@ class SiteScheduleWebModule extends WebModule {
         $venue = $this->getArg('venue');
         $foursquare = $this->schedule->getFoursquareFeed();
         
-        $venueCheckinState = $foursquare->getVenueCheckinState($venue);
-        if ($venueCheckinState) {
-          $this->assign('state', $venueCheckinState);
+        $venueCheckins = $foursquare->getVenueCheckins($venue);
+        if ($venueCheckins) {
+          $this->assign('checkins', $venueCheckins);
         }
         break;
       
@@ -564,9 +563,9 @@ class SiteScheduleWebModule extends WebModule {
         $venue = $this->getArg('venue');
         $foursquare = $this->schedule->getFoursquareFeed();
         
-        $venueCheckinState = $foursquare->getVenueCheckinState($venue);
-        if ($venueCheckinState) {
-          $this->assign('state', $venueCheckinState);
+        $venueCheckins = $foursquare->getVenueCheckins($venue);
+        if ($venueCheckins) {
+          $this->assign('checkins', $venueCheckins);
         }
         break;
       

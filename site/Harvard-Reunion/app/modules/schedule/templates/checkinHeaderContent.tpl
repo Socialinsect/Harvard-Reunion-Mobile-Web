@@ -1,18 +1,25 @@
 <div class="nonfocal">
   <p>
-    {if $state['error']}
-      {$state['error']}
+    {if $checkins['error']}
+      {$checkins['error']}
     {else}
-      {if $state['checkedin']}
-        You're here!<br/>
+      {$checkedIn = count($checkins['self']) > 0}
+      {$nonSelfCount = count($checkins['friends']) + count($checkins['others'])}
+      {$totalCount = $nonSelfCount + count($checkins['self'])}
+      
+      {if $checkedIn}
+        {if $nonSelfCount}
+          You and 
+        {else}
+          You're here!<br/>
+        {/if}
       {/if}
-      {if $state['otherCount']}
-        {$state['otherCount']} 
-        {if $state['checkedin']}other {/if}
-        {if $state['otherCount'] > 1}people are{else}person is{/if} here
-        {if $state['friendCount']} including {$state['friendCount']} of your friends{/if}
+      {if $nonSelfCount}
+        {$nonSelfCount} 
+        {if $checkedIn}other {/if}
+        {if $nonSelfCount > 1}people{else}person{/if} {if $totalCount > 1}are{else}is{/if} here
       {else}
-        No one {if $state['checkedin']}else {/if}has checked in yet
+        No one {if $checkedIn}else {/if}has checked in yet
       {/if}
     {/if}
   </p>

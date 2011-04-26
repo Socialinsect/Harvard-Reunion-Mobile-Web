@@ -25,7 +25,7 @@
   {include file="findInclude:modules/$moduleID/templates/checkinHeaderContent.tpl" state=$state}
 </div>
 
-{if !$state['checkedin'] && !$state['error']}
+{if !count($checkins['self']) && !isset($checkins['error'])}
   <div class="focal checkinForm">
     <form method="get" action="addCheckin">
       <textarea rows="3" name="message" id="messageText" placeholder="Add a shout with this checkin"></textarea>
