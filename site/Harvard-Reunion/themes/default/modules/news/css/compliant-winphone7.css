@@ -1,0 +1,30 @@
+.ellipsis {
+  border-width: 0;
+  padding: 0;
+}
+
+#category-switcher .formlabel {
+  width: 4em;
+}
+
+#navbar {
+  margin: 0;
+}
+
+#container .header {
+  margin: -2px 0 0 0;
+  padding: 0;
+}
+
+#container .header #category-switcher {
+  margin: 0;
+  height: 33px;
+}
+
+#container .header + .results {
+  margin-top: 0;
+}
+
+#container .news {
+  margin-top: 0;
+}

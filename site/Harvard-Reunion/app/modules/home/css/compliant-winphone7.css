@@ -11,3 +11,9 @@
 #ribbon .ribbonDesc {
 	padding-top: 24px;
 }
+
+.chatbubble .message,
+.chatbubble .info {
+  border-width: 0;
+  padding: 0;
+}

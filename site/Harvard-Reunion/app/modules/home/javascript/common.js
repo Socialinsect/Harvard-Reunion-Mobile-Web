@@ -16,7 +16,9 @@ function updateRecentMessage() {
   var httpRequest = new XMLHttpRequest();
   httpRequest.onreadystatechange = function() {
     if (httpRequest.readyState == 4) {
-      var json = JSON.parse(httpRequest.responseText);
+      var json = window.JSON ? 
+        JSON.parse(httpRequest.responseText) : 
+        (new Function("return "+httpRequest.responseText))();
       
       if (json.response && json.response.message) {
         document.getElementById('recentMessage').innerHTML = json.response.message;
