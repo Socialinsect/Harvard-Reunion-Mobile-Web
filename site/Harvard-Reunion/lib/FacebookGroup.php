@@ -95,6 +95,18 @@ class FacebookGroup {
       'cacheLifetime' => self::PLACE_LIFETIME,
       'suffix'        => '/search',
     ),
+    'youtube' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::OBJECT_LIFETIME,
+      'suffix'        => '',
+      'fields'        => self::ALL_FIELDS,
+    ),
+    'vimeo' => array(
+      'cache'         => null,
+      'cacheLifetime' => self::OBJECT_LIFETIME,
+      'suffix'        => '',
+      'fields'        => self::ALL_FIELDS,
+    ),
   );
   const AUTHOR_URL    = 'http://m.facebook.com/profile.php?id=';
   const OLD_GROUP_URL = 'http://m.facebook.com/group.php?gid=';
@@ -666,7 +678,7 @@ class FacebookGroup {
     $isObject = isset($post['object_id']) && $post['object_id'];
     
     $platform = $GLOBALS['deviceClassifier']->getPlatform();
-    $needsLink = $platform != 'iphone' && $platform != 'ipad' && $platform != 'android' && $platform != 'winphone7';
+    $needsLink = $platform != 'iphone' && $platform != 'ipad' && $platform != 'android';
 
     if ($isObject) {
       if ($needsLink) {
@@ -679,7 +691,30 @@ class FacebookGroup {
       $videoID = $matches[1];
 
       if ($needsLink) {
-        $html = $this->buildLink('http://m.youtube.com/watch?v='.$videoID, $post['picture']);
+        $videoInfo = $this->getYouTubeData($videoID);
+        //error_log(print_r($videoInfo, true));
+
+        $src = 'http://m.youtube.com/watch?v='.$videoID;
+        $img = $post['picture'];
+        if (isset($videoInfo['data'])) {
+          if (isset($videoInfo['data']['content'], $videoInfo['data']['content'][6])) {
+            $src = $videoInfo['data']['content'][6]; // MPEG-4 SP video (up to 176x144) and AAC audio
+            
+          } else if (isset($videoInfo['data']['content'], $videoInfo['data']['content'][1])) {
+            $src = $videoInfo['data']['content'][1]; // H.263 video (up to 176x144) and AMR audio.
+          } 
+          if (isset($videoInfo['data']['thumbnail'])) {
+            if (isset($videoInfo['data']['thumbnail']['hqDefault'])) {
+              $img = $videoInfo['data']['thumbnail']['hqDefault'];
+              
+            } else if (isset($videoInfo['data']['thumbnail']['sqDefault'])) {
+              $img = $videoInfo['data']['thumbnail']['sqDefault'];
+            }
+          }
+        }
+        
+        $html = $this->buildLink($src, $img);
+        
       } else {
         $html = '<iframe id="videoFrame" class="youtube-player" src="http://www.youtube.com/embed/'.$videoID.
           '" width="240" height="195" frameborder="0"></iframe>';
@@ -687,17 +722,27 @@ class FacebookGroup {
     
     } else if (preg_match(';clip_id=([^&]+);', $source, $matches)) {
       $videoID = $matches[1];
-      $videoInfo = json_decode(file_get_contents(
-        "http://vimeo.com/api/v2/video/{$videoID}.json"), true);
+      $videoInfo = $this->getVimeoData($videoID);
+      //error_log(print_r($videoInfo, true));
       
-      if (isset($videoInfo, $videoInfo[0], $videoInfo[0]['width'], $videoInfo[0]['height'])) {
-        if ($needsLink) {
-          $html = $this->buildLink('http://www.vimeo.com/m/#/'.$videoID, $post['picture']);
-        } else {
-          $html = '<iframe id="videoFrame" src="http://player.vimeo.com/video/'.$videoID.
-            '" width="'.$videoInfo[0]['width'].'" height="'.$videoInfo[0]['height'].
-            '" frameborder="0"></iframe>';
+      if (!$needsLink && isset($videoInfo, $videoInfo[0], $videoInfo[0]['width'], $videoInfo[0]['height'])) {
+        $html = '<iframe id="videoFrame" src="http://player.vimeo.com/video/'.$videoID.
+          '" width="'.$videoInfo[0]['width'].'" height="'.$videoInfo[0]['height'].
+          '" frameborder="0"></iframe>';
+          
+      } else {
+        $src = 'http://www.vimeo.com/m/#/'.$videoID;
+        $img = $post['picture'];
+        if (isset($videoInfo[0])) {
+          if (isset($videoInfo[0]['mobile_url'])) {
+            $src = $videoInfo[0]['mobile_url'];
+          }
+          if (isset($videoInfo[0]['thumbnail_large'])) {
+            $img = $videoInfo[0]['thumbnail_large'];
+          }
         }
+        
+        $html = $this->buildLink($src, $img);
       }
     }
     
@@ -705,10 +750,49 @@ class FacebookGroup {
   }
   
   private function buildLink($src, $img) {
-    return '<a class="movieLink" href="'.$src.'"><img src="'.$img.'" alt="Movie" /></a>';
+    return '<a class="videoLink" href="'.$src.'"><div class="playButton"></div><img src="'.$img.'" alt="Video" /></a>';
   }
   
-  //
+  private function getYouTubeData($id) {
+    $cache = $this->getCacheForQuery('youtube');
+    $cacheName = $id;
+    
+    if ($cache->isFresh($cacheName)) {
+      $results = $cache->read($cacheName);
+    } else {
+      $url = 'http://gdata.youtube.com/feeds/mobile/videos/'.$id.'?'.http_build_query(array(
+        'v'      => 2,
+        'format' => 6, // RTSP streaming URL for mobile video playback
+        'alt'    => 'jsonc',
+      ));
+      
+      $results = json_decode(file_get_contents($url), true);
+      if (isset($results['data'])) {
+        $cache->write($results, $cacheName);
+      }
+    }
+    
+    return $results;
+  }
+  
+  private function getVimeoData($id) {
+    $cache = $this->getCacheForQuery('vimeo');
+    $cacheName = $id;
+    
+    if ($cache->isFresh($cacheName)) {
+      $results = $cache->read($cacheName);
+    } else {
+      $url = 'http://vimeo.com/api/v2/video/'.$id.'.json';
+      
+      $results = json_decode(file_get_contents($url), true);
+      if (isset($results[0])) {
+        $cache->write($results, $cacheName);
+      }
+    }
+    
+    return $results;
+  }
+   //
   // Query utility functions
   //
 
