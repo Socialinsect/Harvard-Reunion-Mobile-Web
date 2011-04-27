@@ -1,0 +1,9 @@
+.results .thumbnail {
+  overflow: hidden;
+}
+.results .thumbnail img {
+  max-width: none;
+  max-height: none;
+  width: 100%;
+  height: auto;
+}
