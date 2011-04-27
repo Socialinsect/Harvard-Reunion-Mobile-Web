@@ -35,3 +35,11 @@
 .searchHeader + .results {
   margin: 0;
 }
+
+#bookmarkContainer {
+  float: none;
+  position: absolute;
+  right: 0px;
+  top: 10px;
+  margin: 0;
+}
