@@ -815,12 +815,12 @@ class FacebookGroup {
   
   private function shouldCacheResultsForQuery($type, $results) {
     switch ($type) {
-      case 'group':
       case 'feed':
       case 'comments':
       case 'likes':
         return isset($results, $results['data']) && is_array($results['data']) && count($results['data']);
       
+      case 'group':
       case 'user':
       case 'post':
       case 'photo':
@@ -866,6 +866,7 @@ class FacebookGroup {
         if ($shouldCache) {
           if ($this->shouldCacheResultsForQuery($type, $results)) {
             $cache->write($results, $cacheName);
+            
           } else {
             error_log("Facebook Graph API request for $type '{$id}' returned empty data");
             $results = $cache->read($cacheName);

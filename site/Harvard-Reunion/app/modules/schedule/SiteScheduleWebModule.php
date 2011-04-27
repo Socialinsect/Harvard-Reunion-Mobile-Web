@@ -278,9 +278,10 @@ class SiteScheduleWebModule extends WebModule {
           $checkinThresholdStart = $event->get_start() - 60*15;
           $checkinThresholdEnd = $event->get_end() + 60*15;
           
-          // debugging:
-          $checkinThresholdStart = time() - ($event->get_end() - $event->get_start()) - 60*15;
-          $checkinThresholdEnd = $checkinThresholdStart + ($event->get_end() - $event->get_start()) + 60*15;
+          if (Kurogo::getOptionalSiteVar('FOURSQUARE_CHECKIN_DEBUG', false)) {
+            $checkinThresholdStart = time() - ($event->get_end() - $event->get_start()) - 60*15;
+            $checkinThresholdEnd = $checkinThresholdStart + ($event->get_end() - $event->get_start()) + 60*15;
+          }
           
           if ($now >= $checkinThresholdStart && $now <= $checkinThresholdEnd) {
             $checkin = array(

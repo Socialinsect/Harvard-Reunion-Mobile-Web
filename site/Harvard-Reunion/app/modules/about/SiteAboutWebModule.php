@@ -12,7 +12,24 @@ class SiteAboutWebModule extends AboutWebModule {
     
     switch ($this->page) {
       case 'index':
-        $this->assign('info', $schedule->getInfo());
+        $info = $schedule->getInfo();
+        
+        foreach ($info['sections'] as $s => $section) {
+          foreach ($section['links'] as $l => $link) {
+            if (isset($link['class'])) {
+              if (strpos('phone', $link['class']) !== false) {
+                $info['sections'][$s]['links'][$l]['subtitle'] = 
+                  str_replace('-', '-&shy;', $info['sections'][$s]['links'][$l]['subtitle']);
+                  
+              } else if (strpos('email', $link['class']) !== false) {
+                $info['sections'][$s]['links'][$l]['subtitle'] = 
+                  str_replace('@', '@&shy;', $info['sections'][$s]['links'][$l]['subtitle']);
+              }
+            }
+          }
+        }
+        
+        $this->assign('info', $info);
         break;
     }
   }
