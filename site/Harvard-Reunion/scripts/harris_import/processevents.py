@@ -111,8 +111,7 @@ def select_user_cols(col_grp):
 def select_event_cols(col_grp):
     """All events are of the format "Special Dinner #2131230", and correspond to
     line items in the Harris order form. The ColumnGroup we return changes the
-    format of the events to look like "2131230:Special Dinner", so that the IDs
-    come first."""
+    format of the events to have only IDs, like "2131230".""" 
     def _reformat_event_name(event_header):
         event_id, event_name = parse_event_header(event_header)
         return event_id
