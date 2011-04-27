@@ -176,7 +176,7 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 	font-size: 94.12%;
 	margin: 1px 0;
 	padding: 0;
-	background-color: #930310;
+	background-color: #4f0302;
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#3c0104), to(#6f0006));
 	color: #fff;  
 	width: 100%;
@@ -216,7 +216,7 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 #navbar2 .tabstrip .selected:first-child {
 	border-top-left-radius: 6px;
 	border-bottom-left-radius: 6px;
-	border-right: 1px solid #560005;
+	border-right: 1px solid #bc2e37;
 }
 
 #navbar2 .tabstrip a:first-child {
@@ -227,7 +227,7 @@ dt, .label, .legend, .legend.nonfocal, .legend h2, .legend h3, .searchlegend, .s
 #navbar2 .tabstrip .selected:last-child {
 	border-top-right-radius: 6px;
 	border-bottom-right-radius: 6px;
-	border-left: 1px solid #560005;
+	border-left: 1px solid #bc2e37;
 	float: right;
 }
 
