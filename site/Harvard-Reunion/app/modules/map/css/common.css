@@ -20,3 +20,18 @@
 #eventTab p.confirmed {
   background-image: url('/common/images/badge-confirmed.png'); 
 }
+
+#searchformcontainer + .searchHeader {
+  margin-top: 18px;
+}
+
+.searchHeader {
+  font: 94.1%/1.33em Georgia, serif;
+  color: white;
+  background: #292626;
+  margin: 0;
+  padding: 4px 10px;
+}
+.searchHeader + .results {
+  margin: 0;
+}

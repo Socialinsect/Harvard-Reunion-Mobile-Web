@@ -272,123 +272,124 @@ class SiteMapWebModule extends MapWebModule {
     return $eventInfo;
   }
 
-  protected static function placeTitleSort($a, $b) {
-    return strcasecmp(self::argVal($a, 'title', ''), self::argVal($b, 'title', ''));
-  }
-
   protected function initializeForPage() {
-    if ($this->page == 'detail') {
-      $eventId = $this->getArg('eventId');
-      $start   = $this->getArg('start', time());
-
-      if ($eventId) {
-        $eventInfo = $this->getEventDetails($eventId, $start);
-        
-        if (isset($eventInfo['location'], $eventInfo['location']['building'])) {
-          // Figure out the full Harvard campus category
-          if (!$this->feeds) {
-            $this->feeds = $this->loadFeedData();
-          }
-          foreach ($this->feeds as $id => $feed) {
-            if ($feed['TITLE'] == 'Search Results') {
-              $this->args['category'] = $id;
-              $this->args['featureindex'] = $eventInfo['location']['building'];
-              break;
-            }
-          }
-        } else if (isset($eventInfo['location'], $eventInfo['location']['latlon'])) {
-          $this->args['lat'] = $eventInfo['location']['latlon'][0];
-          $this->args['lon'] = $eventInfo['location']['latlon'][1];
+    switch ($this->page) {
+      case 'detail':
+        $eventId = $this->getArg('eventId');
+        $start   = $this->getArg('start', time());
+  
+        if ($eventId) {
+          $eventInfo = $this->getEventDetails($eventId, $start);
           
-        } else {
-          throw new Exception("Event '$eventId' not found");
-        }
-        
-        $this->args['title'] = $eventInfo['title'];
-        if (isset($eventInfo['location'], $eventInfo['location']['title'])) {
-          $this->args['address'] = $eventInfo['location']['title'];
-        }
-
-        if (!isset($this->args['featureindex']) && !isset($this->args['group'])) {
-          // Event cookie with no building
-          $cookieParams = array(
-            'eventId' => $this->args['eventId'],
-            'start' => $this->args['start'],
-          );
-          $cookieID = http_build_query($cookieParams, null, '&');
-          $this->generateBookmarkOptions($cookieID);
-        }
-      }
-    } else if ($this->page == 'search') {
-      if (isset($this->args['filter'])) {
-        $searchTerms = $this->args['filter'];
-        $mapSearch = $this->getSearchClass();
-        $searchResults = $mapSearch->searchCampusMap($searchTerms);
-
-        $lastResultArgs = array();
-        $places = array();
-        foreach ($searchResults as $result) {
-          $lastResultArgs = shortArrayFromMapFeature($result);
-          $place = array(
-              'title'    => $result->getTitle(),
-              'subtitle' => $result->getSubtitle(),
-              'url'      => $this->buildBreadcrumbURL('detail', $lastResultArgs),
-              'class'    => 'place',
-          );
-          $places[] = $place;
-        }
-
-        $user = $this->getUser('HarvardReunionUser');
-        $schedule = new Schedule($user);
-
-        $events = $schedule->searchEvents($searchTerms);
-        foreach ($events as $event) {
-          $eventInfo = $schedule->getEventInfo($event);
-          if ($eventInfo['location'] && !self::argVal($eventInfo['location'], 'multiple', false) &&
-              (isset($eventInfo['location']['latlon']) || isset($eventInfo['location']['building']))) {
-            $lastResultArgs = array(
-              'eventId' => $eventInfo['id'],
-              'start'   => $event->get_start(),
-            );
-            
-            $place = array(
-              'title'    => $eventInfo['title'],
-              'subtitle' => self::argVal($eventInfo['location'], 'title', ''),
-              'url'      => $this->buildBreadcrumbURL('detail', $lastResultArgs),
-              'class'    => 'event',
-            );
-            if (strtoupper($place['subtitle']) == 'TBA' && isset($eventInfo['location']['address'])) {
-              $parts = array();
-              if (isset($eventInfo['location']['address']['street'])) {
-                $parts[] = $eventInfo['location']['address']['street'];
-              }
-              if (isset($eventInfo['location']['address']['city'])) {
-                $parts[] = $eventInfo['location']['address']['city'];
-              }
-              if (isset($eventInfo['location']['address']['state'])) {
-                $parts[] = $eventInfo['location']['address']['state'];
-              }
-              if ($parts) {
-                $place['subtitle'] = implode(', ', $parts);
+          if (isset($eventInfo['location'], $eventInfo['location']['building'])) {
+            // Figure out the full Harvard campus category
+            if (!$this->feeds) {
+              $this->feeds = $this->loadFeedData();
+            }
+            foreach ($this->feeds as $id => $feed) {
+              if ($feed['TITLE'] == 'Search Results') {
+                $this->args['category'] = $id;
+                $this->args['featureindex'] = $eventInfo['location']['building'];
+                break;
               }
             }
+          } else if (isset($eventInfo['location'], $eventInfo['location']['latlon'])) {
+            $this->args['lat'] = $eventInfo['location']['latlon'][0];
+            $this->args['lon'] = $eventInfo['location']['latlon'][1];
             
+          } else {
+            throw new Exception("Event '$eventId' not found");
+          }
+          
+          $this->args['title'] = $eventInfo['title'];
+          if (isset($eventInfo['location'], $eventInfo['location']['title'])) {
+            $this->args['address'] = $eventInfo['location']['title'];
+          }
+  
+          if (!isset($this->args['featureindex']) && !isset($this->args['group'])) {
+            // Event cookie with no building
+            $cookieParams = array(
+              'eventId' => $this->args['eventId'],
+              'start' => $this->args['start'],
+            );
+            $cookieID = http_build_query($cookieParams, null, '&');
+            $this->generateBookmarkOptions($cookieID);
+          }
+        }
+        break;
+      
+      case 'search':
+        if (isset($this->args['filter'])) {
+          $searchTerms = $this->args['filter'];
+          $mapSearch = $this->getSearchClass();
+          $searchResults = $mapSearch->searchCampusMap($searchTerms);
+  
+          $lastResultArgs = array();
+          $places = array();
+          $eventPlaces = array();
+          
+          foreach ($searchResults as $result) {
+            $lastResultArgs = shortArrayFromMapFeature($result);
+            $place = array(
+                'title'    => $result->getTitle(),
+                'subtitle' => $result->getSubtitle(),
+                'url'      => $this->buildBreadcrumbURL('detail', $lastResultArgs),
+                'class'    => 'place',
+            );
             $places[] = $place;
           }
-        }
-        
-        if (count($places) == 1) {
-          $this->redirectTo('detail', $lastResultArgs);
+  
+          $user = $this->getUser('HarvardReunionUser');
+          $schedule = new Schedule($user);
+  
+          $events = $schedule->searchEvents($searchTerms);
+          foreach ($events as $event) {
+            $eventInfo = $schedule->getEventInfo($event);
+            if ($eventInfo['location'] && !self::argVal($eventInfo['location'], 'multiple', false) &&
+                (isset($eventInfo['location']['latlon']) || isset($eventInfo['location']['building']))) {
+              $lastResultArgs = array(
+                'eventId' => $eventInfo['id'],
+                'start'   => $event->get_start(),
+              );
+              
+              $place = array(
+                'title'    => $eventInfo['title'],
+                'subtitle' => self::argVal($eventInfo['location'], 'title', ''),
+                'url'      => $this->buildBreadcrumbURL('detail', $lastResultArgs),
+                'class'    => 'event',
+              );
+              if (strtoupper($place['subtitle']) == 'TBA' && isset($eventInfo['location']['address'])) {
+                $parts = array();
+                if (isset($eventInfo['location']['address']['street'])) {
+                  $parts[] = $eventInfo['location']['address']['street'];
+                }
+                if (isset($eventInfo['location']['address']['city'])) {
+                  $parts[] = $eventInfo['location']['address']['city'];
+                }
+                if (isset($eventInfo['location']['address']['state'])) {
+                  $parts[] = $eventInfo['location']['address']['state'];
+                }
+                if ($parts) {
+                  $place['subtitle'] = implode(', ', $parts);
+                }
+              }
+              
+              $eventPlaces[] = $place;
+            }
+          }
+          
+          if ((count($places) + count($eventPlaces)) == 1) {
+            $this->redirectTo('detail', $lastResultArgs);
+          }
+          
+          $this->assign('searchTerms', $searchTerms);
+          $this->assign('places',      $places);
+          $this->assign('eventPlaces', $eventPlaces);
+          
         } else {
-          usort($places, array(get_class($this), 'placeTitleSort'));
+          $this->redirectTo('index');
         }
-        
-        $this->assign('searchTerms', $searchTerms);
-        $this->assign('places',      $places);
-        
-      } else {
-        $this->redirectTo('index');
-      }
+        break;
     }
     
     if ($this->page != 'search') {
