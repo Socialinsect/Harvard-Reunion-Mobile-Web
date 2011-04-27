@@ -373,7 +373,7 @@ class SiteScheduleWebModule extends WebModule {
           } else {
             $registration['label'] = '<img class="register" src="/common/images/badge-register'.$this->imageExt.'"/> ';
             
-            if (isset($info['registration']['url'])) {
+            if (isset($info['registration']['url']) && $info['registration']['url']) {
               $printableURL = preg_replace(
                 array(';http://([^/]+)/$;', ';http://;'), 
                 array('\1',                 ''), $info['registration']['url']);
