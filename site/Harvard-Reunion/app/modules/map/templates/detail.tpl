@@ -21,5 +21,11 @@
     {$tabbedView['tabs']['info']['title'] = "Location"}
   {/if}
 
-  {$smarty.block.parent}
+  <a name="scrolldown"> </a>
+  <div class="focal shaded">
+    {include file="findInclude:common/templates/bookmark.tpl" name=$cookieName item=$bookmarkItem exdate=$expireDate}
+    <h2>{$name}</h2>
+    <p class="address">{$address|replace:' ':'&shy; '}</p>
+    {include file="findInclude:common/templates/tabs.tpl" tabBodies=$tabBodies}
+  </div>
 {/block}
