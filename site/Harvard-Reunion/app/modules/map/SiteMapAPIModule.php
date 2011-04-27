@@ -30,19 +30,20 @@ class SiteMapAPIModule extends MapAPIModule
 
         $filteredInfo = array();
         $photoURL = null;
-        foreach ($info as $infoDict) {
-            if (in_array($infoDict['label'], $photofields)) {
-                $photoFile = $infoDict['title'];
-                if ($photoFile && $photoFile != 'Null') {
-                    $photoFile = str_replace(' ', '%20', $photoFile);
-                    $photoURL = $this->photoServer.$photoFile;
+        if (is_array($info)) {
+            foreach ($info as $infoDict) {
+                if (in_array($infoDict['label'], $photofields)) {
+                    $photoFile = $infoDict['title'];
+                    if ($photoFile && $photoFile != 'Null') {
+                        $photoFile = str_replace(' ', '%20', $photoFile);
+                        $photoURL = $this->photoServer.$photoFile;
+                    }
+                    
+                } else if (!in_array($infoDict['label'], $suppress)) {
+                    $filteredInfo[] = $infoDict;
                 }
-                
-            } else if (!in_array($infoDict['label'], $suppress)) {
-                $filteredInfo[] = $infoDict;
             }
         }
-
         $result = array(
             'title' => $feature->getTitle(),
             'subtitle' => $feature->getSubtitle(),
@@ -78,6 +79,58 @@ class SiteMapAPIModule extends MapAPIModule
         }
 
         return $result;
+    }
+    
+    protected function arrayFromEvent($schedule, $event) {
+      $result = array();
+      
+      $info = $schedule->getEventInfo($event);
+      if ($info['location'] && !self::argVal($info['location'], 'multiple', false) &&
+          (isset($info['location']['latlon']) || isset($info['location']['building']))) {
+        
+          // get map feature associated with event location
+          $feature = null;
+          if (isset($info['location']['building'])) {
+              $feature = $this->dataController->getFeature(
+                  $info['location']['building'], $this->getCategoriesAsArray());
+              
+          } else if (isset($info['location']['latlon'])) {
+              $feature = new EmptyMapFeature(array(
+                  'lat' => $info['location']['latlon'][0], 
+                  'lon' => $info['location']['latlon'][1],
+              ));
+            
+          }
+          $result = $this->arrayFromMapFeature($feature);
+  
+          // overwrite fields with event details
+          $result['id']          = $info['id'];
+          $result['title']       = $info['title'];
+          $result['category']    = array('event');
+  
+          $result['subtitle'] = self::argVal($info['location'], 'title', '');
+          if (strtoupper($result['subtitle']) == 'TBA' && isset($info['location']['address'])) {
+              $parts = array();
+              if (isset($info['location']['address']['street'])) {
+                  $parts[] = $info['location']['address']['street'];
+              }
+              if (isset($info['location']['address']['city'])) {
+                  $parts[] = $info['location']['address']['city'];
+              }
+              if (isset($info['location']['address']['state'])) {
+                  $parts[] = $info['location']['address']['state'];
+              }
+              if ($parts) {
+                  $result['subtitle'] = implode(', ', $parts);
+              }
+          }
+      }
+    
+      return $result;
+    }
+
+    protected static function placeTitleSort($a, $b) {
+        return strcasecmp(self::argVal($a, 'title', ''), self::argVal($b, 'title', ''));
     }
 
     public function initializeForCommand() {
@@ -176,6 +229,19 @@ class SiteMapAPIModule extends MapAPIModule
                         foreach ($searchResults as $result) {
                             $places[] = $this->arrayFromMapFeature($result);
                         }
+
+                        $user = $this->getUser('HarvardReunionUser');
+                        $schedule = new Schedule($user);
+
+                        $events = $schedule->searchEvents($searchTerms);
+                        foreach ($events as $event) {
+                          $eventPlace = $this->arrayFromEvent($schedule, $event);
+                          if ($eventPlace) {
+                            $places[] = $eventPlace;
+                          }
+                        }
+                        
+                        usort($places, array(get_class($this), 'placeTitleSort'));
 
                         $response = array(
                             'total' => count($places),

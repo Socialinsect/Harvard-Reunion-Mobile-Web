@@ -247,7 +247,7 @@ class SiteMapWebModule extends MapWebModule {
         $eventRegistration = '<p class="register confirmed">Registration Confirmed</p>';
       } else {
         $eventRegistration = '<p class="register">Registration Required'.
-          (isset($info['registration']['fee']) ? ' ('.$info['registration']['fee'].')' : '').
+          (isset($eventInfo['registration']['fee']) ? ' ('.$eventInfo['registration']['fee'].')' : '').
           '</p>';
       }
     }
@@ -270,6 +270,10 @@ class SiteMapWebModule extends MapWebModule {
     $this->assign('eventLinks',        $eventLinks);
     
     return $eventInfo;
+  }
+
+  protected static function placeTitleSort($a, $b) {
+    return strcasecmp(self::argVal($a, 'title', ''), self::argVal($b, 'title', ''));
   }
 
   protected function initializeForPage() {
@@ -315,11 +319,80 @@ class SiteMapWebModule extends MapWebModule {
           $this->generateBookmarkOptions($cookieID);
         }
       }
+    } else if ($this->page == 'search') {
+      if (isset($this->args['filter'])) {
+        $searchTerms = $this->args['filter'];
+        $mapSearch = $this->getSearchClass();
+        $searchResults = $mapSearch->searchCampusMap($searchTerms);
 
-    } elseif (isset($this->args['group'])) {
+        $lastResultArgs = array();
+        $places = array();
+        foreach ($searchResults as $result) {
+          $lastResultArgs = shortArrayFromMapFeature($result);
+          $place = array(
+              'title'    => $result->getTitle(),
+              'subtitle' => $result->getSubtitle(),
+              'url'      => $this->buildBreadcrumbURL('detail', $lastResultArgs),
+              'class'    => 'place',
+          );
+          $places[] = $place;
+        }
 
+        $user = $this->getUser('HarvardReunionUser');
+        $schedule = new Schedule($user);
+
+        $events = $schedule->searchEvents($searchTerms);
+        foreach ($events as $event) {
+          $eventInfo = $schedule->getEventInfo($event);
+          if ($eventInfo['location'] && !self::argVal($eventInfo['location'], 'multiple', false) &&
+              (isset($eventInfo['location']['latlon']) || isset($eventInfo['location']['building']))) {
+            $lastResultArgs = array(
+              'eventId' => $eventInfo['id'],
+              'start'   => $event->get_start(),
+            );
+            
+            $place = array(
+              'title'    => $eventInfo['title'],
+              'subtitle' => self::argVal($eventInfo['location'], 'title', ''),
+              'url'      => $this->buildBreadcrumbURL('detail', $lastResultArgs),
+              'class'    => 'event',
+            );
+            if (strtoupper($place['subtitle']) == 'TBA' && isset($eventInfo['location']['address'])) {
+              $parts = array();
+              if (isset($eventInfo['location']['address']['street'])) {
+                $parts[] = $eventInfo['location']['address']['street'];
+              }
+              if (isset($eventInfo['location']['address']['city'])) {
+                $parts[] = $eventInfo['location']['address']['city'];
+              }
+              if (isset($eventInfo['location']['address']['state'])) {
+                $parts[] = $eventInfo['location']['address']['state'];
+              }
+              if ($parts) {
+                $place['subtitle'] = implode(', ', $parts);
+              }
+            }
+            
+            $places[] = $place;
+          }
+        }
+        
+        if (count($places) == 1) {
+          $this->redirectTo('detail', $lastResultArgs);
+        } else {
+          usort($places, array(get_class($this), 'placeTitleSort'));
+        }
+        
+        $this->assign('searchTerms', $searchTerms);
+        $this->assign('places',      $places);
+        
+      } else {
+        $this->redirectTo('index');
+      }
     }
-  
-    parent::initializeForPage();
+    
+    if ($this->page != 'search') {
+      parent::initializeForPage();
+    }
   }
 }

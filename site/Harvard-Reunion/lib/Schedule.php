@@ -312,6 +312,15 @@ class Schedule {
     return $events;
   }
   
+  public function searchEvents($query) {
+    $feed = $this->getEventFeed();
+    $feed->addFilter('search', $query);
+    $events = $feed->items(0);
+    $feed->removeFilter('search');
+    
+    return $events;
+  }
+  
   public function getDefaultCategory() {
     $categories = $this->getEventCategories();
     if (count($categories) == 1 && isset($categories['all'])) {
