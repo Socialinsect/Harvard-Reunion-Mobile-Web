@@ -330,20 +330,20 @@ class SiteScheduleWebModule extends WebModule {
             }
             if (isset($info['location']['address'])) {
               $parts = array();
-              if (isset($info['location']['address']['street'])) {
+              if (self::argVal($info['location']['address'], 'street')) {
                 $parts[] = $info['location']['address']['street'];
               }
-              if (isset($info['location']['address']['city'])) {
+              if (self::argVal($info['location']['address'], 'city')) {
                 $parts[] = $info['location']['address']['city'];
               }
-              if (isset($info['location']['address']['state'])) {
+              if (self::argVal($info['location']['address'], 'state')) {
                 $parts[] = $info['location']['address']['state'];
               }
               if ($parts) {
                 $location['subtitle'] = implode(', ', $parts);
               }
             }
-            if (isset($info['location']['building']) || isset($info['location']['latlon'])) {
+            if (self::argVal($info['location'], 'building') || self::argVal($info['location'], 'latlon')) {
               $location['url'] = $this->buildURLForModule('map', 'detail', array(
                 'eventId' => $eventId,
                 'start'   => $start,
@@ -373,7 +373,7 @@ class SiteScheduleWebModule extends WebModule {
           } else {
             $registration['label'] = '<img class="register" src="/common/images/badge-register'.$this->imageExt.'"/> ';
             
-            if (isset($info['registration']['url']) && $info['registration']['url']) {
+            if (self::argVal($info['registration'], 'url')) {
               $printableURL = preg_replace(
                 array(';http://([^/]+)/$;', ';http://;'), 
                 array('\1',                 ''), $info['registration']['url']);
@@ -382,7 +382,7 @@ class SiteScheduleWebModule extends WebModule {
               $registration['linkTarget'] = 'reunionAlumni';
               $registration['subtitle'] = 'Register online at '.$printableURL;
             }
-            if (isset($info['registration']['fee'])) {
+            if (self::argVal($info['registration'], 'fee')) {
               $registration['title'] .= ' ('.$info['registration']['fee'].')';
             }
           }
