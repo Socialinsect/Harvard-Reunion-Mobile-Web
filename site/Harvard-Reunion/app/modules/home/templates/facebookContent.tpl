@@ -4,8 +4,8 @@
       {$lastPost = $post@last}
       {block name="postContent"}
         <div class="comment">
-          &ldquo;{$post['message']}&rdquo; 
-          <span class="smallprint"> -&nbsp;{$post['author']['name']}, {$post['when']['shortDelta']}</span>
+          &ldquo;{$post['message']|escape}&rdquo; 
+          <span class="smallprint"> -&nbsp;{$post['author']['name']|escape}, {$post['when']['shortDelta']}</span>
         </div>
       {/block}
     {/foreach}

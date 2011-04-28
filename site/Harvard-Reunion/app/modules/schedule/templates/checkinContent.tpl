@@ -10,8 +10,8 @@
           {if $checkin['photo']}
             <img class="fqPhoto" src="{$checkin['photo']}" height="20" width="20" /> 
           {/if}
-          {$checkin['name']} 
-          {if $checkin['message']}&ldquo;{$checkin['message']}&rdquo;{/if}
+          {$checkin['name']|escape} 
+          {if $checkin['message']}&ldquo;{$checkin['message']|escape}&rdquo;{/if}
           <span class="smallprint"> - {$checkin['when']['shortDelta']}</span>
           {if !$checkin@last}<br/>{/if}
         {/block}

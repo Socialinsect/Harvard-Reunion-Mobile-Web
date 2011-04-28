@@ -16,6 +16,9 @@ class SiteAboutWebModule extends AboutWebModule {
         
         foreach ($info['sections'] as $s => $section) {
           foreach ($section['links'] as $l => $link) {
+            $info['sections'][$s]['links'][$l]['title'] = 
+              htmlspecialchars($info['sections'][$s]['links'][$l]['title']);
+            
             if (isset($link['class'])) {
               if (strpos('phone', $link['class']) !== false) {
                 $info['sections'][$s]['links'][$l]['subtitle'] = 

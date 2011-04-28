@@ -28,9 +28,9 @@
   <p class="bb">&nbsp;</p>
   {if $socialInfo['recent']}
     <table id="social" border="1" cellpadding="4"><tr><td>
-      {$socialInfo['recent']['message']}<br />
+      {$socialInfo['recent']['message']|escape}<br />
       <span class="smallprint">
-        - {$socialInfo['recent']['author']}, {$socialInfo['recent']['age']} via {$socialInfo['recent']['type']|capitalize}
+        - {$socialInfo['recent']['author']|escape}, {$socialInfo['recent']['age']} via {$socialInfo['recent']['type']|capitalize}
       </span>
     </td></tr></table>
   {/if}

@@ -31,18 +31,18 @@
   <div id="social">
     <div class="links">
       <a class="facebookLink" href="{$socialInfo['facebook']['url']}">
-        <img src="/common/images/button-facebook{$imageExt}" />{$socialInfo['facebook']['name']}
+        <img src="/common/images/button-facebook{$imageExt}" />{$socialInfo['facebook']['name']|escape}
       </a>
       <a class="twitterLink" href="{$socialInfo['twitter']['url']}">
-        <img src="/common/images/button-twitter{$imageExt}" />{$socialInfo['twitter']['name']}
+        <img src="/common/images/button-twitter{$imageExt}" />{$socialInfo['twitter']['name']|escape}
       </a>
     </div>
     <div id="recentContainer" class="recent {$socialInfo['recent']['type']}">
       <div class="cbl"></div>
       <div class="chatbubble">
-        <div id="ellipsis_0" class="message"><span id="recentMessage">{$socialInfo['recent']['message']}</span></div>
+        <div id="ellipsis_0" class="message"><span id="recentMessage">{$socialInfo['recent']['message']|escape}</span></div>
         <div id="ellipsis_1" class="info smallprint">
-          <span id="recentAuthor">{$socialInfo['recent']['author']}</span>, <span id="recentAge">{$socialInfo['recent']['age']}</span>
+          <span id="recentAuthor">{$socialInfo['recent']['author']|escape}</span>, <span id="recentAge">{$socialInfo['recent']['age']}</span>
         </div>
       </div>
       <div class="cbr"></div>

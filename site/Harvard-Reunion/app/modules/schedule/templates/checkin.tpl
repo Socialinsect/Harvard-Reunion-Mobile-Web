@@ -11,7 +11,7 @@
 {elseif isset($checkinResult['message']) || isset($checkinResult['points'])}
   <div class="focal smallprint">
     {if $checkinResult['message']}
-      {$checkinResult['message']}
+      {$checkinResult['message']|escape}
     {else}
       You checked in!
     {/if}

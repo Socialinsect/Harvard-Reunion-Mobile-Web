@@ -27,10 +27,10 @@
 {$post['html']}
 
 <div class="nonfocal">
-  <div class="message">{$post['message']}</div>
+  <div class="message">{$post['message']|escape}</div>
   <div class="smallprint">
     Uploaded {$post['when']['delta']} by 
-    <a class="author" href="{$post['author']['url']}">{$post['author']['name']}</a>
+    <a class="author" href="{$post['author']['url']}">{$post['author']['name']|escape}</a>
     {if $post['liked'] || $post['otherLikes']}
       <br/>
       {if $post['liked']}
