@@ -7,7 +7,7 @@
     {if $info['harris']['authority'] == 'anonymous'}
       You are viewing the class of {$info['harris']['year']} 
     {else}
-      You are signed in as {$info['harris']['fullname']} '{$info['harris']['shortYear']} 
+      You are signed in as {$info['harris']['fullname']|escape} '{$info['harris']['shortYear']} 
     {/if}
     ({$info['harris']['number']}th&nbsp;Reunion) 
     {if $info['harris']['authority'] == 'anonymous'}anonymously {/if}
@@ -38,7 +38,7 @@
   {block name="twitterCheckbox"}
     <input type="checkbox" name="showTwitter" id="showTwitter" value="1" onchange="settingChanged(this)" {if $info['twitter']['showHome']}checked {/if}/> 
     <label for="showTwitter">Twitter Stream</label> 
-    <span class="smallprint">({$info['twitter']['hashtag']})</span>
+    <span class="smallprint">({$info['twitter']['hashtag']|escape})</span>
   {/block}
 {/capture}
 {$item['title'] = $title}
@@ -48,7 +48,7 @@
   {block name="facebookCheckbox"}
     <input type="checkbox" name="showFacebook" id="showFacebook" value="1" onchange="settingChanged(this)" {if $info['facebook']['showHome']}checked {/if}/> 
     <label for="showFacebook">
-      Updates from Facebook Group <div class="smallprint">({$info['facebook']['groupName']})</div>
+      Updates from Facebook Group <div class="smallprint">({$info['facebook']['groupName']|escape})</div>
     </label>
   {/block}
 {/capture}
@@ -83,7 +83,7 @@
     <br/>
     Used for photos, videos and updates
     <br/>
-    {if $info['facebook']['username']}
+    {if $info['facebook']['username']|escape}
       Tap to sign out
     {else}
       Tap to sign in
@@ -106,7 +106,7 @@
     <br/>
     Used for checkins
     <br/>
-    {if $info['foursquare']['username']}
+    {if $info['foursquare']['username']|escape}
       Tap to sign out
     {else}
       Tap to sign in

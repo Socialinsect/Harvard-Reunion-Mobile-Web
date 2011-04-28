@@ -7,10 +7,10 @@
         <br/><span class="ribbonDate">{$scheduleInfo['dates']}</span>
       </div>
       {if $userInfo['fullname']}
-        <h3>{$scheduleInfo['title']} Reunion</h3>
-        <h2>{$userInfo['fullname']}</h2>
+        <h3>{$scheduleInfo['title']|escape} Reunion</h3>
+        <h2>{$userInfo['fullname']|escape}</h2>
       {else}
-        <h2>{$scheduleInfo['title']}</h2>
+        <h2>{$scheduleInfo['title']|escape}</h2>
       {/if}
       <p>
         <a href="{$logoutURL}"{if $userInfo['fullname']} onclick="return confirmLogout()"{/if}>
