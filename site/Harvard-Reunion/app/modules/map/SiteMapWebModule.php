@@ -68,35 +68,20 @@ class SiteMapWebModule extends MapWebModule {
     
     return $buildingData;
   }
+  
+  protected function initializeMapElements($mapElement, $imgController, $imageWidth, $imageHeight) {
+    if (!$imgController->isStatic() && $this->pagetype == 'compliant') {
+      // shrink dynamic map height to make it easier to scroll page
+      if ($this->platform == 'bbplus') {
+        $imageHeight = 100;
+      } else {
+        $imageHeight = 180;
+      }
+    }
+    
+    parent::initializeMapElements($mapElement, $imgController, $imageWidth, $imageHeight);
+  }
 
-  protected function staticMapImageDimensions() {
-    list($imageWidth, $imageHeight) = parent::staticMapImageDimensions();
-    
-    switch ($this->pagetype) {
-      case 'compliant':
-        if ($this->platform != 'bbplus') {
-          $imageHeight = 180;
-        }
-        break;
-    }
-    return array($imageWidth, $imageHeight);
-  }
-  
-  protected function dynamicMapImageDimensions() {
-    list($imageWidth, $imageHeight) = parent::dynamicMapImageDimensions();
-    
-    switch ($this->pagetype) {
-      case 'compliant':
-        if ($this->platform == 'bbplus') {
-          $imageHeight = 100;
-        } else {
-          $imageHeight = 180;
-        }
-        break;
-    }
-    return array($imageWidth, $imageHeight);
-  }
-  
   protected function detailURLForBookmark($aBookmark) {
     parse_str($aBookmark, $params);
     if (isset($params['eventId'])) {
@@ -111,7 +96,7 @@ class SiteMapWebModule extends MapWebModule {
       // replace location detail page with event detail page
       $cookieParams = array(
         'eventId' => $this->args['eventId'],
-        'start' => $this->args['start'],
+        'start'   => $this->getArg('start', time()),
       );
       $cookieID = http_build_query($cookieParams, null, '&');
     }
