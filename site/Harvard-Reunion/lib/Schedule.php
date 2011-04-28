@@ -283,11 +283,17 @@ class Schedule {
       
       $this->eventController = CalendarDataController::factory($controllerClass, $this->scheduleConfig);
       $this->eventController->setDebugMode(Kurogo::getSiteVar('DATA_DEBUG'));
-  
-      $endDate = new DateTime($this->endDate->format('Y-m-d').' 00:00:00 +1 day', $this->timezone);
-      $this->eventController->setStartDate($this->startDate);
-      $this->eventController->setEndDate($endDate);
     }
+    
+    // reset time range to schedule duration
+    $endDate = new DateTime($this->endDate->format('Y-m-d').' 00:00:00 +1 day', $this->timezone);
+    $this->eventController->setStartDate($this->startDate);
+    $this->eventController->setEndDate($endDate);
+    
+    // reset internal state, also clears cache
+    // (for some reason the CalendarDataController doesn't 
+    // reset its internal cache when start and end dates are set)
+    $this->eventController->removeAllFilters();
     
     return $this->eventController;
   }

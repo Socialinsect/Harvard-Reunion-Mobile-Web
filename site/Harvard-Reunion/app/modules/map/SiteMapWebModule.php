@@ -106,8 +106,8 @@ class SiteMapWebModule extends MapWebModule {
   
   protected function getTitleForBookmark($aBookmark) {
     parse_str($aBookmark, $params);
-    if (isset($params['eventId'])) {
-      $eventInfo = $this->getEventDetails($params['eventId'], self::argVal($params, 'start', time()));
+    if (isset($params['eventId'], $params['start'])) {
+      $eventInfo = $this->getEventDetails($params['eventId'], $params['start']);
       
       if (isset($eventInfo['location'], $eventInfo['location']['title'])) {
         return array($eventInfo['title'], $eventInfo['location']['title']);
