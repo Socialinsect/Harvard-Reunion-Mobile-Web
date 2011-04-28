@@ -215,6 +215,7 @@ class Schedule {
     return array(
       'title'              => $this->getReunionTitle(),
       'number'             => $this->getReunionNumber(),
+      'year'               => $this->year,
       'startDate'          => $this->getConfigValue('START_DATE', ''),
       'endDate'            => $this->getConfigValue('END_DATE', ''),
       'classWebsite'       => $this->getConfigValue('CLASS_WEBSITE_URL', ''),
