@@ -24,15 +24,24 @@
 #searchformcontainer + .searchHeader {
   margin-top: 18px;
 }
+#container > .bookmarkHeader:first-child{
+  margin-top: -11px;
+}
 
-.searchHeader {
+.searchHeader,
+.bookmarkHeader {
   font: 94.1%/1.33em Georgia, serif;
   color: white;
   background: #292626;
   margin: 0;
   padding: 4px 10px;
 }
-.searchHeader + .results {
+.bookmarkHeader {
+  background: #534e4a;
+}
+
+.searchHeader + .results,
+.bookmarkHeader + .results {
   margin: 0;
 }
 
@@ -40,3 +49,4 @@
   margin: -4px -14px 0 0;
   padding-left: 5px;
 }
+

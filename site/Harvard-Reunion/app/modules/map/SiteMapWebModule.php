@@ -258,6 +258,8 @@ class SiteMapWebModule extends MapWebModule {
   }
 
   protected function initializeForPage() {
+    $callParent = true;
+  
     switch ($this->page) {
       case 'detail':
         $eventId = $this->getArg('eventId');
@@ -374,10 +376,47 @@ class SiteMapWebModule extends MapWebModule {
         } else {
           $this->redirectTo('index');
         }
+        
+        $callParent = false;
+        break;
+      
+      case 'bookmarks':
+        $feedGroups = array();
+        $places = array();
+        $events = array();
+
+        foreach ($this->getBookmarks() as $aBookmark) {
+          if ($aBookmark) { // prevent counting empty string
+            $titles = $this->getTitleForBookmark($aBookmark);
+            $subtitle = count($titles) > 1 ? $titles[1] : null;
+            $item = array(
+              'title'    => $titles[0],
+              'subtitle' => $subtitle,
+              'url'      => $this->detailURLForBookmark($aBookmark),
+            );
+            
+            parse_str($aBookmark, $params);
+            if (isset($params['group'])) {
+              $feedGroups[] = $item;
+            
+            } else if (isset($params['eventId'])) {
+              $events[] = $item;
+              
+            } else {
+              $places[] = $item;
+            }
+          }
+        }
+        $this->assign('groupAlias', $this->getOptionalModuleVar('GROUP_ALIAS_PLURAL', 'Campuses'));
+        $this->assign('groups', $feedGroups);
+        $this->assign('places', $places);
+        $this->assign('events', $events);
+        
+        $callParent = false;
         break;
     }
     
-    if ($this->page != 'search') {
+    if ($callParent) {
       parent::initializeForPage();
     }
   }

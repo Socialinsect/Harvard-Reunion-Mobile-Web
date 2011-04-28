@@ -1,19 +1,17 @@
 {include file="findInclude:common/templates/header.tpl"}
 
-{include file="findInclude:common/templates/search.tpl" placeholder="Search Map" tip=$searchTip}
-
 {if $groups}
-  <div class="nonfocal searchHeader">{$groupAlias}</div>
+  <div class="nonfocal bookmarkHeader">{$groupAlias}</div>
   {include file="findInclude:common/templates/results.tpl" results=$campuses subTitleNewline=true}
 {/if}
 
 {if $places}
-  <div class="nonfocal searchHeader">Places</div>
+  <div class="nonfocal bookmarkHeader">Places</div>
   {include file="findInclude:common/templates/results.tpl" results=$places subTitleNewline=true}
 {/if}
 
 {if $events}
-  <div class="nonfocal searchHeader">Events</div>
+  <div class="nonfocal bookmarkHeader">Events</div>
   {include file="findInclude:common/templates/results.tpl" results=$events subTitleNewline=true}
 {/if}
 
