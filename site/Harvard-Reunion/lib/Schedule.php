@@ -18,6 +18,7 @@ class Schedule {
   private $facebook = null;
   private $twitter = null;
   private $foursquare = null;
+  private $eventCategoryConfig = null;
   
   const ID_SEPARATOR = ':';
 
@@ -339,13 +340,76 @@ class Schedule {
   public function getAllEventsCategory() {
     return 'all';
   }
+  
+  private function getEventCategoryConfig() {
+    if (!$this->eventCategoryConfig) {
+      $this->eventCategoryConfig = array(
+        'reunion' => array(
+          'title' => $this->getReunionNumber().'th Reunion Events',
+          'match' => false,
+          'anon'  => true,
+        ),
+        'other' => array(
+          'title' => 'Other Events',
+          'match' => 'Other',
+          'anon'  => true,
+        ),
+        'rainbow' => array(
+          'title' => 'Rainbow Group: ages 18mos-3yrs',
+          'match' => 'Rainbow Group',
+          'anon'  => false,
+        ),
+        'canary' => array(
+          'title' => 'Canary Group: ages 4-5yrs',
+          'match' => 'Canary Group',
+          'anon'  => false,
+        ),
+        'grape' => array(
+          'title' => 'Grape Group: ages 6-8 yrs',
+          'match' => 'Grape Group',
+          'anon'  => false,
+        ),
+        'red' => array(
+          'title' => 'Red Group: ages 9-10 yrs',
+          'match' => 'Red Group',
+          'anon'  => false,
+        ),
+        'blue' => array(
+          'title' => 'Blue Group: ages 11-12 yrs',
+          'match' => 'Blue Group',
+          'anon'  => false,
+        ),
+        'green' => array(
+          'title' => 'Green Group: ages 13-14',
+          'match' => 'Green Group',
+          'anon'  => false,
+        ),
+        'youngadult' => array(
+          'title' => 'Young Adult Group: ages 15+ yrs',
+          'match' => 'Young Adult Group',
+          'anon'  => false,
+        ),
+        'night' => array(
+          'title' => 'Night Program',
+          'match' => 'Night Program',
+          'anon'  => false,
+        ),
+      );
+    }
+    
+    return $this->eventCategoryConfig;
+  }
     
   private function getAllEventCategories() {
-    return array(
-      'reunion'  => $this->getReunionNumber().'th Reunion Events',
-      'other'    => 'Other Events',
-      'children' => 'Children\'s Events',
-    );
+    $categoryConfig = $this->getEventCategoryConfig();
+    
+    $categories = array();
+    foreach ($categoryConfig as $key => $config) {
+      if ($this->isAuthenticatedUser() || $config['anon']) {
+        $categories[$key] = $config['title'];
+      }
+    }
+    return $categories;
   }
   
   private function eventMatchesCategory($event, $category) {
@@ -353,18 +417,23 @@ class Schedule {
       return true; // All events, skip checks
     }
   
+    $categoryConfig = $this->getEventCategoryConfig();
+
     $trumbaCategories = $event->get_attribute('categories');
     
-    $eventCategory = 'reunion';
+    $eventCategory = 'reunion'; // default if no match
     foreach ($trumbaCategories as $trumbaCategory) {
-      if (stripos($trumbaCategory, 'Other') !== false) {
-        $eventCategory = 'other';
-        break;
+      if ($trumbaCategory == 'Official') { continue; } // skip trumba default
+    
+      $foundMatch = false;
+      foreach ($categoryConfig as $key => $config) {
+        if ($config['match'] && stripos($trumbaCategory, $config['match']) !== false) {
+          $eventCategory = $key;
+          $foundMatch = true;
+          break;
+        }
       }
-      if (stripos($trumbaCategory, 'Children') !== false) {
-        $eventCategory = 'children';
-        break;
-      }
+      if ($foundMatch) { break; }
     }
     
     return $category == $eventCategory;
