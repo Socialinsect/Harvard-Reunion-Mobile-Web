@@ -1,4 +1,4 @@
-{include file="findInclude:common/templates/header.tpl" customHeader=''}
+{include file="findInclude:common/templates/header.tpl" customHeader='' refreshPage=10}
 
 <script type="text/javascript">
   var nativeAppLoginSuccess = true;
