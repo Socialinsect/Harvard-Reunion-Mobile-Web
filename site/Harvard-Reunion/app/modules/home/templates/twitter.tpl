@@ -2,7 +2,7 @@
 
 <div class="nonfocal">
   {block name="twitterHeader"}
-    <a class="tweetButton" href="{$tweetURL}"><img src="/common/images/button-twitter{$imageExt}" width="24" height="24" /> tweet</a>
+    <a class="tweetButton" href="{$tweetURL}" target="reunionTwitter"><img src="/common/images/button-twitter{$imageExt}" width="24" height="24" /> tweet</a>
     <h2>{$hashtag}</h2>
   {/block}
 </div>
@@ -13,7 +13,7 @@
 
 {block name="twitterFooter"}
   <div class="nonfocal">
-    <span class="smallprint">View tweets for {$hashtag} at <a href="{$twitterURL}">twitter.com</a></span>
+    <span class="smallprint">View tweets for {$hashtag} at <a href="{$twitterURL}" target="reunionTwitter">twitter.com</a></span>
   </div>
 {/block}
 

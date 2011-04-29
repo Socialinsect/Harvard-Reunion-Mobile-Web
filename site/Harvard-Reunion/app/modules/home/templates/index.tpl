@@ -40,7 +40,9 @@
     <div id="recentContainer" class="recent {$socialInfo['recent']['type']}">
       <div class="cbl"></div>
       <div class="chatbubble">
-        <div id="ellipsis_0" class="message"><span id="recentMessage">{$socialInfo['recent']['message']|escape}</span></div>
+        <div id="ellipsis_0" class="message"><span id="recentMessage">
+          {$socialInfo['recent']['message']}{* already html escaped *}
+        </span></div>
         <div id="ellipsis_1" class="info smallprint">
           <span id="recentAuthor">{$socialInfo['recent']['author']|escape}</span>, <span id="recentAge">{$socialInfo['recent']['age']}</span>
         </div>

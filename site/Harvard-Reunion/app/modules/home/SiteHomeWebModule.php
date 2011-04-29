@@ -56,6 +56,8 @@ class SiteHomeWebModule extends HomeWebModule {
         if (count($posts)) {
           $recent = reset($posts);
           $recentType = 'facebook';
+          $recent['message'] = htmlspecialchars($recent['message']); // match twitter which is already escaped
+          $recent['author']['name'] = htmlspecialchars($recent['author']['name']);
         }
         if (count($tweets)) {
           $tweet = reset($tweets);

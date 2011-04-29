@@ -60,6 +60,8 @@ class SiteHomeAPIModule extends APIModule {
         $recentType = false;
         if (count($posts)) {
           $recent = reset($posts);
+          $recent['message'] = htmlspecialchars($recent['message']); // match twitter which is already escaped
+          $recent['author']['name'] = htmlspecialchars($recent['author']['name']);
           $recentType = 'facebook';
         }
         if (count($tweets)) {
