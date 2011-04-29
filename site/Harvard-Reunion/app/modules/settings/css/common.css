@@ -8,10 +8,10 @@ h3,
 }
 
 .loggedin {
-  color: green;
+  color: #007100;
 }
 .loggedout {
-  color: red;
+  color: #c10000;
 }
 
 .nav li label {
