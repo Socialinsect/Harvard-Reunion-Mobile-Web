@@ -39,16 +39,14 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
     
         $url = Kurogo::getSiteVar('HARRIS_LOGIN_URL');
         $params = array(
-            'referer'        => Kurogo::getSiteVar('HARRIS_REFERER_URL').http_build_query(array(
-                'key'      => 'harvard',
-                'q'        => 'emreunion',
-                'event_id' => '1763952',
-              ), null, '&'),
+            'referer'        => Kurogo::getSiteVar('HARRIS_REFERER_URL'),
             'SaFormName'     => 'SubmitLogin__Floginform_html',
             'error_redirect' => '/olc/pub/HAA/login/m_failure.cgi',
             'username'       => $login,
             'password'       => $password
         );
+        error_log($url);
+        error_log(print_r($params, true));
     
         if (!is_dir(CACHE_DIR . "/Harris")) {
             mkdir(CACHE_DIR . "/Harris");
@@ -86,7 +84,7 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             error_log("Error communicating with Harris: $curlError");
             return AUTH_ERROR;
             
-        } else if (strpos($result, '<!DOCTYPE') === 0) {
+        } else if (strpos($result, '<!DOCTYPE') === 0) {error_log($result);
           // User just received an interstitial page which could be a message
           // saying their account got suspended or they need to answer a 
           // security question because they haven't logged in in a long time

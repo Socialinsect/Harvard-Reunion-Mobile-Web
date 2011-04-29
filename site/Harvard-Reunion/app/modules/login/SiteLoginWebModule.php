@@ -17,9 +17,14 @@ class SiteLoginWebModule extends LoginWebModule
     
     // return url
     $url = $this->getArg('url');
-    if (!$url || strpos($url, URL_PREFIX.'info/') === 0) {
+    if ($nativeApp) {
+        // send native apps to special loading page
+        $url = URL_PREFIX.ltrim($this->buildURLForModule($this->id, 'loading', $defaultArgs), '/');
+        
+    } else if (!$url || strpos($url, URL_PREFIX.'info/') === 0) {
         $url = URL_PREFIX.ltrim($this->buildURLForModule('home', 'index', $defaultArgs), '/');
     }
+
     $defaultArgs['url'] = $url;
 
     $this->assign('defaultArgs', $defaultArgs);
