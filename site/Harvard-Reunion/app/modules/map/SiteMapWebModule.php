@@ -266,6 +266,8 @@ class SiteMapWebModule extends MapWebModule {
         $start   = $this->getArg('start', time());
   
         if ($eventId) {
+          $this->setPageTitle('Event Location');
+        
           $eventInfo = $this->getEventDetails($eventId, $start);
           
           if (isset($eventInfo['location'], $eventInfo['location']['building'])) {
