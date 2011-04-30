@@ -2,7 +2,6 @@
 
 class SiteMapAPIModule extends MapAPIModule
 {
-    private $dataController;
     private $outputProjector;
     private $inputProjector;
 
@@ -10,6 +9,19 @@ class SiteMapAPIModule extends MapAPIModule
     private $photoServer;
 
     protected function arrayFromMapFeature(MapFeature $feature) {
+        // needed for search, places, and detail APIs.
+        // for now the iphone will only handle lat/lon
+        if (!$this->outputProjector || !$this->inputProjector) {
+            $dataProjection = $this->dataController->getProjection();
+            if ($dataProjection != GEOGRAPHIC_PROJECTION) {
+                $this->outputProjector = new MapProjector();
+                $this->outputProjector->setSrcProj($dataProjection);
+    
+                $this->inputProjector = new MapProjector();
+                $this->inputProjector->setDstProj($dataProjection);
+            }
+        }
+        
         $category = $feature->getCategory();
         if (!is_array($category)) {
             $category = explode(MAP_CATEGORY_DELIMITER, $category);
@@ -153,16 +165,6 @@ class SiteMapAPIModule extends MapAPIModule
             $categoryPath = $this->getCategoriesAsArray();
             $this->dataController = $this->getDataController($categoryPath, $listItemPath);
 
-            // for now the iphone will only handle lat/lon
-            $dataProjection = $this->dataController->getProjection();
-            if ($dataProjection != GEOGRAPHIC_PROJECTION) {
-                $this->outputProjector = new MapProjector();
-                $this->outputProjector->setSrcProj($dataProjection);
-
-                $this->inputProjector = new MapProjector();
-                $this->inputProjector->setDstProj($dataProjection);
-            }
-
             $mapSearchClass = $this->getOptionalModuleVar('MAP_SEARCH_CLASS', 'MapSearch');
             if (!$this->feeds)
                 $this->feeds = $this->loadFeedData();
@@ -265,15 +267,6 @@ class SiteMapAPIModule extends MapAPIModule
             if ($categoryPath) {
                 $this->dataController = $this->getDataController($categoryPath, $listItemPath);
 
-                // for now the iphone will only handle lat/lon
-                $dataProjection = $this->dataController->getProjection();
-                if ($dataProjection != GEOGRAPHIC_PROJECTION) {
-                    $this->outputProjector = new MapProjector();
-                    $this->outputProjector->setSrcProj($dataProjection);
-
-                    $this->inputProjector = new MapProjector();
-                    $this->inputProjector->setDstProj($dataProjection);
-                }
 
                 $listItems = $this->dataController->getListItems($listItemPath);
                 $places = array();
