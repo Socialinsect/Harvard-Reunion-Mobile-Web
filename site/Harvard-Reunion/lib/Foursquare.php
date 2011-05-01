@@ -244,7 +244,7 @@ class Foursquare {
             
             $results = $this->api('venues', $venueId);
             //error_log(print_r($results, true));
-              if (isset($results['response'], $results['response']['venue'])) {
+            if (isset($results['response'], $results['response']['venue'])) {
               $realVenueId = $results['response']['venue']['id'];
             }
 
