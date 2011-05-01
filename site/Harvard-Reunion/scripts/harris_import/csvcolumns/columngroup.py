@@ -6,6 +6,7 @@ import csv
 from collections import namedtuple
 from cStringIO import StringIO
 from itertools import count, groupby, imap, izip
+from operator import attrgetter, itemgetter
 
 from column import DataColumn
 
@@ -99,6 +100,15 @@ class ColumnGroup(object):
         third, etc...)"""
         return ColumnGroup.from_rows(self.column_names, sorted(self.rows))
 
+    def sort_rows_by(self, sort_col):
+        """Return a ColumnGroup with the same columns as this one, but where
+        the rows have been sorted by the column name passed in."""
+        sort_col_idx = self.column_names.index(sort_col)
+        return ColumnGroup.from_rows(self.column_names,
+                                     sorted(self.rows, 
+                                            key=itemgetter(sort_col_idx)))
+
+
     def reject_rows_by_value(self, column_name, reject_value):
         col = self[column_name]
         new_rows = (row for i, row in enumerate(self.rows) 
@@ -126,16 +136,21 @@ class ColumnGroup(object):
            row1 and row2
         """
         rows = []
+        merge_log = {}
         for key, row_grp in groupby(self.iter_dict_rows(), select_func):
             row_grp_tpl = tuple(row_grp)
             if len(row_grp_tpl) == 1:
                 row = self.row_from_dict(row_grp_tpl[0])
             if len(row_grp_tpl) > 1:
                 row = self.row_from_dict(reduce(merge_func, row_grp_tpl))
+                merge_log[tuple(map(self.row_from_dict, row_grp_tpl))] = row
             rows.append(row)
         
-        return ColumnGroup.from_rows(self.column_names, rows)
-        
+        return ColumnGroup.from_rows(self.column_names, rows), merge_log
+    
+    def merge_rows_by(self, col_name, merge_func):
+        return self.merge_rows(itemgetter(col_name), merge_func)
+    
     
     ###################### Built-ins and Iterations ###################### 
     def __add__(self, other):
