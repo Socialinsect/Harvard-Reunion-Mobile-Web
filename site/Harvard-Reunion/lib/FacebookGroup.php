@@ -926,15 +926,11 @@ class FacebookGroup {
 
 class ReunionFacebook extends Facebook {
   private $perms = array(
-    'user_about_me',
     'user_groups',
     'user_photos',
     'user_videos',
-    'user_checkins',
-    'publish_checkins',
     'read_stream',
     'publish_stream',
-    //'offline_access',
   );
   protected $cache;
   protected $cacheLifetime = 60;
