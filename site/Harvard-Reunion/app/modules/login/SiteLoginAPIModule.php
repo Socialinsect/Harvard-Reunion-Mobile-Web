@@ -1,6 +1,6 @@
 <?php
 
-class SiteLoginAPIModule extends APIModule
+class SiteLoginAPIModule extends LoginAPIModule
 {
     protected $id = 'login';
     public function initializeForCommand() {
@@ -24,7 +24,7 @@ class SiteLoginAPIModule extends APIModule
                     )
                 );
                 
-                if ($user->needsCollegeIndex()) {
+                if ($user instanceOf HarvardReunionUser && $user->needsCollegeIndex()) {
                   // fake the user not being logged in yet so that the user is
                   // prompted to set a class (harvard or radcliffe)
                   $response['user']['authority'] = null;
