@@ -38,7 +38,7 @@
         <li class="videoListing">
           <a href="{$video['url']}">
             <div class="thumbnail"><img src="{$video['thumbnail']}" /></div>
-            <div class="message">{$video['message']|escape}</div>
+            <div class="message" id="ellipsis_{$video@index}">{$video['message']|escape}</div>
             <div class="smallprint">
               Uploaded by {$video['author']['name']|escape}
               <br/>

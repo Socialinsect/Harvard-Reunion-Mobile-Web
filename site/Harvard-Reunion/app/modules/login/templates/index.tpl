@@ -10,7 +10,7 @@
   
   {block name="ribbons"}
     <div class="ribbon"><a href="{$harrisURL}">Sign in using your alumni login<br/>
-    <span class="smallprint">This unlocks private features of the website.</span></a></div>
+    <span class="smallprint">This unlocks private features of the {if $isNative}app{else}website{/if}.</span></a></div>
     
     <div class="or">or</div>
     

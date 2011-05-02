@@ -573,6 +573,15 @@ class FacebookGroup {
     if (isset($post['message'])) {
       $formatted['message'] = $post['message'];
     }
+    if (!isset($post['message']) || 
+        (isset($post['link']) && $post['message'] == $post['link'])) {
+      if (isset($post['description'])) {
+        $formatted['message'] = $post['description'];
+      } else {
+        unset($formatted['message']);
+      }
+    }
+    
     if (isset($post['picture'])) {
       $formatted['thumbnail'] = $post['picture']; // only in group feed
     }

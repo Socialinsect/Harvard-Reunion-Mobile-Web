@@ -34,7 +34,7 @@
   margin: 0;
   text-align: center;
   line-height: 86px;
-  background-color: black;
+  background: black;
   margin: 1px;
 }
 .results .thumbnail img {
@@ -48,6 +48,9 @@ div.author {
 
 div.message {
   font-weight: bold;
+  height: 43px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 div.when {

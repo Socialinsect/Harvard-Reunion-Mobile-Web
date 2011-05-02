@@ -83,7 +83,10 @@ class SiteVideoWebModule extends WebModule {
           'mine'       => $this->buildViewURL('mine'),
           'bookmarked' => $this->buildViewURL('bookmarked'),
         );
-
+        
+        $this->addInternalJavascript('/common/javascript/lib/ellipsizer.js');
+        $this->addOnLoad('setupVideoListing();');
+        
         $this->assign('user',          $facebook->getUserFullName());
         $this->assign('switchUserURL', $facebook->getSwitchUserURL());
 

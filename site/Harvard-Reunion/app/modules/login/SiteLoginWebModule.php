@@ -187,6 +187,7 @@ class SiteLoginWebModule extends LoginWebModule
             } elseif ($tabletDisplay) {
                 $this->assign('reunionYears', Schedule::getAllReunionYears());
                 $this->assign('suppressiOSLink', $nativeApp);
+                $this->assign('isNative', $nativeApp);
 
             } elseif ($authority = $this->getArg('authority')) {
                 if ($authority == 'anonymous') {
