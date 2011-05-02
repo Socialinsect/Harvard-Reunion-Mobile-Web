@@ -29,6 +29,7 @@ import string
 import sys
 from itertools import izip
 from optparse import OptionParser
+from StringIO import StringIO
 
 from csvcolumns.columngroup import ColumnGroup
 from csvcolumns.column import DataColumn
@@ -56,9 +57,10 @@ def main(class_year, infile, db_path, anonymize=False, debug_mode=False):
 
     # Merge together rows that represent multiple orders from the same person 
     # by looking for orders with the same email address (it must be sorted so
-    # that records to be merged are grouped together -- we're sorting by email)
-    merged = active.sort_rows().merge_rows(lambda row: row["email"], 
-                                           merge_func=merge_rows)
+    # that records to be merged are grouped together)
+    sorted_by_email = active.sort_rows_by("email")
+    merged, merge_log = sorted_by_email.merge_rows_by("email", 
+                                                      merge_func=merge_rows)
 
     # Account for package deals where signing up for one event actually means
     # you're attending multiple ones -- even some that aren't in Harris
@@ -84,6 +86,8 @@ def main(class_year, infile, db_path, anonymize=False, debug_mode=False):
     users_events_table.write_db_table(dbconn, "users_events", 
                                       indexes=["user_id", "event_id", "value"])
     dbconn.close()
+    
+    return merge_log
 
 #################### Parse and Extract ####################
 def parse_doc(infile):
@@ -224,6 +228,24 @@ def iterate_user_events(user_id_col, event_cols):
             yield (user_id, event_id, event_value)
 
 
+###########
+
+def format_row(row):
+    return "  " + ",".join(row) + "\n"
+
+def format_merge_log(merge_log):
+    output = StringIO()
+    output.write("== Records merged: ==\n")
+    for src_rows, merged_row in merge_log.items():
+        output.write("Merged:\n")
+        output.writelines(map(format_row, src_rows))
+        output.write("Into:\n")
+        output.write(format_row(merged_row))
+    
+    return output.getvalue()
+    
+
+
 if __name__ == '__main__':
     # We're passing in class_year explicitly instead of deriving it from the 
     # data file because of cases like Harvard and Radcliffe differntiating their
@@ -241,6 +263,9 @@ if __name__ == '__main__':
     class_year, infile_name, outfile_name = args
 
     with open(infile_name, "U") as infile:
-        main(class_year, infile, outfile_name, opts.anonymize, opts.debug_mode)
+        merge_log = main(class_year, infile, outfile_name, 
+                         opts.anonymize, opts.debug_mode)
+        print format_merge_log(merge_log)
+
 
 
