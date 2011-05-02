@@ -8,6 +8,10 @@ cgitb.enable()
 
 import processevents
 
+
+YEARS = ['2006', '2001', '1996', '1991', '1986', '1976', '1961', 'H1956',
+         'R1956', '1951', 'H1946', 'R1946']
+
 def display_form():
     print "Content-Type: text/html"
     print
@@ -32,8 +36,6 @@ def display_form():
     </html>""" % year_dropdown()
 
 def year_dropdown():
-    YEARS = ['2006', '2001', '1996', '1991', '1986', '1976', '1961', '1956', 
-             '1951', '1946']
     options_html = '\n\t'.join(['<option value="%s">%s</option>' % (year, year) 
                                for year in YEARS])
     html = '<select name="reunion_year" id="reunion_year">%s</select>' % options_html
@@ -52,7 +54,7 @@ if __name__ == '__main__':
         response_start()
 
         year = form["reunion_year"].value
-        if not year.isdigit():
+        if year not in YEARS:
             raise ValueError("Invalid year: %s" % year)
         
         contents = form["attendance_file"].file.read()
