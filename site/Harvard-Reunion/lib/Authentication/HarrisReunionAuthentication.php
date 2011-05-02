@@ -133,12 +133,10 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
     
     public function logout(Session $session, $hard=false)
     {
-        if ($hard) {
-          // On hard logout flush the user's college selection
-          $user = $session->getUser($this);
-          if ($user) {
-            $user->clearCollegeIndex();
-          }
+        // flush the user's college selection
+        $user = $session->getUser($this);
+        if ($user) {
+          $user->clearCollegeIndex();
         }
 
         parent::logout($session, $hard);
