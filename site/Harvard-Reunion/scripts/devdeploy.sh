@@ -26,6 +26,7 @@ mkdir -p $REPO_DIR/site/Harvard-Reunion/cache
 cd $REPO_DIR/site/Harvard-Reunion/cache
 rm -rf ./minify ./smarty ./Harris ./Calendar
 cp -r $REPO_DIR/site/Harvard-Reunion/copy-to-Cache/* $REPO_DIR/site/Harvard-Reunion/cache
+cp /opt/haareunions/__private/site-local.ini $REPO_DIR/site/Harvard-Reunion/config
 chown -R apache $REPO_DIR
 chgrp -R apache $REPO_DIR
 
