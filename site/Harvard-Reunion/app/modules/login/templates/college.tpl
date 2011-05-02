@@ -16,7 +16,7 @@
     
     <p>
       <select id="collegeIndex" name="collegeIndex">
-        <option value="" selected>Please select your college</option>
+        <option value="" selected></option>
         <option value="0">Harvard</option>
         <option value="1">Radcliffe</option>
       </select>

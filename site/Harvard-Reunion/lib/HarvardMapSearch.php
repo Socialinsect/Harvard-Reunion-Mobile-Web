@@ -47,22 +47,26 @@ class HarvardMapSearch extends MapSearch {
         if ($bldgIds) {
             foreach ($bldgIds as $bldgId) {
                 $featureInfo = HarvardMapDataController::getBldgDataByNumber($bldgId);
-                // we've set up HarvardMapDataController to expect building ID's
-                // if the data source is the search layer, which isn't consistent
-                // with the other layers but...
-                $feature = new ArcGISFeature(
-                    $featureInfo['attributes'],
-                    $featureInfo['geometry'],
-                    $bldgId,
-                    $this->controllerLayerID);
-                $feature->setTitleField('Building Name');
-                // TODO find a better place to set this attribute
-                if (isset($featureInfo['geometryType'])) {
-                    $feature->setGeometryType($featureInfo['geometryType']);
+                
+                if ($featureInfo && $featureInfo['attributes']) {
+                    // we've set up HarvardMapDataController to expect building ID's
+                    // if the data source is the search layer, which isn't consistent
+                    // with the other layers but...
+                    $feature = new ArcGISFeature(
+                        $featureInfo['attributes'],
+                        $featureInfo['geometry'],
+                        $bldgId,
+                        $this->controllerLayerID);
+                    $feature->setTitleField('Building Name');
+                    // TODO find a better place to set this attribute
+                    if (isset($featureInfo['geometryType'])) {
+                        $feature->setGeometryType($featureInfo['geometryType']);
+                    }
+                    $results[] = $feature;
                 }
-                $results[] = $feature;
             }
         }
+        
         return $results;
     }
 
