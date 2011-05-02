@@ -291,9 +291,11 @@ class Schedule {
       $this->eventController->removeAllFilters();
     }
     
-    // set time range to full schedule duration
-    $endDate = new DateTime($this->endDate->format('Y-m-d').' 00:00:00 +1 day', $this->timezone);
-    $this->eventController->setStartDate($this->startDate);
+    // set time range to full schedule duration padded by 1 day beforehand and 3 days after
+    // Yes, there are events both before an after the official reunion dates.  Sigh.
+    $startDate = new DateTime($this->startDate->format('Y-m-d').' 00:00:00 -1 day', $this->timezone);
+    $endDate   = new DateTime(  $this->endDate->format('Y-m-d').' 00:00:00 +3 day', $this->timezone);
+    $this->eventController->setStartDate($startDate);
     $this->eventController->setEndDate($endDate);
     
     
