@@ -45,21 +45,22 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             'username'       => $login,
             'password'       => $password
         );
-        error_log($url);
-        error_log(print_r($params, true));
+        // error_log($url);
+        // error_log(print_r($params, true));
     
         if (!is_dir(CACHE_DIR . "/Harris")) {
             mkdir(CACHE_DIR . "/Harris");
         }
         
+        $loginHash = md5($login);
         $opts = array(
             CURLOPT_URL            => $url,
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => http_build_query($params, null, '&'),
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_COOKIEJAR      => CACHE_DIR . "/Harris/cookie.txt", // need cookies for it to work
-            CURLOPT_COOKIEFILE     => CACHE_DIR . "/Harris/cookie.txt",
+            CURLOPT_COOKIEJAR      => CACHE_DIR . "/Harris/cookie-$loginHash.txt", // need cookies for it to work
+            CURLOPT_COOKIEFILE     => CACHE_DIR . "/Harris/cookie-$loginHash.txt",
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => 2,
         );
@@ -84,7 +85,7 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
             error_log("Error communicating with Harris: $curlError");
             return AUTH_ERROR;
             
-        } else if (strpos($result, '<!DOCTYPE') === 0) {error_log($result);
+        } else if (strpos($result, '<!DOCTYPE') === 0) {
           // User just received an interstitial page which could be a message
           // saying their account got suspended or they need to answer a 
           // security question because they haven't logged in in a long time
