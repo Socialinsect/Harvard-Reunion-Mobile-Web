@@ -228,6 +228,7 @@ class SiteLoginWebModule extends LoginWebModule
                 $this->assign('harrisURL',       $this->buildURL($this->page, $harrisArgs));
                 $this->assign('anonymousURL',    $this->buildURL($this->page, $anonymousArgs));
                 $this->assign('suppressiOSLink', $nativeApp);
+                $this->assign('isNative', $nativeApp);
             }
             break;
       }
