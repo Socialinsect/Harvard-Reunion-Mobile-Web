@@ -43,7 +43,7 @@ def year_dropdown():
 def response_start():
     print "Content-Type: text/html"
     print
-    print "File Uploaded! <a href='index.cgi'>Upload another</a>"
+    print "<html><head><title>Upload Results</title></head>"
 
 
 if __name__ == '__main__':
@@ -63,6 +63,19 @@ if __name__ == '__main__':
                                    "%s.db" % year)
                   )
         
-        processevents.main(year, infile, db_path)
+        merge_log = processevents.main(year, infile, db_path)
+
+        print "<body>"
+        print "<p>File Uploaded! <a href='index.cgi'>Upload another</a></p>"
+        
+        if merge_log:
+            print "<p>Warning: Records were merged</p>"
+            print "<pre>"
+            print processevents.format_merge_log(merge_log)
+            print "</pre>"
+        
+        print "</body>"
+        print "</html>"
+        
     else:
         display_form()
