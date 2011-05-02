@@ -54,11 +54,12 @@ def main(class_year, infile, db_path, anonymize=False, debug_mode=False):
 
     # Remove orders that were voided by the user
     active = (user_cols + event_cols).reject_rows_by_value("status", "Voided")
+    valid_emails = active.reject_rows_if(lambda r: "@" not in r["email"])
 
     # Merge together rows that represent multiple orders from the same person 
     # by looking for orders with the same email address (it must be sorted so
     # that records to be merged are grouped together)
-    sorted_by_email = active.sort_rows_by("email")
+    sorted_by_email = valid_emails.sort_rows_by("email")
     merged, merge_log = sorted_by_email.merge_rows_by("email", 
                                                       merge_func=merge_rows)
 

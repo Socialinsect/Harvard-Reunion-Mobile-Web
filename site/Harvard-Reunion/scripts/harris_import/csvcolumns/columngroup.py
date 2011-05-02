@@ -115,6 +115,12 @@ class ColumnGroup(object):
                     if col[i] != reject_value)
         return ColumnGroup.from_rows(self.column_names, new_rows)
 
+    def reject_rows_if(self, reject_f):
+        new_rows = (self.row_from_dict(row_dict) 
+                    for row_dict in self.iter_dict_rows()
+                    if not reject_f(row_dict))
+        return ColumnGroup.from_rows(self.column_names, new_rows)
+
     def row_from_dict(self, d):
         self._col_name_to_index
         
