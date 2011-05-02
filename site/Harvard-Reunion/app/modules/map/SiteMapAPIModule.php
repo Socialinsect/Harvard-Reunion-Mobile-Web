@@ -105,20 +105,29 @@ class SiteMapAPIModule extends MapAPIModule
           if (isset($info['location']['building'])) {
               $feature = $this->dataController->getFeature(
                   $info['location']['building'], $this->getCategoriesAsArray());
+              $result = $this->arrayFromMapFeature($feature);
               
           } else if (isset($info['location']['latlon'])) {
-              $feature = new EmptyMapFeature(array(
-                  'lat' => $info['location']['latlon'][0], 
+              $result = array(
+                  'title' => '',
+                  'subtitle' => '',
+                  'id' => '',
+                  'category' => array(),
+                  'description' => array(),
+                  'geometryType' => 'point',
+                  'geometry' => array(
+                      'lat' => $info['location']['latlon'][0],
+                      'lon' => $info['location']['latlon'][1],
+                  ),
+                  'lat' => $info['location']['latlon'][0],
                   'lon' => $info['location']['latlon'][1],
-              ));
-            
+              );
           }
-          $result = $this->arrayFromMapFeature($feature);
-  
+
           // overwrite fields with event details
-          $result['id']          = $info['id'];
-          $result['title']       = $info['title'];
-          $result['category']    = array('event');
+          $result['id']       = $info['id'];
+          $result['title']    = $info['title'];
+          $result['category'] = array('event');
   
           $result['subtitle'] = self::argVal($info['location'], 'title', '');
           if (strtoupper($result['subtitle']) == 'TBA' && isset($info['location']['address'])) {
