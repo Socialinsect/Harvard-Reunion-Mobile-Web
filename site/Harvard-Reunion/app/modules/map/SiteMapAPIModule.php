@@ -126,6 +126,7 @@ class SiteMapAPIModule extends MapAPIModule
 
           // overwrite fields with event details
           $result['id']       = $info['id'];
+          $result['start']    = $event->get_start();
           $result['title']    = $info['title'];
           $result['category'] = array('event');
   
