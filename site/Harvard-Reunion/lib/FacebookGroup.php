@@ -221,11 +221,15 @@ class FacebookGroup {
     $results = $this->getGroupPosts();
     //error_log(print_r($results, true));
     
+    $maxPosts = self::getMaxPostCount();
+    $count = 0;
+
     $statuses = array();
     if (isset($results['data'])) {
       foreach ($results['data'] as $i => $post) {
         if ($post['type'] == 'status') {
           $statuses[] = $this->formatPost($post);
+          if (++$count >= $maxPosts) { break; }
         }
       }
     }
@@ -236,7 +240,6 @@ class FacebookGroup {
   private static function positionSort($a, $b) {
     return intval($a['position']) - intval($b['position']);
   }
-  
  
   private function getGroupPhotoObjects() {
     $results = $this->fqlQuery('photos', 
@@ -376,12 +379,16 @@ class FacebookGroup {
   }
   
   public function getComments($objectId) {
-    $results = $this->graphQuery('comments', $objectId, array('limit' => 500));
+    $results = $this->graphQuery('comments', $objectId);
+    
+    $maxComments = self::getMaxPostCount();
+    $count = 0;
     
     $comments = array();
     if (isset($results['data'])) {
       foreach ($results['data'] as $comment) {
         $comments[] = $this->formatComment($comment);
+        if (++$count >= $maxComments) { break; }
       }
     }
     
@@ -520,7 +527,7 @@ class FacebookGroup {
         'type'   => 'status',
         'author' => array(
           'id'    => $result['actor_id'],
-          'photo' => "https://graph.facebook.com/{$result['actor_id']}/picture",
+          'photo' => $this->photoURLForUserID($result['actor_id']),
         ),
       );
       if (isset($result['attachment'], $result['attachment']['media'])) {
@@ -543,6 +550,10 @@ class FacebookGroup {
   // Photos
   //
   
+  private function photoURLForUserID($id) {
+    return "https://graph.facebook.com/{$id}/picture?type=square";
+  }
+  
   private function getPhotoDetails($objectId) {
     return $this->graphQuery('photo', $objectId);
   }
@@ -561,7 +572,7 @@ class FacebookGroup {
       $formatted['author'] = array(
         'name'  => $post['from']['name'],
         'id'    => $post['from']['id'],
-        'photo' => "https://graph.facebook.com/{$post['from']['id']}/picture",
+        'photo' => $this->photoURLForUserID($post['from']['id']),
         'url'   => $this->authorURL($post['from']),
       );
     }
@@ -604,7 +615,7 @@ class FacebookGroup {
       $formatted['author'] = array(
         'name'  => $photo['from']['name'],
         'id'    => $photo['from']['id'],
-        'photo' => "https://graph.facebook.com/{$post['from']['id']}/picture",
+        'photo' => $this->photoURLForUserID($photo['from']['id']),
         'url'   => $this->authorURL($photo['from']),
       );
     }
@@ -632,7 +643,7 @@ class FacebookGroup {
       'author'  => array(
         'name'  => $comment['from']['name'],
         'id'    => $comment['from']['id'],
-        'photo' => "https://graph.facebook.com/{$comment['from']['id']}/picture",
+        'photo' => $this->photoURLForUserID($comment['from']['id']),
         'url'   => $this->authorURL($comment['from']),
       ),
       'when'    => array(
@@ -645,6 +656,26 @@ class FacebookGroup {
   
   private function authorURL($from) {
     return self::AUTHOR_URL.$from['id'];
+  }
+  
+  public static function getMaxPostCount() {
+    $maxPosts = 100;
+    
+    switch ($GLOBALS['deviceClassifier']->getPagetype()) {
+      case 'compliant':
+        $maxPosts = 200;
+        break;
+        
+      case 'touch':
+        $maxPosts = 100;
+        break;
+        
+      case 'basic':
+        $maxPosts = 50;
+        break;
+    }
+    
+    return $maxPosts;
   }
   
   public static function relativeTime($time=null, $shortFormat=false, $limit=86400) {

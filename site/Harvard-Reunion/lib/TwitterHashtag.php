@@ -2,7 +2,6 @@
 
 
 class TwitterHashtag {
-  const TWEET_LIMIT = 20;
   const SEARCH_URL = 'http://search.twitter.com/search.json';
   protected $hashtag = '';
   protected $cache;
@@ -38,11 +37,15 @@ class TwitterHashtag {
       $content = $this->cache->read($cacheName);
       
     } else {
+      $maxTweets = FacebookGroup::getMaxPostCount();
+
       $url = self::SEARCH_URL.'?'.http_build_query(array(
         'q'           => $this->hashtag,
         'result_type' => 'recent',
-        'rpp'         => self::TWEET_LIMIT,
+        'rpp'         => $maxTweets,
       ), null, '&');
+      error_log("Requesting {$url}");
+      
       $content = @file_get_contents($url);
       $this->cache->write($content, $cacheName);
     }
