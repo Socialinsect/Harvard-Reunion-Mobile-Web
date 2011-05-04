@@ -114,6 +114,7 @@ class SiteHomeWebModule extends HomeWebModule {
           $this->assign('needsJoinGroup', true);
           $this->assign('groupURL', $facebook->getGroupURL());
           $this->assign('groupName', $facebook->getGroupFullName());
+          $this->assign('itemType', 'posts');
           
         } else {
           $this->addInternalJavascript('/common/javascript/lib/utils.js');

@@ -28,8 +28,8 @@
 {if !count($checkins['self']) && !isset($checkins['error'])}
   <div class="focal checkinForm">
     <form method="get" action="addCheckin">
-      <textarea rows="3" name="message" id="messageText" placeholder="Add a shout with this checkin"></textarea>
-      <input type="submit" name="submit" value="Check In" />
+      <textarea rows="3" name="message" id="messageText" placeholder="Add a shout with this checkin (optional)"></textarea>
+      <input type="submit" name="submit" value="Check In" onlick="_gaq.push(['_trackEvent', '{$smarty.const.GA_EVENT_CATEGORY}', 'Foursquare Checkin', '{$eventTitle|escape:'javascript'}']);" />
       {foreach $hiddenArgs as $arg => $value}
         <input type="hidden" name="{$arg}" value="{$value}" />
       {/foreach}

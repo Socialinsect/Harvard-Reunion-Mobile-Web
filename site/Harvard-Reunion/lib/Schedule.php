@@ -90,6 +90,10 @@ class Schedule {
         error_log("Could not open database file for ".$this->year." : ".$e->getMessage());
         $this->attendanceDb = null;
       }
+      
+      // Google Analytics Event category (accessed with $smarty.const.GA_EVENT_CATEGORY)
+      // Should already have single quotes escaped (if any)
+      define('GA_EVENT_CATEGORY', $this->getReunionNumber().'th Reunion');
     }
   }
   

@@ -32,6 +32,7 @@ class SiteVideoWebModule extends WebModule {
       $this->assign('needsJoinGroup', true);
       $this->assign('groupName', $facebook->getGroupFullName());
       $this->assign('groupURL', $facebook->getGroupURL());
+      $this->assign('itemType', 'videos');
       return false;
     }
     
