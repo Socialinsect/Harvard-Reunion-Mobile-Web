@@ -519,7 +519,8 @@ class FacebookGroup {
         'id'     => $result['post_id'],
         'type'   => 'status',
         'author' => array(
-          'id' => $result['actor_id'],
+          'id'    => $result['actor_id'],
+          'photo' => "https://graph.facebook.com/{$result['actor_id']}/picture",
         ),
       );
       if (isset($result['attachment'], $result['attachment']['media'])) {
@@ -558,9 +559,10 @@ class FacebookGroup {
     }
     if (isset($post['from'])) {
       $formatted['author'] = array(
-        'name' => $post['from']['name'],
-        'id'   => $post['from']['id'],
-        'url'  => $this->authorURL($post['from']),
+        'name'  => $post['from']['name'],
+        'id'    => $post['from']['id'],
+        'photo' => "https://graph.facebook.com/{$post['from']['id']}/picture",
+        'url'   => $this->authorURL($post['from']),
       );
     }
     if (isset($post['created_time'])) {
@@ -600,9 +602,10 @@ class FacebookGroup {
     }
     if (isset($photo['from'])) {
       $formatted['author'] = array(
-        'name' => $photo['from']['name'],
-        'id'   => $photo['from']['id'],
-        'url'  => $this->authorURL($photo['from']),
+        'name'  => $photo['from']['name'],
+        'id'    => $photo['from']['id'],
+        'photo' => "https://graph.facebook.com/{$post['from']['id']}/picture",
+        'url'   => $this->authorURL($photo['from']),
       );
     }
     if (isset($photo['created_time'])) {
@@ -627,9 +630,10 @@ class FacebookGroup {
       'id'      => $comment['id'],
       'message' => $comment['message'],
       'author'  => array(
-        'name' => $comment['from']['name'],
-        'id'   => $comment['from']['id'],
-        'url'  => $this->authorURL($comment['from']),
+        'name'  => $comment['from']['name'],
+        'id'    => $comment['from']['id'],
+        'photo' => "https://graph.facebook.com/{$comment['from']['id']}/picture",
+        'url'   => $this->authorURL($comment['from']),
       ),
       'when'    => array(
         'time'       => strtotime($comment['created_time']),

@@ -56,8 +56,9 @@ class TwitterHashtag {
           'id'      => number_format($result['id'], 0, '.', ''),
           'message' => $result['text'],
           'author'  => array(
-            'name' => $result['from_user'],
-            'id'   => $result['from_user_id'],
+            'name'  => $result['from_user'],
+            'id'    => $result['from_user_id'],
+            'photo' => $result['profile_image_url'],
           ),
           'when' => array(
             'time'       => strtotime($result['created_at']),

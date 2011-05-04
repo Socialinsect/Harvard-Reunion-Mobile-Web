@@ -4,8 +4,11 @@
       {$lastPost = $post@last}
       {block name="postContent"}
         <div class="comment">
-          &ldquo;{$post['message']|escape}&rdquo; 
-          <span class="smallprint"> -&nbsp;{$post['author']['name']|escape}, {$post['when']['shortDelta']}</span>
+          <img class="profilepic" src="{$post['author']['photo']}" /> 
+          <div class="wrapper">
+            &ldquo;{$post['message']|escape}&rdquo; 
+            <span class="smallprint"> -&nbsp;{$post['author']['name']|escape}, {$post['when']['shortDelta']}</span>
+          </div>
         </div>
       {/block}
     {/foreach}

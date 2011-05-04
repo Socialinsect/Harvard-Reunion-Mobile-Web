@@ -4,7 +4,7 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
     <td valign="top" width="65%"><h2>{$hashtag}</h2></td>
     <td align="right" width="35%">
-      <img src="/common/images/button-twitter.gif" alt="twitter" /><a href="{$tweetURL}">tweet</a>
+      <img src="/common/images/button-twitter.gif" alt="twitter" /> <a href="{$tweetURL}">tweet</a>
     </td>
   </tr></table>
 {/block}

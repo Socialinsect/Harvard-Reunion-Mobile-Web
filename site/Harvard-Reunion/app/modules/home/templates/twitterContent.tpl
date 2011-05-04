@@ -4,8 +4,11 @@
       {$lastPost = $post@last}
       {block name="tweetContent"}
         <div class="comment">
-          &ldquo;{$post['message']}&rdquo; 
-          <span class="smallprint"> - {$post['author']['name']}, {$post['when']['shortDelta']}</span>
+          <img class="profilepic" src="{$post['author']['photo']}" /> 
+          <div class="wrapper">
+            &ldquo;{$post['message']}&rdquo; 
+            <span class="smallprint"> - {$post['author']['name']}, {$post['when']['shortDelta']}</span>
+          </div>
         </div>
       {/block}
     {/foreach}

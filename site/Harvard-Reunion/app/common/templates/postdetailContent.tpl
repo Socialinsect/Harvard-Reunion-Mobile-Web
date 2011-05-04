@@ -4,8 +4,11 @@
       {$lastComment = $comment@last}
       {block name="commentContent"}
         <div class="comment">
-          &ldquo;{$comment['message']|escape}&rdquo; 
-          <span class="smallprint"> -&nbsp;{$comment['author']['name']|escape}, {$comment['when']['shortDelta']}</span>
+          <img class="profilepic" src="{$comment['author']['photo']}" />
+          <div class="wrapper">
+            &ldquo;{$comment['message']|escape}&rdquo; 
+            <span class="smallprint"> -&nbsp;{$comment['author']['name']|escape}, {$comment['when']['shortDelta']}</span>
+          </div>
         </div>
       {/block}
     {/foreach}

@@ -67,8 +67,24 @@
 }
 
 .focal .comment {
-  padding-top: 18px;
+  margin-top: 18px;
 }
 .focal .comment:first-child {
-  padding-top: 0;
+  margin-top: 0;
+}
+
+.focal .comment {
+  position: relative;
+}
+
+.focal .comment .profilepic {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 24px;
+  width: 24px;
+}
+
+.focal .comment .profilepic + .wrapper {
+  padding-left: 30px;
 }
