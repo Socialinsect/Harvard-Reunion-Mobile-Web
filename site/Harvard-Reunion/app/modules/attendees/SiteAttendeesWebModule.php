@@ -57,7 +57,7 @@ class SiteAttendeesWebModule extends WebModule
             'hard'      => 1,
             'url'       => URL_PREFIX.'login/?'.http_build_query(array(
               'authority' => 'harris',
-              'url'       => URL_PREFIX.$this->buildBreadcrumbURL($this->page, $this->args, false),
+              'url'       => URL_PREFIX.ltrim($this->buildBreadcrumbURL($this->page, $this->args, false), '/'),
             ), null, '&'),
           )));
         }
