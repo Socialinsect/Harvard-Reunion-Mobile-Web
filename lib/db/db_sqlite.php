@@ -20,6 +20,13 @@ class db_sqlite extends db
             throw new Exception("DB file does not exist.");
         }
         
+        if (!file_exists($dsn_data['DB_FILE'])) {
+            $create = isset($dsn_data['DB_CREATE']) && $dsn_data['DB_CREATE'];
+            if (!$create) {
+                throw new Exception("SQLite file does not exist.");
+            }
+        }
+        
         $dsn = sprintf("%s:%s", 'sqlite', $dsn_data['DB_FILE']);
         $connection = new PDO($dsn);
         return $connection;
