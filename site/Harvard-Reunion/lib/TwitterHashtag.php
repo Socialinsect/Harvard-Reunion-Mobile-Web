@@ -5,7 +5,7 @@ class TwitterHashtag {
   const SEARCH_URL = 'http://search.twitter.com/search.json';
   protected $hashtag = '';
   protected $cache;
-  protected $cacheLifetime = 20;
+  protected $cacheLifetime = 60;
   
   function __construct($hashtag) {
     $this->hashtag = $hashtag;

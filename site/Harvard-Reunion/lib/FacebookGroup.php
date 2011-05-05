@@ -11,7 +11,7 @@ class FacebookGroup {
 
   private $myId = null;
   
-  const FEED_LIFETIME = 20;
+  const FEED_LIFETIME = 60;
   const OBJECT_LIFETIME = 3600;
   const PLACE_LIFETIME = 14400;
   const NOCACHE_LIFETIME = 0;

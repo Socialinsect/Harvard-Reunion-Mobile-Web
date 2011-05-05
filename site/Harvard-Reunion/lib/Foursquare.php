@@ -5,8 +5,8 @@ class Foursquare {
   private $clientId = '';
   private $clientSecret = '';
   
-  const SHORT_LIFETIME = 20;
-  const LONG_LIFETIME = 20;
+  const SHORT_LIFETIME = 60;
+  const LONG_LIFETIME = 3600;
   const NOCACHE_LIFETIME = 0;
   
   private $queryConfig = array(

@@ -11,7 +11,7 @@ function autoupdateContent($id, $url) {
     httpRequest.send(null);
   }
 
-  setInterval(updateContent, 20000);
+  setInterval(updateContent, 60000);
 }
 
 
