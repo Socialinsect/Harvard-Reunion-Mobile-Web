@@ -15,7 +15,7 @@
       <a href="#top">Back to top</a>
       <br />
       {html_access_key_link href="/home/"}{$strings.SITE_NAME} Home{/html_access_key_link}
-      {if !$isModuleHome}
+      {if !$isModuleHome && $moduleID != 'home'}
         {foreach $breadcrumbs as $breadcrumb}
           <br/>
           {html_access_key_link href=$breadcrumb['url']}

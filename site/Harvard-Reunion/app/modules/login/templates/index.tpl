@@ -97,7 +97,7 @@
 {/if}
 
     {if ($platform == 'iphone' || $plaform == 'ipad') && !$suppressiOSLink}
-      <div id="download"><a href="http://itunes.apple.com/us/app/harvard-mobile/id389199460"><img src="/common/images/signin-appstore.png" width="124" height="46" alt="Download">Get the native app for your {if $tabletDisplay}iPad{else}iPhone{/if}</a></div>
+      <div id="download"><a href="#{*http://itunes.apple.com/us/app/harvard-mobile/id389199460*}"><img src="/common/images/signin-appstore.png" width="124" height="46" alt="Download">Coming Soon! Get the native app for your {if $tabletDisplay}iPad{else}iPhone{/if}</a></div>
     {/if}
   
   </div>

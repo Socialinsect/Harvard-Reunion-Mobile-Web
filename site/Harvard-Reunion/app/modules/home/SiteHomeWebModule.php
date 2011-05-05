@@ -112,7 +112,7 @@ class SiteHomeWebModule extends HomeWebModule {
           
         } else if (!$facebook->isMemberOfGroup()) {
           $this->assign('needsJoinGroup', true);
-          $this->assign('groupURL', $facebook->getGroupURL());
+          $this->assign('groupURL', $facebook->getGroupURL(true));
           $this->assign('groupName', $facebook->getGroupFullName());
           $this->assign('itemType', 'posts');
           

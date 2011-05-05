@@ -12,6 +12,7 @@
   {/if}
   
   <div class="signinbuttons">
+    <img src="/common/images/button-{$service['type']}{$imageExt}" alt="" width="24" height="24" style="vertical-align: middle;" /> 
     <a class="signinbutton {$service['type']}" href="{$service['url']}">Sign in to {$service['name']}</a>
   </div>
 </div>

@@ -109,8 +109,10 @@ class FacebookGroup {
     ),
   );
   const AUTHOR_URL    = 'http://m.facebook.com/profile.php?id=';
-  const OLD_GROUP_URL = 'http://m.facebook.com/group.php?gid=';
-  const NEW_GROUP_URL = 'http://m.facebook.com/home.php?sk=group_';
+  const OLD_DESKTOP_GROUP_URL = 'http://www.facebook.com/group.php?gid=';
+  const NEW_DESKTOP_GROUP_URL = 'http://www.facebook.com/home.php?sk=group_';
+  const OLD_MOBILE_GROUP_URL = 'http://m.facebook.com/group.php?gid=';
+  const NEW_MOBILE_GROUP_URL = 'http://m.facebook.com/home.php?sk=group_';
   
   public static function appLogout() {
     $facebook = new ReunionFacebook(array(
@@ -196,12 +198,19 @@ class FacebookGroup {
     return null;
   }
   
-  public function getGroupURL() {
-    if ($this->oldGroup) {
-      return self::OLD_GROUP_URL.$this->groupId;
-    } else {
-      return self::NEW_GROUP_URL.$this->groupId;
+  public function getGroupURL($isJoinLink=false) {
+    $groupURL = $this->oldGroup ? 
+      self::OLD_MOBILE_GROUP_URL : self::NEW_MOBILE_GROUP_URL;
+    
+    if ($isJoinLink && $GLOBALS['deviceClassifier']->getPagetype() == 'compliant') {
+      // Facebook's mobile web site is lame and doesn't have a join link
+      // Direct phones who have a chance of displaying the real website to 
+      // it instead
+      $groupURL = $this->oldGroup ? 
+        self::OLD_DESKTOP_GROUP_URL : self::NEW_DESKTOP_GROUP_URL;
     }
+    
+    return $groupURL.$this->groupId;
   }
   
   //
