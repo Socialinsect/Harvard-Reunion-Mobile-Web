@@ -217,7 +217,7 @@ class GazetteRSSController extends RSSDataController
             }
             if ($page < $maxPages) {
                 // let the caller know there are more items available on the next page
-                $totalCount++;
+                $totalCount += 10;
             }
         } elseif ($limit) {
             $items = array_slice($items, $start, $limit); //slice off what's not needed
