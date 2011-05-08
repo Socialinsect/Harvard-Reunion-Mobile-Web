@@ -206,39 +206,27 @@ abstract class PushClientDevice {
   // TODO give these functions return values
   // so callers know whether they succeeded
 
-  public function addSubscription($tag, $params=array()) {
-    $tableName = $tag.'_subscriptions';
+  public function addSubscription($tag) {
+    $tableName = $this->settingsTable();
 
-    $params['device_id'] = $this->deviceId;
-    $params['platform'] = $this->platform;
-
-    $fields = implode(', ', array_keys($params));
-    $placeholders = implode(', ', array_fill(0, count($fields), '?'));
-    $values = array_values($params);
-
-    $sql = "INSERT INTO $tableName ( $fields ) VALUES ( $placeholders )";
+    $params = array($this->deviceId, $tag, 0);
+    $sql = "INSERT INTO $tableName ( device_id, tag, disabled ) VALUES ( ?, ?, ? )";
     $conn = PushDB::connection();
-    $result = $conn->query($sql, $values);
+    $result = $conn->query($sql, $params);
   }
 
-  public function removeSubscription($tag, $params=array()) {
-    $tableName = $tag.'_subscriptions';
+  public function removeSubscription($tag) {
+    $tableName = $this->settingsTable();
+    $params = array($this->deviceId, $tag);
+    $sql = "DELETE FROM $tableName WHERE device_id=? AND tag=?";
+    $result = PushDB::connection()->query($sql, $params);
+  }
 
-    $params['device_id'] = $this->deviceId;
-    $params['platform'] = $this->platform;
-
-    $whereClause = '';
-    foreach (array_keys($params) as $param) {
-      if (strlen($whereClause) > 0) {
-        $whereClause .= ' AND ';
-      }
-      $whereClause .= "$param=?";
-    }
-
-    $values = array_values($params);
-
-    $sql = "DELETE FROM $tableName WHERE $whereClause";
-    $result = PushDB::conection()->query($sql, $values);
+  public function removeAllSubscriptions() {
+    $tableName = $this->settingsTable();
+    $params = array($this->deviceId);
+    $sql = "DELETE FROM $tableName WHERE device_id=?";
+    $result = PushDB::connection()->query($sql, $params);
   }
   
   //////// device notification queue

@@ -22,7 +22,7 @@ class PushAPIModule extends APIModule {
     $this->throwError($error);
   }
   
-  private function invalidDeviceToken($e=null) {
+  protected function invalidDeviceToken($e=null) {
     $title = "invalid device token";
     if ($e) {
       $message = $e->getMessage();
