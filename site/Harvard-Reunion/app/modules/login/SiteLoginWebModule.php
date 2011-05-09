@@ -32,6 +32,12 @@ class SiteLoginWebModule extends LoginWebModule
         $defaultArgs['nativeApp'] = 1;
     }
     
+    // If this is a native app, use the native app GA id
+    if ($nativeApp) {
+        $this->assign('GOOGLE_ANALYTICS_ID', 
+          Kurogo::getOptionalSiteVar('GOOGLE_ANALYTICS_NATIVE_ID'));
+    }
+
     // return url
     $url = $this->getArg('url');
     if ($nativeApp) {
