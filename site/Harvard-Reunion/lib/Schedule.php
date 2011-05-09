@@ -714,6 +714,28 @@ class Schedule {
       }
     }
     
+    //
+    // Registration (used by iPad UI)
+    //
+    $info['registration'] = null;
+    
+    $registrationRequired = $event->get_attribute('Registration Required');
+    if (strtolower($registrationRequired) == 'yes') {
+      $info['registration'] = array(
+        'url'        => '',
+        'fee'        => '',
+        'registered' => $info['attending'],
+      );
+      $fee = $event->get_attribute('Registration Fee');
+      if ($fee) {
+        $info['registration']['fee'] = $fee;
+      }
+      $url = $event->get_attribute('Registration URL');
+      if ($url) {
+        $info['registration']['url'] = $url;
+      }
+    }
+    
     return $info;
   }
   
@@ -735,28 +757,6 @@ class Schedule {
         $info[$key] = $value;
       } else {
         $info[$key] = null;
-      }
-    }
-    
-    //
-    // Registration
-    //
-    $info['registration'] = null;
-    
-    $registrationRequired = $event->get_attribute('Registration Required');
-    if (strtolower($registrationRequired) == 'yes') {
-      $info['registration'] = array(
-        'url'        => '',
-        'fee'        => '',
-        'registered' => $info['attending'],
-      );
-      $fee = $event->get_attribute('Registration Fee');
-      if ($fee) {
-        $info['registration']['fee'] = $fee;
-      }
-      $url = $event->get_attribute('Registration URL');
-      if ($url) {
-        $info['registration']['url'] = $url;
       }
     }
     
