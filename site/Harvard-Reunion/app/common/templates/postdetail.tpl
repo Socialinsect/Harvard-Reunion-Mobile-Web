@@ -53,7 +53,7 @@
     <a class="scrolllink" name="commentscrolldown"> </a>
     {block name="formelements"}
       <textarea rows="3" name="message" id="messageText" placeholder="Add a comment"></textarea>
-      <input type="submit" value="Submit" onclick="return validateTextInputForm('messageText', 'Please enter a comment for this Facebook post.');" />
+      <input type="submit" value="Submit" onclick="pageTracker._trackEvent('{$smarty.const.GA_EVENT_CATEGORY}', 'Facebook Comment', '{$post['id']}']); return validateTextInputForm('messageText', 'Please enter a comment for this Facebook post.');" />
     {/block}
     <input type="hidden" name="id" value="{$post['id']|escape:'url'}" />
     <input type="hidden" name="view" value="{$currentView}" />
