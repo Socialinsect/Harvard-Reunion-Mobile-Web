@@ -53,6 +53,11 @@ class SiteLoginWebModule extends LoginWebModule
     $session->setRemainLoggedIn($remainLoggedInTime);
     
     switch ($this->page) {
+        case 'loading':
+            // Do not track this page.  It reloads every second!
+            $this->assign('GOOGLE_ANALYTICS_ID', '');
+            break;
+            
         case 'logoutConfirm':
             $authorityIndex = $this->getArg('authority');
             
