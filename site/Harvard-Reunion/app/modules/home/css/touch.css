@@ -1,228 +1,37 @@
+#social {
+  margin: 1em 0;
+  font-size: 88.23%;
+}
+
+table h2 {
+  margin: 0;
+}
+
+form textarea {
+  width: 98%;
+}
+
 .banner {
-  position: relative;
-  line-height: 1.2em;
-  padding-right: 75px;
-  min-height: 85px;
-}
-.banner p,
-.banner a,
-.banner a:visited {
-  color: #dcdad9;
-  text-decoration: none;
-}
-
-.banner a span {
-  text-decoration: underline;
-}
-
-.banner p {
-  font-size: 88%;
-  line-height: 1.2em;
-  margin: 6px 0;
-}
-
-.banner h3 {
-	margin: 8px 0 6px 0;
-	color: #d3dbe0;
-	font-size: 88%;
+	margin: 10px;
+	font-size: 94.11%;
 }
 
 .banner h2 {
-  font-size: 150%;
-  margin: 6px 0;
-  text-shadow: #333 0 1px 2px;
+	margin: 10px 0 6px 0;
 }
 
-#ribbon {
-  position: absolute;
-  top: -12px;
-  right: -8px;
-  width: 68px;
-  height: 80px;
-  padding: 12px 10px 31px 10px;
-  text-align: center;
-  line-height: 1em;
-  background: url('/modules/home/images/ribbon.gif') no-repeat;
-  font-family: Georgia, serif;
-  color: #fff;
-  text-shadow: #000 0 1px 2px;
-}
-
-#ribbon .ribbonYear {
-  font-size: 38px;
-}
-
-#ribbon .ribbonYearSup {
-	font-size: 18px;
-	vertical-align: super;
-}
-
-#ribbon .ribbonDesc {
-	display: inline-block;
-	padding: 6px 0 0 0;
-	font-size: 16px;
-}
-
-#ribbon .ribbonDate {
-	font-size: 13px;
-}
-
-.springboard {
-	margin: -6px 0;
+.separator {
+  clear: both;
 }
 
 #social {
-  position: relative;
-  padding: 0 4px 0 115px;
-  clear: both;
-  min-height: 92px;
+  margin-top: 1.5em;
 }
 
-#social .links {
-  position: absolute;
-  top: 3px;
-  left: 6px;
-  width: 110px;
-  height: 70px;
+#social, #social .smallprint, .nonfocal a, .nonfocal a:visited {
+  color: white;
 }
 
-#social .links a {
-  font-size: 70%;
-  line-height: normal;
-  padding: 5px 6px;
-  height: 32px;
-  overflow: hidden;
-  background: url('/modules/home/images/socialbutton.gif') no-repeat;
-  color: #eee;
-  text-decoration: none;
-  display: block;
-  position: relative;
-  padding-left: 28px;
-}
-
-#social .links a:first-child {
-  margin-bottom: 5px;
-}
-#social .links a:first-child {
-  margin-bottom: 5px;
-}
-#social .links a img {
-  position: absolute;
-  top: 50%;
-  left: 6px;
-  margin-top: -9px;
-}
-#social .links .facebookLink {
-  line-height: 15px;
-}
-#social .links .twitterLink {
-  line-height: 30px;
-}
-
-#social .recent {
-  position: relative;
-  display: none;
-}
-
-#social .facebook,
-#social .twitter {
-  display: block;
-}
-
-#social .recent .chatbubble {
-  color: #333;
-  padding: 8px 0 6px 0;
-  margin: 0 12px 0 16px;
-  height: 81px;
-  font-size: 82.3%;
-  line-height: 1.3em;
-  background: url('/modules/home/images/chatbubble-mid.gif') repeat-x;
-}
-
-#social .recent .cbr {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 12px;
-  height: 95px;
-  background: url('/modules/home/images/chatbubble-r.gif') no-repeat;	
-}
-
-#social .recent .cbl {
-  position: absolute;
-  top: 0;
-  width: 16px;
-  height: 95px;	
-}
-
-#social .facebook .cbl {
-  background: url('/modules/home/images/chatbubble-l1.gif') no-repeat;
-}
-#social .twitter .cbl {
-  background: url('/modules/home/images/chatbubble-l2.gif') no-repeat;
-}
-
-#social .recent .chatbubble .info {
-  color: #43484c;
-  font-size: 85.7%;
-  max-height: 20px;
-  overflow: hidden;
-}
-
-#social .recent .chatbubble .message {
-  max-height: 56px;
-  margin-bottom: 2px;
-  overflow: hidden;
-}
-
-.nonfocal a,
-.nonfocal a:visited {
-  color: #DCDAD9;
-}
-li {
-  overflow: hidden;
-}
-form textarea {
-  width: 98%;
-  line-height: normal;
-}
-form input[type=submit] {
-  float: right;
-}
-.results a.scrolllink {
-  display: inline;
-  margin: 0;
-  padding: 0;
-  background: none;
-}
-
-#listHeader a {
-  background: none;
-  display: inline;
-  margin: 0;
-  padding: 0;
-}
-
-.tweetButton {
-  display: block;
-  float: right;
-  position: relative;
-  padding-left: 30px;
-  line-height: 24px;
-}
-.tweetButton img {
-  position: absolute;
-  top: 50%;
-  left: 0px;
-  margin-top: -12px;
-}
-
-.fbPostForm {
-  overflow: hidden;
-}
-
-.springboard + div.separator {
-  clear: both;
-  height: 18px;
-  float: none;
+#social td {
+  padding: .5em .75em;
 }

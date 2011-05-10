@@ -1,22 +1,3 @@
 #navbar2 a, #navbar2 a:visited {
   color: white;
 }
-
-#navbar2 #prev {
-  background-image: url('/common/images/button-navbar2-prev.gif');
-}
-#navbar2 #next {
-  background-image: url('/common/images/button-navbar2-next.gif');
-}
-#navbar2 #comment {
-  background-image: url('/common/images/button-navbar2-comment.gif');
-}
-#navbar2 .postControl #bookmark {
-  background-image: url('/common/images/button-navbar2-bookmark.gif');
-}
-#navbar2 #like {
-  background-image: url('/common/images/button-navbar2-like.gif');
-}
-#navbar2 #like.liked {
-  background-image: url('/common/images/button-navbar2-unlike.gif');
-}
