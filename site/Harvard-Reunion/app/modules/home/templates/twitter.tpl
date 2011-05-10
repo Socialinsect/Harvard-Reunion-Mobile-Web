@@ -2,7 +2,7 @@
 
 <div class="nonfocal">
   {block name="twitterHeader"}
-    <a class="tweetButton" href="{$tweetURL}" target="reunionTwitter" onclick="'_gaq.push('_trackEvent', '{$smarty.const.GA_EVENT_CATEGORY}', 'Twitter Post', '{$hashtag|escape:'javascript'}']);">
+    <a class="tweetButton" href="{$tweetURL}" target="reunionTwitter" onclick="_gaq.push(['_trackEvent', '{$smarty.const.GA_EVENT_CATEGORY}', 'Twitter Post', '{$hashtag|escape:'javascript'}']);">
       <img src="/common/images/button-twitter{$imageExt}" width="24" height="24" /> tweet
     </a>
     <h2>{$hashtag}</h2>
