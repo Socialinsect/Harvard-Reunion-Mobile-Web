@@ -119,7 +119,13 @@ class SiteHomeWebModule extends HomeWebModule {
         } else {
           $this->addInternalJavascript('/common/javascript/lib/utils.js');
           $this->addOnLoad('autoupdateContent("autoupdateContainer", "'.URL_PREFIX.$this->id.'/facebookContent");');
-        
+          
+          if ($this->getArg('posted', false)) {
+            $this->addOnLoad('_gaq.push('.json_encode(array(
+              '_trackEvent', GA_EVENT_CATEGORY, 'Facebook Post', $facebook->getGroupFullName(),
+            )).');');
+          }
+          
           $this->assign('user',          $facebook->getUserFullName());
           $this->assign('groupName',     $facebook->getGroupFullName());
           $this->assign('switchUserURL', $facebook->getSwitchUserURL());
@@ -160,7 +166,7 @@ class SiteHomeWebModule extends HomeWebModule {
           if ($message) {
             $facebook->addPost($message);
           }
-          $this->redirectTo('facebook', array(), true);
+          $this->redirectTo('facebook', array('posted' => '1'), true);
           
         } else if ($type == 'twitter') {
           $this->redirectTo('twitter', array(), true);

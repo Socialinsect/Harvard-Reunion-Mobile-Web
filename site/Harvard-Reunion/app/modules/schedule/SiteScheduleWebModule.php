@@ -516,13 +516,13 @@ class SiteScheduleWebModule extends WebModule {
       case 'checkin':
         $eventId       = $this->getArg('eventId');
         $start         = $this->getArg('start', time());
-        $checkinResult = $this->getArg('checkinResult', '[]');
-                
+        $checkinString = $this->getArg('checkinResult', '[]');
+        
         $event = $this->schedule->getEvent($eventId, $start);
         if (!$event) {
           throw new Exception("Event not found");
         }
-
+        
         $info = $this->schedule->getEventInfo($event);
         if (isset($info['location'], $info['location']['foursquareId'])) { 
           $venue = $info['location']['foursquareId'];
@@ -540,13 +540,21 @@ class SiteScheduleWebModule extends WebModule {
               
           $this->addOnLoad('autoupdateContent("autoupdateContent", "'.URL_PREFIX.$this->id.'/checkinContent?'.
               http_build_query(array('venue' => $venue), null, '&').'");');
-        
+          
+          $checkinResult = json_decode($checkinString, true);
+          
+          if ($checkinResult && !isset($checkinResult['error'])) {
+            $this->addOnLoad('_gaq.push('.json_encode(array(
+              '_trackEvent', GA_EVENT_CATEGORY, 'Foursquare Checkin', $info['title'],
+            )).');');
+          }
+          
           $this->assign('eventTitle', $info['title']);
           $this->assign('hiddenArgs', array(
             'venue'     => $venue,
             'returnURL' => URL_PREFIX.ltrim($this->buildBreadcrumbURL($this->page, $this->args, false), '/'),
           ));
-          $this->assign('checkinResult', json_decode($checkinResult, true));
+          $this->assign('checkinResult', $checkinResult);
         }
         break;
         

@@ -153,6 +153,18 @@ class SitePhotosWebModule extends WebModule {
         $this->addInternalJavascript('/common/javascript/lib/utils.js');
         $this->addOnLoad('autoupdateContent("autoupdateContainer", "'.$commentURL.'");');
 
+        if ($this->getArg('commented', false)) {
+          $this->addOnLoad('_gaq.push('.json_encode(array(
+            '_trackEvent', GA_EVENT_CATEGORY, 'Facebook Comment', $postId,
+          )).');');
+        }
+        
+        if ($this->getArg('liked', false)) {
+          $this->addOnLoad('_gaq.push('.json_encode(array(
+            '_trackEvent', GA_EVENT_CATEGORY, 'Facebook Like', $postId,
+          )).');');
+        }          
+
         $this->assign('photo', $postDetails);
         break;
         
@@ -168,8 +180,9 @@ class SitePhotosWebModule extends WebModule {
         }
         
         $this->redirectTo('detail', array(
-          'id'   => $postId,
-          'view' => $view,
+          'id'        => $postId,
+          'view'      => $view,
+          'commented' => '1',
         ), true);
         break;
         
@@ -185,8 +198,9 @@ class SitePhotosWebModule extends WebModule {
         }
         
         $this->redirectTo('detail', array(
-          'id'   => $postId,
-          'view' => $view,
+          'id'    => $postId,
+          'view'  => $view,
+          'liked' => '1',
         ), true);
         break;
     }

@@ -161,6 +161,18 @@ class SiteVideoWebModule extends WebModule {
         $this->addOnLoad('autoupdateContent("autoupdateContainer", "'.$commentURL.'");');
         $this->addOnOrientationChange('setTimeout(resizeVideoFrame, 0);');
 
+        if ($this->getArg('commented', false)) {
+          $this->addOnLoad('_gaq.push('.json_encode(array(
+            '_trackEvent', GA_EVENT_CATEGORY, 'Facebook Comment', $postId,
+          )).');');
+        }
+        
+        if ($this->getArg('liked', false)) {
+          $this->addOnLoad('_gaq.push('.json_encode(array(
+            '_trackEvent', GA_EVENT_CATEGORY, 'Facebook Like', $postId,
+          )).');');
+        }
+
         $this->assign('video', $postDetails);
         break;
         
@@ -176,8 +188,9 @@ class SiteVideoWebModule extends WebModule {
         }
         
         $this->redirectTo('detail', array(
-          'id'   => $postId,
-          'view' => $view,
+          'id'        => $postId,
+          'view'      => $view,
+          'commented' => '1',
         ), true);
         break;
         
@@ -193,8 +206,9 @@ class SiteVideoWebModule extends WebModule {
         }
         
         $this->redirectTo('detail', array(
-          'id'   => $postId,
-          'view' => $view,
+          'id'    => $postId,
+          'view'  => $view,
+          'liked' => '1',
         ), true);
         break;
     }

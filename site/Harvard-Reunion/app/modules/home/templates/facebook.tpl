@@ -12,7 +12,7 @@
       <a class="scrolllink" name="postscrolldown"> </a>
       {block name="facebookComment"}
         <textarea rows="3" name="message" id="messageText" placeholder="Share an update with the {$groupName} group"></textarea>
-        <input type="submit" value="Share" onclick="pageTracker._trackEvent('{$smarty.const.GA_EVENT_CATEGORY}', 'Facebook Post', '{$groupName|escape:'javascript'}']); return validateTextInputForm('messageText', 'Please enter a message to post to the Facebook group.');" />
+        <input type="submit" value="Share" onclick="return validateTextInputForm('messageText', 'Please enter a message to post to the Facebook group.');" />
       {/block}
       <input type="hidden" name="type" value="facebook" />
       {foreach $breadcrumbSamePageArgs as $arg => $value}

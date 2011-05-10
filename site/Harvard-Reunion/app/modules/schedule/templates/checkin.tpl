@@ -29,7 +29,7 @@
   <div class="focal checkinForm">
     <form method="get" action="addCheckin">
       <textarea rows="3" name="message" id="messageText" placeholder="Add a shout with this checkin (optional)"></textarea>
-      <input type="submit" name="submit" value="Check In" onlick="pageTracker._trackEvent('{$smarty.const.GA_EVENT_CATEGORY}', 'Foursquare Checkin', '{$eventTitle|escape:'javascript'}']);" />
+      <input type="submit" name="submit" value="Check In" />
       {foreach $hiddenArgs as $arg => $value}
         <input type="hidden" name="{$arg}" value="{$value}" />
       {/foreach}
