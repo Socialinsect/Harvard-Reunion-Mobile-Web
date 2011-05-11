@@ -58,7 +58,7 @@ if __name__ == '__main__':
             raise ValueError("Invalid year: %s" % year)
         
         contents = form["attendance_file"].file.read()
-        infile = io.StringIO(contents, newline=None)
+        infile = io.BytesIO(contents)
         db_path = os.path.normpath(
                       os.path.join(__file__,
                                    "../../../data/schedule/",
