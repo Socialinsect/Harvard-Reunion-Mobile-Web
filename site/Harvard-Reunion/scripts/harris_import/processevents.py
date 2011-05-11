@@ -54,12 +54,11 @@ def main(class_year, infile, db_path, anonymize=False, debug_mode=False):
 
     # Remove orders that were voided by the user
     active = (user_cols + event_cols).reject_rows_by_value("status", "Voided")
-    valid_emails = active.reject_rows_if(lambda r: "@" not in r["email"])
 
     # Merge together rows that represent multiple orders from the same person 
     # by looking for orders with the same email address (it must be sorted so
     # that records to be merged are grouped together)
-    sorted_by_email = valid_emails.sort_rows_by("email")
+    sorted_by_email = active.sort_rows_by("email")
     merged, merge_log = sorted_by_email.merge_rows_by("email", 
                                                       merge_func=merge_rows)
 
@@ -100,18 +99,33 @@ def parse_doc(infile):
 def select_user_cols(col_grp):
     """Basic user information (each row is actually an order, so we can 
     potentially get the same user buying stuff multiple times)"""
-    # Grab just the email column and transform it so that it's all lowercase
-    make_lowercase = MethodTransform(lambda s: s.lower())
-    email_col_grp = make_lowercase(col_grp.select("email"))
+
+    def _fix_email(email, first_name, last_name):
+        """If it looks vaguely like an email, just normalize to lowercase. If 
+        not (for cases like 'None', blanks, 'Not Available' or whatever, use
+        first.last@example.com as a fake-but-unique value."""
+        if "@" in email and "." in email and len(email) > 5:
+            return email.lower()
+        
+        new_email = filter(lambda c: c.isalpha() or c in ["@", "."],
+                           "%s.%s@example.com" % (first_name, last_name))
+        return new_email.lower()
+
+    user_cols = col_grp.select("email",
+                               ("order_id", "user_id"),
+                               "status",
+                               ("bill_prefix", "prefix"),
+                               ("bill_first_name", "first_name"),
+                               ("bill_last_name", "last_name"),
+                               ("bill_suffix", "suffix"),
+                               "class_year")
     
-    # Append all the other columns we care about to the transformed email column
-    return email_col_grp + col_grp.select(("order_id", "user_id"),
-                                          "status",
-                                          ("bill_prefix", "prefix"),
-                                          ("bill_first_name", "first_name"),
-                                          ("bill_last_name", "last_name"),
-                                          ("bill_suffix", "suffix"),
-                                          "class_year")
+    email_and_names_grp = user_cols.select("email", "first_name", "last_name")
+    fixed_emails = DataColumn([_fix_email(email, first_name, last_name)
+                               for email, first_name, last_name
+                               in email_and_names_grp.iter_rows()])
+    
+    return user_cols.replace(email=fixed_emails)
 
 def select_event_cols(col_grp):
     """All events are of the format "Special Dinner #2131230", and correspond to
@@ -149,7 +163,6 @@ def merge_rows(row1, row2):
             new_row[key] = val2
 
     return new_row
-
 
 #################### Massaging Data (based on config) ####################
 def is_event_header(s):
