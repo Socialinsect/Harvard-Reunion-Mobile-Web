@@ -10,7 +10,7 @@ class PushDB
       $dbFile = Kurogo::getSiteVar('PUSH_DB');
       try {
         self::$db = new db(array('DB_TYPE' => 'sqlite',
-                                 'DB_FILE' => $dbFile),
+                                 'DB_FILE' => $dbFile,
                                  'DB_CREATE' => true));
         $connection = self::$db;
       } catch (Exception $e) {
