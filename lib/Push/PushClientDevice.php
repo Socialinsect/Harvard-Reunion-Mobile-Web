@@ -165,8 +165,8 @@ abstract class PushClientDevice {
   }
 
   public function registerDeviceToken($deviceToken) {
-    // deactive any previous registrations of this device
-    self::deactiveDeviceForToken($deviceToken, $this->platform);
+    // deactivate any previous registrations of this device
+    self::deactivateDeviceForToken($deviceToken, $this->platform);
 
     if (!$this->verifyDeviceTokenFormat($deviceToken)) {
       throw new Exception("device token:'{$deviceToken}' not correctly formatted");
