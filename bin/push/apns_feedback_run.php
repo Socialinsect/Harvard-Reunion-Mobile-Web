@@ -13,7 +13,7 @@ $server->openFeedbackConnection();
 $messages = $server->getFeedbackMessages();
 
 foreach ($messages as $message) {
-    error_log("received deactivation message:\n".print_r($messsage, true));
+    error_log("received deactivation message:\n".print_r($message, true));
     $deviceToken = $message['device_token'];
     $unixtime = $message['unixtime'];
     PushClientDevice::deactivateDeviceForToken($deviceToken, 'ios');

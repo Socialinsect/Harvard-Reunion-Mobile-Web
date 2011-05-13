@@ -186,7 +186,7 @@ abstract class PushClientDevice {
     $conn->query($sql, $params);
   }
   
-  public static function deactiveDeviceForToken($deviceToken, $platform, $revokeTime=null) {
+  public static function deactivateDeviceForToken($deviceToken, $platform, $revokeTime=null) {
     $sql = 'UPDATE '.PushDB::deviceTableForPlatform($platform)
           .'   SET active=0, last_update=? '
           .' WHERE device_token=?';
