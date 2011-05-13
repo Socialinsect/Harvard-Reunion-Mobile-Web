@@ -9,6 +9,10 @@ class SitePushWebModule extends PushWebModule
     private $messageText;
     private $didSend = false;
 
+    public function initialize() {
+        $this->requiresAdmin();
+    }
+
     public function initializeForPage() {
         $this->messageYear = $this->getArg('year');
         $this->messageText = $this->getArg('message');
@@ -43,9 +47,7 @@ class SitePushWebModule extends PushWebModule
                     $subscribers = PushDB::getActiveDevices('ios');
                 } else {
                     $subscribers = PushDB::getSubscribersForTag('ios', $this->messageYear);
-                }error_log($this->messageYear);
-                error_log($this->messageText);
-                error_log(print_r($subscribers,true));
+                }
                 foreach ($subscribers as $subscriber) {
                     $device = PushClientDevice::factory(
                         $subscriber['device_id'],
