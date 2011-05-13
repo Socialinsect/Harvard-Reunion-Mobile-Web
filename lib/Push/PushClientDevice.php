@@ -231,14 +231,16 @@ abstract class PushClientDevice {
   
   //////// device notification queue
 
-  protected function createNotification($tag, $data, $badgeValue) {
+  public function createNotification($tag, $data, $badgeValue, $expireTime=null) {
+    if (!$expireTime) {
+      $expireTime = time() + 3600;
+    }
     $conn = PushDB::connection();
-    $json = $conn->real_escape_string(json_encode($data));
-    $values = array($this->deviceId, $json, $tag, time(), $badgeValue);
+    $values = array($this->deviceId, $data, $tag, time(), $expireTime, $badgeValue, 2);
     $placeholders = implode(', ', array_fill(0, count($values), '?'));
 
     $sql = 'INSERT INTO '.$this->notificationTable()
-          .'device_id, message, tag, created_unixtime, badge_value '
+          .' (device_id, message, tag, created_unixtime, expire_time, badge_value, retries_remaining) '
           ."VALUES ( $placeholders )";
     $result = $conn->query($sql, $values);
   }

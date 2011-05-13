@@ -98,6 +98,18 @@ class PushDB
     }
   }
 
+  public static function getSubscribersForTag($platform, $tag) {error_log('the tag is '.$tag);
+    $deviceTable = self::deviceTableForPlatform($platform);
+    $tagTable = self::settingsTableForPlatform($platform);
+    $sql = "SELECT d.device_id FROM $deviceTable d, $tagTable t"
+          .' WHERE d.device_id = t.device_id '
+          .'   AND t.tag LIKE ?'
+          .'   AND t.disabled = 0';
+    $params = array($tag);
+    $result = self::connection()->query($sql, $params);
+    return $result->fetchAll();
+  }
+
   public static function getAllDevices($platform) {
     $sql = 'SELECT device_id FROM '.self::deviceTableForPlatform($platform);
     $result = self::connection()->query($sql);
@@ -111,11 +123,22 @@ class PushDB
     return $result->fetchAll();
   }
 
+  public static function unsentNotificationCount($platform) {
+    $sql = 'SELECT COUNT(*) '
+          .'  FROM '.self::notificationTableForPlatform($platform)
+          .' WHERE sent_unixtime IS NULL '
+          .'   AND retries_remaining > 0'
+          .'   AND expire_time > ?';
+    $params = array(time());
+    $result = self::connection()->query($sql, $params);
+    return intval($result->fetchColumn());
+  }
+
   public static function getUnsentNotifications($platform) {
     $sql = 'SELECT message_id, device_id, tag, message, badge_value, expire_time '
-          .'   FROM '.self::notificationTableForPlatform($platform)
+          .'  FROM '.self::notificationTableForPlatform($platform)
           .' WHERE sent_unixtime IS NULL '
-          .'    AND retries_remaining > 0'
+          .'   AND retries_remaining > 0'
           .'   AND expire_time > ?'
           .' ORDER BY device_id';
     $params = array(time());

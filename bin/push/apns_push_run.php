@@ -3,13 +3,21 @@
 
 require_once realpath(dirname(__FILE__)).'/../../lib/Kurogo.php';
 $Kurogo = Kurogo::sharedInstance();
-$Kurogo->initialize($path);
+$Kurogo->initialize();
 
 includePackage('Push');
 
-$server = new ApplePushServerConnectionPool(1);
-
 error_log("looking for messages to send");
+
+$count = PushDB::unsentNotificationCount('ios');
+if ($count == 0) {
+  error_log("no messages found");
+  exit(0);
+}
+
+// use at least 1 connection and up to 10 connections
+$numConnections = min(max(1, intval($count / 10)), 10);
+$server = new ApplePushServerConnectionPool($numConnections);
 
 $messages = PushDB::getUnsentNotifications('ios');
 

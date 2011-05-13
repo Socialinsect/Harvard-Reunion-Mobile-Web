@@ -65,6 +65,8 @@ class ApplePushServerConnection extends PushServerConnection {
       );
 
     $payload = json_encode($messageDict);
+
+error_log(print_r($payload, true));
     
     //  1B command = 0
     //  2B token length = 32
@@ -74,11 +76,6 @@ class ApplePushServerConnection extends PushServerConnection {
     $message = chr(0) . chr(0) . chr(32) 
       . pack('H*', $device->getDeviceToken()) 
       . chr(0) . chr(strlen($payload)) . $payload;
-
-error_log(print_r($payload, true));
-error_log(print_r($message, true));
-error_log($device->getDeviceToken());
-error_log($this->pushURL());
 
     // write data to socket
     if (!fwrite($this->pushSocket, $message)) {
@@ -118,13 +115,13 @@ error_log($this->pushURL());
   /* apple push feedback server */
 
   public function openFeedbackConnection() {
-    if ($this->feedbackSocket) {
-      $this->feedbackSocket = $this->open_ssl_socket($this->feedbackURL());
+    if (!$this->feedbackSocket) {
+      $this->feedbackSocket = $this->openSSLSocket($this->feedbackURL());
     }
   }
 
   public function closeFeedbackConnection() {
-    if (!$this->feedbackSocket) {
+    if ($this->feedbackSocket) {
       fclose($this->feedbackSocket);
       $this->feedbackSocket = NULL;
     }

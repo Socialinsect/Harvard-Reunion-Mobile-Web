@@ -141,9 +141,30 @@ class Kurogo
       date_default_timezone_set($this->config->getVar('LOCAL_TIMEZONE'));
     
       //
+      // Install exception handlers
+      //
+      require(LIB_DIR.'/exceptions.php');
+      
+      if ($this->config->getVar('PRODUCTION_ERROR_HANDLER_ENABLED')) {
+        set_exception_handler("exceptionHandlerForProduction");
+      } else {
+        set_exception_handler("exceptionHandlerForDevelopment");
+      }
+
+      //
+      // And a double quote define for ini files (php 5.1 can't escape them)
+      //
+      define('_QQ_', '"');
+      
+      // everything after this point only applies to network requests 
+      if (PHP_SAPI == 'cli') {
+          return;
+      }
+
+      //
       // Set up host define for server name and port
       //
-      
+     
       $host = $_SERVER['SERVER_NAME'];
       if (isset($_SERVER['HTTP_HOST']) && strlen($_SERVER['HTTP_HOST'])) {
         $host = $_SERVER['HTTP_HOST'];
@@ -153,13 +174,6 @@ class Kurogo
       }
       define('SERVER_HOST', $host);
       
-      
-      //
-      // And a double quote define for ini files (php 5.1 can't escape them)
-      //
-      define('_QQ_', '"');
-      
-    
       //
       // Get URL base
       //
@@ -193,18 +207,6 @@ class Kurogo
         $url = 'http'.(IS_SECURE ? 's' : '').'://' . strtolower($host) . $path;
         header("Location: $url");
         exit();
-      }
-    
-    
-      //
-      // Install exception handlers
-      //
-      require(LIB_DIR.'/exceptions.php');
-      
-      if ($this->config->getVar('PRODUCTION_ERROR_HANDLER_ENABLED')) {
-        set_exception_handler("exceptionHandlerForProduction");
-      } else {
-        set_exception_handler("exceptionHandlerForDevelopment");
       }
       
       // Strips out the leading part of the url for sites where 
