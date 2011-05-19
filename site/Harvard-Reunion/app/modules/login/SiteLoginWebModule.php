@@ -184,7 +184,6 @@ class SiteLoginWebModule extends LoginWebModule
                         if ($user->needsCollegeIndex()) {
                             $this->setTemplatePage('college');
                         } else if (!Schedule::userHasReunion($user)) {
-                            $this->logLogin($user, $nativeApp, $tabletDisplay);
                             $this->redirectTo('logout', $noReunionOptions);
                         } else {
                             $this->logLogin($user, $nativeApp, $tabletDisplay);
