@@ -22,7 +22,7 @@ class SiteSettingsWebModule extends WebModule {
           'hard'      => 1,
         );
         if ($authority == 'anonymous') {
-          $logoutArgs['url'] = URL_PREFIX.'/login/?authority=harris';
+          $logoutArgs['url'] = URL_PREFIX.ltrim('/login/?authority=harris', '/');
         }
         $info['logoutURL'] = $this->buildURLForModule('login', 'logout', $logoutArgs);
 

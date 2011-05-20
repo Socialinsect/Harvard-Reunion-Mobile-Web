@@ -2,18 +2,19 @@
 
 class SiteLoginWebModule extends LoginWebModule
 {
-    private function logLogin(HarvardReunionUser $user, $nativeApp) {
+    private function logLogin(HarvardReunionUser $user, $nativeApp, $tabletDisplay) {
         $logFile = Kurogo::getSiteVar('LOGIN_LOG');
         $school = $user->getCollegeIndex() == 0 ? 'Harvard' : 'Radcliffe';
         $pagetype = $nativeApp ? 'native' : $this->pagetype;
         $userID = $user instanceOf AnonymousReunionUser  ? 'anonymous' : $user->getUserID();
+        $platform = $tabletDisplay ? 'ipad' : $this->platform;
         $line = implode(",", array(
             date('Y-m-d H:i:s'), 
             $userID,
             $user->getClass_year(), 
             $school, 
             $pagetype, 
-            $this->platform,
+            $platform,
         )). PHP_EOL;
         $fh = fopen($logFile,'ab');
         fwrite($fh, $line);
@@ -155,7 +156,7 @@ class SiteLoginWebModule extends LoginWebModule
                     $this->redirectTo('logout', $noReunionOptions);
                 } else {
                     if (isset($_POST['collegeIndex'])) {
-                        $this->logLogin($user, $nativeApp);
+                        $this->logLogin($user, $nativeApp, $tabletDisplay);
                     }
                     $this->redirectTo('index', $options);
                 }
@@ -183,10 +184,9 @@ class SiteLoginWebModule extends LoginWebModule
                         if ($user->needsCollegeIndex()) {
                             $this->setTemplatePage('college');
                         } else if (!Schedule::userHasReunion($user)) {
-                            $this->logLogin($user, $nativeApp);
                             $this->redirectTo('logout', $noReunionOptions);
                         } else {
-                            $this->logLogin($user, $nativeApp);
+                            $this->logLogin($user, $nativeApp, $tabletDisplay);
                             header("Location: $url");
                             exit();
                         }

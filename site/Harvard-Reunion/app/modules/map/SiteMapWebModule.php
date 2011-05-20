@@ -70,7 +70,7 @@ class SiteMapWebModule extends MapWebModule {
   }
   
   protected function initializeMapElements($mapElement, $imgController, $imageWidth, $imageHeight) {
-    if (!$imgController->isStatic() && $this->pagetype == 'compliant') {
+    if (!$imgController->isStatic() && $this->pagetype == 'compliant' && $this->page != 'fullscreen') {
       // shrink dynamic map height to make it easier to scroll page
       if ($this->platform == 'bbplus') {
         $imageHeight = 100;
