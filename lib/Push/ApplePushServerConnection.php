@@ -79,7 +79,7 @@ error_log(print_r($payload, true));
 
     // write data to socket
     if (!fwrite($this->pushSocket, $message)) {
-      d_error("failed to send payload=$payload");
+      error_log("failed to send payload=$payload");
       $device->markNotificationUndeliverable($message['message_id']);
       return False;
     }
