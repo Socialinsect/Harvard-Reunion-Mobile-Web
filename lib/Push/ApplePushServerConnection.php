@@ -80,7 +80,7 @@ error_log(print_r($payload, true));
     // write data to socket
     if (!fwrite($this->pushSocket, $message)) {
       error_log("failed to send payload=$payload");
-      $device->markNotificationUndeliverable($message['message_id']);
+      $device->markNotificationUndeliverable($messageData['message_id']);
       return False;
     }
     
