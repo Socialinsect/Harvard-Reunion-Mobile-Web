@@ -7,6 +7,7 @@
 {if !$tabletDisplay}
   
     <p id="intro">Veritas Mobile: Your Reunion Connection. View your personalized schedule, maps, news, photos, and more.</p>
+    <p><b>We are currently experiencing problems with user login. Please enter by choosing your graduation year. We apologize for the inconvenience</b></p>
   
   {block name="ribbons"}
     <div class="ribbon"><a href="{$harrisURL}">Sign in using your alumni login<br/>
