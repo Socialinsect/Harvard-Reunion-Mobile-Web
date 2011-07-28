@@ -1,6 +1,6 @@
 <?php
 
-includePackage('Maps');
+Kurogo::includePackage('Maps');
 
 class MapAPIModule extends APIModule
 {
@@ -71,7 +71,6 @@ class MapAPIModule extends APIModule
             $feedData = $this->feeds[$feedIndex];
             $controller = MapDataController::factory($feedData['CONTROLLER_CLASS'], $feedData);
             $controller->setCategory($feedIndex);
-            $controller->setDebugMode(Kurogo::getSiteVar('DATA_DEBUG'));
             return $controller;
         }
     }

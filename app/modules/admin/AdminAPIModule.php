@@ -5,7 +5,7 @@ class AdminAPIModule extends APIModule
     protected $id = 'admin';
     protected $vmin = 1;
     protected $vmax = 1;
-    private $configs = array();
+    private $loadedConfigs = array();
     private $changedConfigs = array();
     public function availableVersions() {
         return array(1);
@@ -144,7 +144,8 @@ class AdminAPIModule extends APIModule
                 } elseif ($type=='site') {
                     throw new Exception("Can't get sections for site");
                 } else {
-                    $sectionData['sections'] = $module->getModuleSections($sectionData['config'], Config::NO_EXPAND_VALUE);
+                    $configMode = isset($sectionData['configMode']) ? $sectionData['configMode'] : 0;
+                    $sectionData['sections'] = $module->getModuleSections($sectionData['config'], Config::NO_EXPAND_VALUE, $configMode);
                 }
         
                 foreach ($sectionData['fields'] as $key=>&$field) {
@@ -152,7 +153,12 @@ class AdminAPIModule extends APIModule
                     {
                         case 'select':
                             if (isset($field['optionsMethod'])) {
-                                $field['options'] = call_user_func($field['optionsMethod']);
+                                if (is_array($field['optionsMethod'])) {
+                                    $field['options'] = call_user_func($field['optionsMethod']);
+                                } else {
+                                    $field['options'] = $module->$field['optionsMethod']();
+                                }
+
                                 unset($field['optionsMethod']);
                             }
     
@@ -213,18 +219,18 @@ class AdminAPIModule extends APIModule
 
         if ($type=='site') {
             $configKey = "site-$config";
-            if (isset($this->configs[$configKey])) {
-                $config = $this->configs[$configKey];
+            if (isset($this->loadedConfigs[$configKey])) {
+                $config = $this->loadedConfigs[$configKey];
             } elseif ($config = ConfigFile::factory($config, 'site', $opts)) {
-                $this->configs[$configKey] = $config;
+                $this->loadedConfigs[$configKey] = $config;
             }
             
         } elseif ($type instanceOf Module) {
             $configKey = 'module-' . $type->getConfigModule() . '-' . $config;
-            if (isset($this->configs[$configKey])) {
-                $config = $this->configs[$configKey];
+            if (isset($this->loadedConfigs[$configKey])) {
+                $config = $this->loadedConfigs[$configKey];
             } elseif ($config = $type->getConfig($config, $opts)) {
-                $this->configs[$configKey] = $config;
+                $this->loadedConfigs[$configKey] = $config;
             }
         } else {
             throw new Exception("Invalid type $type");
@@ -354,9 +360,11 @@ class AdminAPIModule extends APIModule
         
         switch ($this->command) {
             case 'checkversion':
+                $current = Kurogo::sharedInstance()->checkCurrentVersion();
                 $data = array(
-                    'current'=>Kurogo::sharedInstance()->checkCurrentVersion(),
-                    'local'  =>KUROGO_VERSION
+                    'current'=>$current,
+                    'local'  =>KUROGO_VERSION,
+                    'uptodate' =>version_compare(KUROGO_VERSION, $current,">=")
                 );
                 $this->setResponse($data);
                 $this->setResponseVersion(1);

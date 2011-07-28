@@ -28,7 +28,7 @@ class DiskCache {
     
         if ($mkdir) {
             if (!file_exists($path)) {
-                if (!mkdir($path, 0755, true)) {
+                if (!mkdir($path, 0700, true)) {
                     throw new Exception("Could not create $path");
                 }
             }
@@ -125,6 +125,7 @@ class DiskCache {
     }
 
     $path = $this->getFullPath($filename);
+    $umask = umask(0077);
     $fh = fopen($path, 'w');
     if ($fh !== FALSE) {
       if ($this->serialize) {
@@ -137,6 +138,7 @@ class DiskCache {
       if ($date) {
         touch($this->getFullPath($filename), $date);
       }
+      umask($umask);
       return TRUE;
 
     } else {
@@ -147,6 +149,7 @@ class DiskCache {
     if ($this->error)
       error_log($this->error);
 
+    umask($umask);
     return FALSE;
   }
 
@@ -154,6 +157,14 @@ class DiskCache {
     $path = $this->getFullPath($filename);
     list($width, $height, $type, $attr) = getimagesize($path);
     return array($width, $height);
+  }
+
+  public function readIfFresh($filename=NULL) {
+    if ($this->isFresh($filename)) {
+        return $this->read($filename);
+    } 
+    
+    return FALSE;
   }
 
   public function read($filename=NULL) {
@@ -193,12 +204,26 @@ class DiskCache {
     return file_exists($path) && filesize($path) == 0;
   }
 
-  public function getAge($filename=NULL) {
+  public function getModified($filename) {
     if ($this->exists($filename)) {
       $path = $this->getFullPath($filename);
-      clearstatcache();
-      return time() - filemtime($path);
+
+      //clear_realpath_cache and filename parameters valid starting in 5.3
+      if (version_compare(PHP_VERSION, '5.3.0') >= 0) {
+          clearstatcache(true, $path);
+      } else {
+          clearstatcache(); 
+      }
+      return filemtime($path);
     }
+    return null;
+  }
+
+  public function getAge($filename=NULL) {
+    if ($modified = $this->getModified($filename)) {
+        return time() - $modified;    
+    }
+
     return PHP_INT_MAX;
   }
 

@@ -14,9 +14,28 @@ class NewsWebModule extends WebModule {
   protected $feedIndex = 0;
   protected $feed;
   protected $maxPerPage = 10;
+  protected $maxPerPane = 5;
   protected $showImages = true;
   protected $showPubDate = false;
   protected $showAuthor = false;
+  
+  public static function validateFeed($section, $feedData) {
+        if (!self::argVal($feedData, 'TITLE')) {
+            return new KurogoError(1, 'Title not specified','Feed title cannot be blank');
+        }
+
+        if (!isset($feedData['CONTROLLER_CLASS'])) {
+            $feedData['CONTROLLER_CLASS'] = 'RSSDataController';
+        }
+        
+        try {
+            $controller = DataController::factory($feedData['CONTROLLER_CLASS'], $feedData);
+        } catch (Exception $e) {
+            return KurogoError::errorFromException($e);
+        }
+        
+        return true;
+  }
 
   private function feedURLForFeed($feedIndex) {
     return isset($this->feeds[$feedIndex]) ? 
@@ -51,31 +70,10 @@ class NewsWebModule extends WebModule {
     ), $addBreadcrumb);
   }
 
-  private function storyURL($story, $addBreadcrumb=true, $paneLink=false) {
-    if ($storyID = $story->getGUID()) {
-        $args = array(
-          'storyID'   => $storyID,
-          'section'   => $this->feedIndex,
-          'start'     => $this->getArg('start'),
-          'filter'    => $this->getArg('filter')
-        );
-        
-        if ($paneLink) {
-          return $this->buildURL('story', $args);
-        } else {
-          return $this->buildBreadcrumbURL('story', $args, $addBreadcrumb);
-        }
-    } elseif ($link = $story->getProperty('link')) {
-        return $link;
-    } else {
-        return '';
-    }
-  }
-    
     private function cleanContent($content) {
     
         //deal with pre tags. strip out pre tags and add <br> for newlines
-        $bits = preg_split( '#(<pre.*?>)(.*?)(</pre>)#s', $content, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $bits = preg_split( '#(<pre.*?'.'>)(.*?)(</pre>)#s', $content, -1, PREG_SPLIT_DELIM_CAPTURE);
         $content = array_shift($bits);
         $i=0;
         while ($i<count($bits)) {
@@ -99,36 +97,60 @@ class NewsWebModule extends WebModule {
             $feedData['CONTROLLER_CLASS'] = 'RSSDataController';
         }
         $controller = DataController::factory($feedData['CONTROLLER_CLASS'], $feedData);
-        $controller->setDebugMode(Kurogo::getSiteVar('DATA_DEBUG'));
         return $controller;
     } else {
         throw new Exception("Error getting news feed for index $index");
     }
   }
-
-  public function federatedSearch($searchTerms, $maxCount, &$results) {
-    $start           = 0;
-    $feedIndex       = 0; // currently it only searches the first feed. TO DO: search all feeds
+    public function searchItems($searchTerms, $limit=null, $data=null) {
     
-    $this->feed->addFilter('search', $searchTerms);
-    $items = $this->feed->items($start, $maxCount+1);
-    
-    $limit = min($maxCount, count($items));
-    for ($i = 0; $i < $limit; $i++) {
-      $results[] = array(
-        'title' => $items[$i]->getTitle(),
-        'url'   => $this->buildBreadcrumbURL('story', array(
-          'storyID' => $items[$i]->getGUID(),
-          'section' => $feedIndex,
-          'start'   => $start,
-          'filter'  => $searchTerms,
-        ), false),
-      );
+        $this->feed->addFilter('search', $searchTerms);
+        $items = $this->feed->items(0, $limit);
+        
+        return $items;
     }
+
+    public function linkForItem(KurogoObject $story, $data=null) {
+        
+        $pubDate = strtotime($story->getProperty("pubDate"));
+        $date = date("M d, Y", $pubDate);
+        $image = $this->showImages ? $story->getImage() : false;
+        
+        $link = array(
+            'title'   => $this->htmlEncodeFeedString($story->getTitle()),
+            'pubDate' => $date,
+            'author'  => $this->htmlEncodeFeedString($story->getAuthor()),
+            'subtitle'=> $this->htmlEncodeFeedString($story->getDescription()),
+            'img'     => $image ? $image->getURL() : ''
+        );
+        
+        if ($storyID = $story->getGUID()) {
+            $options = array(
+                'storyID'=>$storyID
+            );    
+            
+            foreach (array('section','start','filter') as $field) {
+                if (isset($data[$field])) {
+                    $options[$field] = $data[$field];
+                }
+            }
+                
+            $addBreadcrumb = isset($data['addBreadcrumb']) ? $data['addBreadcrumb'] : true;
+            $noBreadcrumbs = isset($data['noBreadcrumbs']) ? $data['noBreadcrumbs'] : false;
     
-    return count($items);
-  }
-  
+            if ($noBreadcrumbs) {
+              $link['url'] = $this->buildURL('story', $options);
+            } else {
+              $link['url'] = $this->buildBreadcrumbURL('story', $options, $addBreadcrumb);
+            }
+
+        } elseif ($url = $story->getProperty('link')) {
+            $link['url'] = $url;
+        }
+
+        return $link;
+    }
+
     protected function initialize() {
 
         $this->feeds      = $this->loadFeedData();
@@ -149,6 +171,10 @@ class NewsWebModule extends WebModule {
         $this->showPubDate = isset($feedData['SHOW_PUBDATE']) ? $feedData['SHOW_PUBDATE'] : false;
         $this->showAuthor = isset($feedData['SHOW_AUTHOR']) ? $feedData['SHOW_AUTHOR'] : false;
     }    
+    
+    protected function htmlEncodeFeedString($string) {
+        return mb_convert_encoding($string, 'HTML-ENTITIES', $this->feed->getEncoding());
+    }
     
     protected function initializeForPage() {
         if (!$this->feed) {
@@ -179,8 +205,14 @@ class NewsWebModule extends WebModule {
           }
         }
 
-        $body = $story->getDescription()."\n\n".$story->getLink();
-        $shareEmailURL = $this->buildMailToLink("", $story->getTitle(), $body);
+        if ($this->getOptionalModuleVar('SHARING_ENABLED', 1)) {
+            $body = $story->getDescription()."\n\n".$story->getLink();
+            $shareEmailURL = $this->buildMailToLink("", $story->getTitle(), $body);
+            $this->assign('shareTitle','Share this story');
+            $this->assign('shareEmailURL', $shareEmailURL);
+            $this->assign('shareRemark',   $story->getTitle());
+            $this->assign('storyURL',      $story->getLink());
+        }
 
         $pubDate = strtotime($story->getProperty("pubDate"));
         $date = date("M d, Y", $pubDate);
@@ -188,12 +220,10 @@ class NewsWebModule extends WebModule {
         $this->enablePager($content, $this->feed->getEncoding(), $storyPage);
         
         $this->assign('date',          $date);
-        $this->assign('storyURL',      $story->getLink());
-        $this->assign('shareEmailURL', $shareEmailURL);
-        $this->assign('title',         $story->getTitle());
-        $this->assign('shareRemark',   $story->getTitle());
-        $this->assign('author',        $story->getAuthor());
+        $this->assign('title',         $this->htmlEncodeFeedString($story->getTitle()));
+        $this->assign('author',        $this->htmlEncodeFeedString($story->getAuthor()));
         $this->assign('image',         $this->getImageForStory($story));
+        $this->assign('ajax',          $this->getArg('ajax'));
         break;
         
       case 'search':
@@ -201,28 +231,22 @@ class NewsWebModule extends WebModule {
         $start       = $this->getArg('start', 0);
         
         if ($searchTerms) {
-          $this->setPageTitle('Search');
 
-          $this->feed->addFilter('search', $searchTerms);
-          $items = $this->feed->items($start, $this->maxPerPage);
-          $totalItems = $this->feed->getTotalItems();
-          $stories = array();
-          foreach ($items as $story) {
-            $pubDate = strtotime($story->getProperty("pubDate"));
-            $date = date("M d, Y", $pubDate);
-            $item = array(
-              'title'       => $story->getTitle(),
-              'pubDate'     => $date,
-              'author'      => $story->getAuthor(),
-              'description' => $story->getDescription(),
-              'url'         => $this->storyURL($story),
-              'image'       => $this->getImageForStory($story),
+            $this->feed->addFilter('search', $searchTerms);
+            $items = $this->feed->items($start, $this->maxPerPage);
+            $totalItems = $this->feed->getTotalItems();
+            $stories = array();
+
+            $options = array(
+                'section' => $this->feedIndex
             );
-            $stories[] = $item;
-           }
 
-          $previousURL = '';
-          $nextURL = '';
+            foreach ($items as $story) {
+                $stories[] = $this->linkForItem($story, $options);
+            }
+
+            $previousURL = '';
+            $nextURL = '';
           
           if ($totalItems > $this->maxPerPage) {
             $args = $this->args;
@@ -237,22 +261,18 @@ class NewsWebModule extends WebModule {
             }
           }
 
-          $extraArgs = array(
-            'section' => $this->feedIndex
-          );
-
           $this->addInternalJavascript('/common/javascript/lib/ellipsizer.js');
           $this->addOnLoad('setupNewsListing();');
 
           $this->assign('maxPerPage',  $this->maxPerPage);
-          $this->assign('extraArgs',   $extraArgs);
+          $this->assign('extraArgs',   $options);
           $this->assign('searchTerms', $searchTerms);
           $this->assign('stories',     $stories);
           $this->assign('previousURL', $previousURL);
           $this->assign('nextURL',     $nextURL);
           $this->assign('showImages',  $this->showImages);
           $this->assign('showPubDate', $this->showPubDate);
-          $this->assign('showAuthor', $this->showAuthor);
+          $this->assign('showAuthor',  $this->showAuthor);
           
         } else {
           $this->redirectTo('index'); // search was blank
@@ -261,16 +281,15 @@ class NewsWebModule extends WebModule {
         
       case 'pane':
         $start = 0;
-        $items = $this->feed->items($start, $this->maxPerPage);
+        $items = $this->feed->items($start, $this->maxPerPane);
         $stories = array();
+        $options = array(
+            'noBreadcrumbs'=>true,
+            'section' => $this->feedIndex
+        );
+
         foreach ($items as $story) {
-          $item = array(
-            'title'       => $story->getTitle(),
-            'description' => $story->getDescription(),
-            'url'         => $this->storyURL($story, false, true),
-            'image'       => $this->getImageForStory($story),
-          );
-          $stories[] = $item;
+            $stories[] = $this->linkForItem($story, $options);
         }
         
         $this->assign('stories', $stories);
@@ -296,27 +315,21 @@ class NewsWebModule extends WebModule {
             $nextURL = $this->buildBreadcrumbURL($this->page, $args, false);
           }
         }
+
+        $options = array(
+            'section' => $this->feedIndex
+        );
         
         $stories = array();
         foreach ($items as $story) {
-            $pubDate = strtotime($story->getProperty("pubDate"));
-            $date = date("M d, Y", $pubDate);
-          $item = array(
-            'title'       => $story->getTitle(),
-            'pubDate'     => $date,
-            'author'      => $story->getAuthor(),
-            'description' => $story->getDescription(),
-            'url'         => $this->storyURL($story),
-            'image'       => $this->getImageForStory($story),
-          );
-          $stories[] = $item;
+            $stories[] = $this->linkForItem($story, $options);
         }
         
         $sections = array();
         foreach ($this->feeds as $index => $feedData) {
           $sections[] = array(
             'value'    => $index,
-            'title'    => htmlentities($feedData['TITLE']),
+            'title'    => $feedData['TITLE'],
             'selected' => ($this->feedIndex == $index),
             'url'      => $this->feedURL($index, false),
           );

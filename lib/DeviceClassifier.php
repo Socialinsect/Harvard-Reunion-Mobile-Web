@@ -90,7 +90,7 @@ class DeviceClassifier {
   }
   
   private function detectDeviceInternal($user_agent) {
-    includePackage('db');
+    Kurogo::includePackage('db');
     if (!$user_agent) {
       return;
     }
@@ -104,6 +104,9 @@ class DeviceClassifier {
          $db = new db(array('DB_TYPE'=>'sqlite', 'DB_FILE'=>$db_file));
          $result = $db->query('SELECT * FROM userAgentPatterns WHERE version<=? ORDER BY patternorder,version DESC', array($this->version));
      } catch (Exception $e) {
+        if (!in_array('sqlite', PDO::getAvailableDrivers())) {
+            die("SQLite PDO drivers not available. You should switch to external device detection by changing MOBI_SERVICE_USE_EXTERNAL to 1 in " . SITE_CONFIG_DIR . "/site.ini");
+        }
         error_log("Error with device detection");
         return false;
      }
@@ -138,7 +141,15 @@ class DeviceClassifier {
       $url = Kurogo::getSiteVar('MOBI_SERVICE_URL').'?'.$query;
       $json = file_get_contents($url);
 
-      $cache->write($json, $cacheFilename);
+      $test = json_decode($json, true); // make sure the response is valid
+      
+      if ($json && isset($test['pagetype'], $test['platform'], $test['supports_certificate'])) {
+        $cache->write($json, $cacheFilename);
+        
+      } else {
+        error_log("Device detection server not responding.  Reading expired cache.");
+        $json = $cache->read($cacheFilename);
+      }
     }            
 
     $data = json_decode($json, true);
@@ -186,7 +197,7 @@ class DeviceClassifier {
   }
 
   public function isTablet() {
-    return $this->platform == 'tablet';
+    return $this->pagetype == 'tablet';
   }
 
   public function isSpider() {

@@ -14,6 +14,8 @@
     {if $strings.COPYRIGHT_LINK}
       </a>
     {/if}
+   <br />
+   {block name="footerKurogo"}Powered by Kurogo{/block}
   {/capture}
 
   
@@ -26,7 +28,7 @@
   {/block}
 
   {block name="loginHTML"}
-    {if $session && $moduleID == 'home'}
+    {if $showLogin}
 	<div class="loginstatus">
 		<ul class="nav secondary loginbuttons">
         {if $session_isLoggedIn}
@@ -75,6 +77,13 @@
           var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
         {rdelim})();
       </script>
+    {/if}
+    {if strlen($PERCENT_MOBILE_ID)}
+        <script>
+           <!--
+            percent_mobile_track('{$PERCENT_MOBILE_ID}', '{$pageTitle}');
+            -->
+        </script>
     {/if}
   {/block}
 {block name="containerEnd"}

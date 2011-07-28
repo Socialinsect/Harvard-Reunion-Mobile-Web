@@ -15,6 +15,7 @@ class MapDataController extends DataController implements MapFolder
     protected $dynamicMapBaseURL = null;
     protected $searchable = false;
     protected $defaultZoomLevel = 16;
+    protected $title = null;
     
     // in theory all map images controllers should use the same
     // zoom level, but if certain image servers (e.g. Harvard ArcGIS)
@@ -34,14 +35,7 @@ class MapDataController extends DataController implements MapFolder
 
     protected function cacheLifespan()
     {
-        // TODO add config so the following line works instead
-        //return Kurogo::getSiteVar('MAP_CACHE_LIFESPAN');
-        return 86400;
-    }
-
-    protected function cacheFileSuffix()
-    {
-        return null;
+        return Kurogo::getSiteVar('MAP_CACHE_LIFESPAN', 'maps');
     }
 
     public function canSearch()
@@ -71,14 +65,14 @@ class MapDataController extends DataController implements MapFolder
             foreach ($tokens as $token) {
                 if (strlen($token) <= 1)
                     continue;
-                $pattern = "/\b$token\b/i";
+                $pattern = "/\b" . preg_quote($token, '/') . "\b/i";
                 if (!preg_match($pattern, self::COMMON_WORDS)) {
                     $validTokens[] = $pattern;
                 }
             }
             if (count($validTokens)) {
                 foreach ($this->getAllLeafNodes() as $item) {
-                    if (self::featureMatchesTokens($item, $validTokens)) {
+                    if ( ($item->getTitle()==$searchText) || self::featureMatchesTokens($item, $validTokens)) {
                         $results[] = $item;
                     }
                 }
@@ -109,7 +103,7 @@ class MapDataController extends DataController implements MapFolder
                 if ($featureCenter['lat'] <= $maxLat && $featureCenter['lat'] >= $minLat
                     && $featureCenter['lon'] <= $maxLon && $featureCenter['lon'] >= $minLon
                 ) {
-                    $distance = gcd($center['lat'], $center['lon'], $featureCenter['lat'], $featureCenter['lon']);
+                    $distance = greatCircleDistance($center['lat'], $center['lon'], $featureCenter['lat'], $featureCenter['lon']);
                     if ($distance > $tolerance) continue;
 
                     // keep keys unique; give priority to whatever came first
@@ -178,13 +172,19 @@ class MapDataController extends DataController implements MapFolder
         $container = $this;
         while (count($categoryPath) > 0) {
             $category = array_shift($categoryPath);
-            $container = $container->getListItem($category);
+            $testContainer = $container->getListItem($category);
+            if (!$testContainer instanceof MapFolder) {
+                break;
+            }
+            $container = $testContainer;
         }
+
         if ($container === $this) {
             $items = $this->items();
         } else {
             $items = $container->getListItems();
         }
+
         // fast forward for categories that only have one item
         while (count($items) == 1) {
             $container = $items[0];
@@ -232,18 +232,25 @@ class MapDataController extends DataController implements MapFolder
         return $this->getFeature($name);
     }
 
+    // override what the feed says
+    public function setTitle($title) {
+        $this->title = $title;
+    }
+
     public function getTitle() {
+        if ($this->title !== null) {
+            return $this->title;
+        }
+
         if (!$this->items) {
-            $data = $this->getData();
-            $this->items = $this->parseData($data);
+            $this->items = $this->getParsedData();
         }
         return $this->parser->getTitle();
     }
 
-    public function items() {
+    public function items($start=0, $limit=null) {
         if (!$this->items) {
-            $data = $this->getData();
-            $this->items = $this->parseData($data);
+            $this->items = $this->getParsedData();
         }
         return $this->items;
     }

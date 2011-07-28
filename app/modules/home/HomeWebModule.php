@@ -12,6 +12,10 @@ class HomeWebModule extends WebModule {
   protected $id = 'home';
   protected $canBeAddedToHomeScreen = false;
 
+  protected function showLogin() {
+    return $this->getOptionalModuleVar('SHOW_LOGIN', true);
+  }
+
   private function getTabletModulePanes($tabletConfig) {
     $modulePanes = array();
     
@@ -46,8 +50,10 @@ class HomeWebModule extends WebModule {
           $this->addOnOrientationChange('moduleHandleWindowResize();');
         } else {
           $this->assign('modules', $this->getModuleNavList());
+          $this->assign('hideImages', $this->getOptionalModuleVar('HIDE_IMAGES', false));
         }
         
+        $this->assign('showFederatedSearch', $this->getOptionalModuleVar('SHOW_FEDERATED_SEARCH', true));
         $this->assign('SHOW_DOWNLOAD_TEXT', DownloadWebModule::appDownloadText($this->platform));
         $this->assign('displayType', $this->getModuleVar('display_type'));
         $this->assign('topItem', null);
@@ -58,7 +64,7 @@ class HomeWebModule extends WebModule {
         
         $federatedResults = array();
      
-        foreach ($this->getNavigationModules(false) as $type=>$modules) {
+        foreach ($this->getAllModuleNavigationData(self::EXCLUDE_DISABLED_MODULES) as $type=>$modules) {
         
             foreach ($modules as $id => $info) {
             

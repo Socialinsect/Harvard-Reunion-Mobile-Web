@@ -5,14 +5,9 @@ class ArcGISDataController extends MapDataController
     protected $DEFAULT_PARSER_CLASS = 'ArcGISParser';
     protected $filters = array('f' => 'json');
 
-    protected function cacheFileSuffix()
-    {
-        return '.js'; // json
-    }
-    
     protected function cacheFolder() 
     {
-        return Kurogo::getSiteVar('ARCGIS_CACHE');
+        return Kurogo::getSiteVar('ARCGIS_CACHE','maps');
     }
     
     public function getProjection() {
@@ -20,20 +15,17 @@ class ArcGISDataController extends MapDataController
         return $this->parser->getProjection();
     }
 
-    // this is mostly the same as parent class
-    // but we want to eliminate categories with zero results
     public function getListItems($categoryPath=array()) {
-        $container = $this;
-        while (count($categoryPath) > 0) {
+        // TODO: this only works for servers that have simple layers
+        // i.e. no layer contains additional sublayers
+        if (count($categoryPath) > 0) {
             $category = array_shift($categoryPath);
-            $container = $container->getListItem($category);
+            $this->initializeParser();
+            $this->initializeLayers();
+            $this->parser->selectSubLayer($category);
         }
-        if ($container === $this) {
-            $items = $this->items();
-        } else {
-            $items = $container->getListItems();
-        }
-        
+        $items = $this->items();
+
         $results = array();
         // eliminate empty categories
         foreach ($items as $item) {
@@ -44,7 +36,7 @@ class ArcGISDataController extends MapDataController
         
         // fast forward for categories that only have one item
         while (count($results) == 1) {
-            $container = $results[0];
+            $container = current($results);
             if (!$container instanceof MapFolder) {
                 break;
             }
@@ -54,11 +46,15 @@ class ArcGISDataController extends MapDataController
     }
 
     public function getTitle() {
+        if ($this->title !== null) {
+            return $this->title;
+        }
+
         $this->initializeParser();
         return $this->parser->getTitle();
     }
     
-    public function items() {
+    public function items($start=0, $limit=null) {
         $this->initializeParser();
         $this->initializeLayers();
         $this->initializeFeatures();
@@ -100,6 +96,15 @@ class ArcGISDataController extends MapDataController
     
     protected function init($args) {
         parent::init($args);
+
+        if (isset($args['ARCGIS_LAYER_ID'])) {
+            $this->parser->setDefaultLayer($args['ARCGIS_LAYER_ID']);
+        }
+
+        if (isset($args['ID_FIELD'])) {
+            $this->parser->setIdFIeld($args['ID_FIELD']);
+        }
+
         $this->addFilter('f', 'json');
     }
     
@@ -108,16 +113,18 @@ class ArcGISDataController extends MapDataController
         $this->initializeLayers();
 
         $oldBaseURL = $this->baseURL;
+        $this->parser->clearCache();
         $this->parser->setBaseURL($oldBaseURL);
         $this->baseURL = $this->parser->getURLForLayerFeatures();
-        
+        $this->filters = $this->parser->getFiltersForLayer();
+        $this->addFilter('text', $searchText);
         $data = $this->getData();
         $this->parseData($data);
         
         // restore previous state
         $this->baseURL = $oldBaseURL;
         
-        return $this->items();
+        return $this->getAllLeafNodes();
     }
     
     public function searchByProximity($center, $tolerance, $maxItems) {

@@ -93,11 +93,6 @@ class ArcGISFeature implements MapFeature
         $this->attributes = $attributes;
         $this->geometry = $geometry;
     }
-    
-    public function setId($id) {
-        $this->attributes['modolabs:_id'] = $id;
-        $this->setIdField('modolabs:_id');
-    }
 
     public function setIndex($index)
     {
@@ -149,7 +144,9 @@ class ArcGISFeature implements MapFeature
 
     public function getTitle()
     {
-        return $this->attributes[$this->titleField];
+        if (isset($this->attributes[$this->titleField])) {
+            return $this->attributes[$this->titleField];
+        }
     }
     
     public function getSubtitle()
@@ -220,6 +217,7 @@ class ArcGISParser extends DataParser implements MapFolder
     private $supportedImageFormats;
     private $units;
     private $baseURL;
+    private $idField;
     
     private $mapName;
     private $category;
@@ -252,7 +250,9 @@ class ArcGISParser extends DataParser implements MapFolder
             }
 
             $this->serviceDescription = $data['serviceDescription'];
-            $this->supportedImageFormats = explode(',', $data['supportedImageFormatTypes']);
+            if (isset($data['supportedImageFormatTypes'])) {
+                $this->supportedImageFormats = explode(',', $data['supportedImageFormatTypes']);
+            }
             $this->units = $data['units'];
             $this->mapName = $data['mapName'];
 
@@ -328,13 +328,24 @@ class ArcGISParser extends DataParser implements MapFolder
     }
 
     ////// functions dispatched to selected layer
+
+    public function clearCache() {
+        $this->selectedLayer->clearCache();
+    }
     
     public function featureFromJSON($json) {
         return $this->selectedLayer->featureFromJSON($json);
     }
 
-    public function query($text='') {
-        return $this->selectedLayer->query($text);
+    //public function query($text='') {
+    //    return $this->selectedLayer->query($text);
+    //}
+
+    public function setIdField($field) {
+        $this->idField = $field;
+        if ($this->selectedLayer) {
+            $this->selectedLayer->setIdField($field);
+        }
     }
 
     //public function getFeatureList() {
@@ -378,6 +389,9 @@ class ArcGISParser extends DataParser implements MapFolder
     public function selectSubLayer($layerId) {
         if (isset($this->subLayers[$layerId])) {
             $this->selectedLayer = $this->getSubLayer($layerId);
+            if (isset($this->idField)) {
+                $this->selectedLayer->setIdField($this->idField);
+            }
         }
     }
     
@@ -415,7 +429,11 @@ class ArcGISLayer implements MapFolder, MapListElement {
     private $extent;
     private $minScale;
     private $maxScale;
+
+    private $idField;
+    private $geometryField;
     private $displayField;
+
     private $spatialRef;
     private $geometryType;
     private $isInitialized = false;
@@ -427,6 +445,10 @@ class ArcGISLayer implements MapFolder, MapListElement {
         $this->id = $id;
         $this->name = $name;
         $this->parentCategory = $parentCategory;
+    }
+
+    public function setIdField($field) {
+        $this->idField = $field;
     }
     
     // MapListElement interface
@@ -471,10 +493,14 @@ class ArcGISLayer implements MapFolder, MapListElement {
     public function isInitialized() {
         return $this->isInitialized;
     }
+
+    public function clearCache() {
+        $this->features = array();
+        $this->isPopulated = false;
+    }
     
     public function parseData($contents) {
         $data = json_decode($contents, true);
-
         if (!$this->isInitialized) {
             $this->name = $data['name'];
             $this->minScale = $data['minScale'];
@@ -488,19 +514,50 @@ class ArcGISLayer implements MapFolder, MapListElement {
                 'ymax' => $data['extent']['ymax'],
             );
             $this->spatialRef = $data['extent']['spatialReference']['wkid'];
-
             foreach ($data['fields'] as $fieldInfo) {
-                // often the field names will be full paths to SQL tables,
-                // as in database.table or server.scheme.database.table
-                //$nameRefParts = explode('.', $fieldInfo['name']);
-                //var_dump($fieldInfo);
-                //$name = end($nameRefParts);
+                if ($fieldInfo['type'] == 'esriFieldTypeOID') {
+                    if (!isset($this->idField)) {
+                        $this->idField = $fieldInfo['name'];
+                    }
+                    continue;
+                } else if ($fieldInfo['type'] == 'esriFieldTypeGeometry') {
+                    $this->geometryField = $fieldInfo['name'];
+                    continue;
+                } else if (!isset($possibleDisplayField)
+                    && $fieldInfo['type'] == 'esriFieldTypeString'
+                ) {
+                    $possibleDisplayField = $fieldInfo['name'];
+                }
+
                 $name = $fieldInfo['name'];
+                if (strtoupper($name) == strtoupper($this->displayField)) {
+                    // handle case where display field is returned in
+                    // a different capitalization from return fields
+                    $name = $this->displayField;
+                }
                 $this->fieldNames[$name] = $fieldInfo['alias'];
+            }
+
+            if (!isset($this->fieldNames[$this->displayField])
+                && isset($possibleDisplayField)
+            ) {
+                // if the display field is still problematic (e.g. the
+                // OID field was returned as the display field), just
+                // choose the first string field that shows up.
+                // obviously if there are no other string fields then
+                // this will also fail.
+                $this->displayField = $possibleDisplayField;
             }
     
             $this->isInitialized = true;
+
         } else if (!$this->isPopulated) {
+            if (isset($data['fieldAliases'])) {
+                foreach ($data['fieldAliases'] as $field => $alias) {
+                    $this->fieldNames[$field] = $alias;
+                }
+            }
+
             $result = array();
             foreach ($data['features'] as $featureInfo) {
                 $feature = $this->featureFromJSON($featureInfo);
@@ -510,7 +567,7 @@ class ArcGISLayer implements MapFolder, MapListElement {
             }
             usort($result, array($this, 'compareFeatures'));
             foreach ($result as $feature) {
-                $this->features[$feature->getTitle()] = $feature;
+                $this->features[$feature->getIndex()] = $feature;
             }
 
             $this->isPopulated = true;
@@ -526,8 +583,12 @@ class ArcGISLayer implements MapFolder, MapListElement {
 
         $attribs = $featureInfo['attributes'];
         $displayAttribs = array();
+
         // use human-readable field alias to construct feature details
         foreach ($attribs as $name => $value) {
+            if (strtoupper($name) == strtoupper($displayField)) {
+                $index = $value;
+            }
             if ($value !== null && trim($value) !== '') {
                 if (isset($this->fieldNames[$name]))
                     $name = $this->fieldNames[$name];
@@ -539,19 +600,24 @@ class ArcGISLayer implements MapFolder, MapListElement {
         } else {
             $geometry = NULL;
         }
-        
-        if (!$displayAttribs && !$geometry) { // we basically got empty JSON, so don't create anything
-            return NULL;
+
+        if (!isset($displayAttribs[$this->idField])
+            && !isset($displayAttribs[$this->fieldNames[$this->displayField]]))
+        {
+            // no usable data was included with this result
+                return NULL;
         }
         
-        // doing this assumes the display names for buildings are unique
-        // this is because we have no way of figuring out the object's actual ID
-        $index = $attribs[$displayField];
         $feature = new ArcGISFeature($displayAttribs, $geometry, $index, $this->getCategory());
         if ($this->geometryType) {
             $feature->setGeometryType($this->geometryType);
         }
         $feature->setTitleField($this->fieldNames[$this->displayField]);
+        if (isset($this->idField) && isset($attribs[$this->idField])) {
+            $feature->setIndex($attribs[$this->idField]);
+        } else {
+            $feature->setIndex($feature->getTitle());
+        }
         return $feature;
     }
 

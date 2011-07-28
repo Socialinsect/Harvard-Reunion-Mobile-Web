@@ -9,7 +9,7 @@ define('MAP_CATEGORY_DELIMITER', ':');
 // but in practice the other formulas, i.e.
 // law of cosines and haversine
 // all yield pretty similar results
-function gcd($fromLat, $fromLon, $toLat, $toLon)
+function greatCircleDistance($fromLat, $fromLon, $toLat, $toLon)
 {
     $radiansPerDegree = M_PI / 180.0;
     $y1 = $fromLat * $radiansPerDegree;
@@ -47,24 +47,30 @@ function htmlColorForColorString($colorString) {
     return substr($colorString, strlen($colorString)-6);
 }
 
-function getMapControllerClasses() {
-    return array(
-        'KMLDataController'=>'KML',
-        'ArcGISDataController'=>'ArcGIS'
-    );
+class MapsAdmin
+{
+    public static function getMapControllerClasses() {
+        return array(
+            'KMLDataController'=>'KML',
+            'ArcGISDataController'=>'ArcGIS'
+        );
+    }
+    
+    public static function getStaticMapClasses() {
+        return array(
+            'GoogleStaticMap'=>'Google',
+            'ArcGISStaticMap'=>'ArcGIS',
+            'WMSStaticMap'=>'WMS'
+        );
+    }
+    
+    public static function getDynamicControllerClasses() {
+        return array(
+            'GoogleJSMap'=>'Google',
+            'ArcGISJSMap'=>'ArcGIS'
+        );
+    }
 }
 
-function getStaticMapClasses() {
-    return array(
-        'GoogleStaticMap'=>'Google',
-        'ArcGISStaticMap'=>'ArcGIS',
-        'WMSStaticMap'=>'WMS'
-    );
-}
-
-function getDynamicControllerClasses() {
-    return array(
-        'GoogleJSMap'=>'Google',
-        'ArcGISJSMap'=>'ArcGIS'
-    );
-}
+$config = ConfigFile::factory('maps', 'site');
+Kurogo::siteConfig()->addConfig($config);

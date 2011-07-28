@@ -13,13 +13,15 @@ define('BOOKMARK_COOKIE_DELIMITER', '@@');
 
 abstract class WebModule extends Module {
 
-  protected $moduleName = '';
+    const INCLUDE_DISABLED_MODULES=true;
+    const EXCLUDE_DISABLED_MODULES=false;
       
   protected $page = 'index';
 
   protected $templateModule = 'none'; 
   protected $templatePage = 'index';
-  
+
+    protected $deviceClassifier;  
   protected $pagetype = 'unknown';
   protected $platform = 'unknown';
   protected $supportsCerts = false;
@@ -245,6 +247,23 @@ abstract class WebModule extends Module {
     }
   }
 
+
+   //
+  // Percent Mobile Analytics
+  //
+  private function percentMobileAnalyticsGetImageUrl($pmID){
+      if (isset($pmID) && strlen($pmID)){
+       $url = "http://tracking.percentmobile.com/pixel/" .
+          $pmID .
+          "/pixel.gif?v=271009_js";
+       
+       return $url;
+      }
+      else {
+          return "";
+      }
+  }
+
   //
   // Lazy load
   //
@@ -317,74 +336,111 @@ abstract class WebModule extends Module {
         }
   }
   
-  //
-  // Factory function
-  // instantiates objects for the different modules
-  //
-  public static function factory($id, $page='', $args=array()) {
-  
-    if (!$module = parent::factory($id, 'web')) {
-        return false;
+    /* This method would be called by other modules to get a valid link from a model object */
+    public function linkForItem(KurogoObject $object, $options=null) {
+       throw new Exception("linkForItem must be subclassed if it is going to be used");
     }
-    $module->init($page, $args);
-    $module->initialize();
 
-      return $module;
+    /* default implmentation. Subclasses may wish to override this */
+    public function linkForValue($value, Module $callingModule, KurogoObject $otherValue=null) {
+        return array(
+            'title'=>$value, 
+            'url'  =>$this->buildBreadcrumbURL(
+                'search', 
+                array('filter'=>$value),
+                false
+            )
+        );
+    }
+  
+    //
+    // Factory function
+    // instantiates objects for the different modules
+    //
+    public static function factory($id, $page='', $args=array(), $initialize=true) {
+  
+        if (!$module = parent::factory($id, 'web')) {
+            return false;
+        }
+        
+        $module->init($page, $args);
+
+        if ($initialize) {
+            $module->initialize();
+        }
+
+        return $module;
     }
     
+    protected function getPageType() {
+        $this->loadDeviceClassifierIfNeeded();
+        return $this->deviceClassifier->getPageType();
+    }
+
+    protected function getPlatform() {
+        $this->loadDeviceClassifierIfNeeded();
+        return $this->deviceClassifier->getPlatform();
+    }
+
+    protected function getSupportsCerts() {
+        $this->loadDeviceClassifierIfNeeded();
+        return $this->deviceClassifier->getSupportsCerts();
+    }
+    
+    protected function loadDeviceClassifierIfNeeded() {
+        $this->deviceClassifier = Kurogo::deviceClassifier();
+    }
+        
     protected function init($page='', $args=array()) {
       
+        //Don't call parent if we don't have a page. This is a work around.
         if ($page) {
             parent::init();
         }
 
-        $this->moduleName = $this->getModuleVar('title','module');
-
+        $this->moduleName    = $this->getModuleVar('title','module');
         $this->setArgs($args);
 
-        $this->pagetype      = Kurogo::deviceClassifier()->getPagetype();
-        $this->platform      = Kurogo::deviceClassifier()->getPlatform();
-        $this->supportsCerts = Kurogo::deviceClassifier()->getSupportsCerts();
+        $this->pagetype      = $this->getPagetype();
+        $this->platform      = $this->getPlatform();
+        $this->supportsCerts = $this->getSupportsCerts();
 
-        // Pull in fontsize
-        if (isset($args['font'])) {
-          $this->fontsize = $args['font'];
-          setcookie('fontsize', $this->fontsize, time() + Kurogo::getSiteVar('LAYOUT_COOKIE_LIFESPAN'), COOKIE_PATH);      
-        
-        } else if (isset($_COOKIE['fontsize'])) { 
-          $this->fontsize = $_COOKIE['fontsize'];
-        }
-
-        switch ($this->pagetype) {
-          case 'compliant':
-            $this->imageExt = '.png';
-            break;
+        switch ($this->getPagetype()) {
+            case 'compliant':
+                $this->imageExt = '.png';
+                break;
             
           case 'touch':
           case 'basic':
-            $this->imageExt = '.gif';
-            break;
+                $this->imageExt = '.gif';
+                break;
         }
         
         if ($page) {
-          $this->setPage($page);
-          $this->setTemplatePage($this->page, $this->id);
-          $this->setAutoPhoneNumberDetection(Kurogo::getSiteVar('AUTODETECT_PHONE_NUMBERS'));
+            // Pull in fontsize
+            if (isset($args['font'])) {
+                $this->fontsize = $args['font'];
+                setcookie('fontsize', $this->fontsize, time() + Kurogo::getSiteVar('LAYOUT_COOKIE_LIFESPAN'), COOKIE_PATH);      
+        
+            } else if (isset($_COOKIE['fontsize'])) { 
+              $this->fontsize = $_COOKIE['fontsize'];
+            }
+            
+            $this->setPage($page);
+            $this->setTemplatePage($this->page, $this->id);
+            $this->setAutoPhoneNumberDetection(Kurogo::getSiteVar('AUTODETECT_PHONE_NUMBERS'));
         }
     }
   
     protected function initialize() {
     
     }
+    
   protected function setAutoPhoneNumberDetection($bool) {
     $this->autoPhoneNumberDetection = $bool ? true : false;
     $this->assign('autoPhoneNumberDetection', $this->autoPhoneNumberDetection);
   }
-    
-  public function getModuleName() {
-    return $this->moduleName;
-  }
-    
+        
   protected function moduleDisabled() {
     $this->redirectToModule('error', '', array('code'=>'disabled', 'url'=>$_SERVER['REQUEST_URI']));
   }
@@ -432,29 +488,48 @@ abstract class WebModule extends Module {
         return $this->canBeAddedToHomeScreen;
     }
   
-  protected function getAllModules() {
-    $dirs = array(MODULES_DIR, SITE_MODULES_DIR);
+  public static function getAllModules() {
+  	$configFiles = glob(SITE_CONFIG_DIR . "/*/module.ini");
     $modules = array();
-    foreach ($dirs as $dir) {
-        if (is_dir($dir)) {
-            $d = dir($dir);
-            while (false !== ($entry = $d->read())) {
-                if ($entry[0]!='.' && is_dir(sprintf("%s/%s", $dir, $entry))) {
-                    try {
-                        if ($module = WebModule::factory($entry)) {
-                           $modules[$entry] = $module;
-                        }
-                    } catch (Exception $e) {
-                    }
-                }
-            }
-            $d->close();
-        }
-    }
+
+  	foreach ($configFiles as $file) {
+  		if (preg_match("#" . preg_quote(SITE_CONFIG_DIR,"#") . "/([^/]+)/module.ini$#", $file, $bits)) {
+  			$id = $bits[1];
+			try {
+				if ($module = WebModule::factory($id)) {
+				   $modules[$id] = $module;
+				}
+			} catch (Exception $e) {
+			}
+  		}
+  	}
     ksort($modules);    
     return $modules;        
   }
 
+    protected function elapsedTime($timestamp, $date_format='%b %e, %Y @ %l:%M %p') {
+        $now = time();
+        $diff = $now - $timestamp;
+        $today = mktime(0,0,0);
+        $today_timestamp = mktime(0, 0, 0, date('m', $timestamp), date('d', $timestamp), date('Y', $timestamp));
+    
+        if ($diff > 0) {
+            if ($today - $today_timestamp > 86400) {
+                return sprintf("%d days ago", $diff/86400);
+            } elseif ($today - $today_timestamp > 0) {
+                return strftime('Yesterday @ %l:%M %p', $timestamp);
+            } elseif ($diff > 3600) {
+                return sprintf("%d hour%s ago", $diff/3600, intval($diff/3600)>1?'s':'');
+            } elseif ($diff > 60) {
+                return sprintf("%d minute%s ago", $diff/60, intval($diff/60)>1?'s':'');
+            } else {
+                return sprintf("%d second%s ago", $diff, $diff>1 ?'s':'');
+            }
+        
+        } else {
+            return strftime($date_format, $timestamp);
+        }    
+    }
 
   //
   // Module list control functions
@@ -469,71 +544,114 @@ abstract class WebModule extends Module {
   }
 
   protected function getModuleNavlist() {
-    $navModules = $this->getNavigationModules(false);
+    $navModules = $this->getAllModuleNavigationData(self::EXCLUDE_DISABLED_MODULES);
+
     if (count($navModules['primary']) && count($navModules['secondary'])) {
       $separator = array('separator' => array('separator' => true));
     } else {
       $separator = array();
     }
-    return array_merge($navModules['primary'], $separator, $navModules['secondary']);
-  }
-  
-  protected function isOnHomeScreen($includeDisabled=true) {
-    $navModules = $this->getNavigationModules($includeDisabled);
-    $allModules = array_merge(array_keys($navModules['primary']), array_keys($navModules['secondary']));
-    return in_array($this->configModule, $allModules);    
-  }
-  
-  protected function getModuleCustomizeList() {    
-    $navModules = $this->getNavigationModules(true);
-    return $navModules['primary'];
-  }
-
-  protected function getNavigationModules($includeDisabled=true) {
-    $moduleNavConfig = $this->getModuleNavigationConfig();
-    
-    $moduleConfig = array();
-    $moduleConfig['primary'] = $moduleNavConfig->getOptionalSection('primary_modules');
-    $moduleConfig['secondary'] = $moduleNavConfig->getOptionalSection('secondary_modules');
-
-    $disabledIDs = array();
-    if (isset($_COOKIE[DISABLED_MODULES_COOKIE]) && $_COOKIE[DISABLED_MODULES_COOKIE] != "NONE") {
-      $disabledIDs = explode(",", $_COOKIE[DISABLED_MODULES_COOKIE]);
-    }
-    
-    $modules = array(
-      'primary' => array(),
-      'secondary' => array()
-    );
-    
-    foreach ($moduleConfig as $type => $modulesOfType) {
-      foreach ($modulesOfType as $id => $title) {
-        $disabled = in_array($id, $disabledIDs);
         
-        if ($includeDisabled || !$disabled) {
-          $selected = $this->configModule == $id;
-          $primary = $type == 'primary';
+    return array_merge($navModules['home'], $navModules['primary'], $separator, $navModules['secondary']);
+  }
   
-          $classes = array();
-          if ($selected) { $classes[] = 'selected'; }
-          if (!$primary) { $classes[] = 'utility'; }
+    protected function isOnHomeScreen() {
+        $navModules = $this->getAllModuleNavigationData(self::INCLUDE_DISABLED_MODULES);
+        $allModules = array_merge(array_keys($navModules['primary']), array_keys($navModules['secondary']));
+        return in_array($this->configModule, $allModules);    
+    }
+  
+    protected function getUserDisabledModuleIDs() {
     
-          $imgSuffix = ($this->pagetype == 'tablet' && $selected) ? '-selected' : '';
-
-          $modules[$type][$id] = array(
-            'title'       => $title,
-            'shortTitle'  => $title,
-            'url'         => "/$id/",
-            'primary'     => $primary,
-            'disableable' => true,
-            'disabled'    => $disabled,
-            'img'         => "/modules/home/images/{$id}{$imgSuffix}".$this->imageExt,
-            'class'       => implode(' ', $classes),
-          );
+        $disabledIDs = array();
+        if (isset($_COOKIE[DISABLED_MODULES_COOKIE]) && $_COOKIE[DISABLED_MODULES_COOKIE] != "NONE") {
+            $disabledIDs = explode(",", $_COOKIE[DISABLED_MODULES_COOKIE]);
         }
-      }
+        
+        return $disabledIDs;
+    }
+
+    /* retained for compatibility */
+    protected function getNavigationModules($includeDisabled=self::INCLUDE_DISABLED_MODULES) {
+        return $this->getAllModuleNavigationData($includeDisabled);
+    }
+
+    private function getModuleNavigationIDs($includeDisabled=self::INCLUDE_DISABLED_MODULES) {
+        $moduleNavConfig = $this->getModuleNavigationConfig();
+        
+        $disabledIDs = $this->getUserDisabledModuleIDs();
+        $disabledModules = $includeDisabled || !$disabledIDs ? array() : array_combine($disabledIDs, $disabledIDs);
+
+        $modules = array(
+            'home'     => $this->pagetype == 'tablet' ? array('home'=>'Home') : array(),
+            'primary'  => array_diff_key($moduleNavConfig->getOptionalSection('primary_modules'), $disabledModules),
+            'secondary'=> array_diff_key($moduleNavConfig->getOptionalSection('secondary_modules'), $disabledModules)
+        );
+
+        return $modules;
+    }
+
+    /* This method can be overridden to provide dynamic navigation data. It will only be used if DYNAMIC_MODULE_NAV_DATA = 1 */
+    protected function getModuleNavigationData($moduleNavData) {
+        return $moduleNavData;
     }
     
+    protected function getAllModuleNavigationData($includeDisabled=self::INCLUDE_DISABLED_MODULES) {
+    
+        $moduleConfig = $this->getModuleNavigationIDs($includeDisabled);
+    
+        $modules = array(
+            'home'    => array(),
+            'primary' => array(),
+            'secondary' => array()
+        );
+        
+        $disabledIDs = $this->getUserDisabledModuleIDs();
+        
+        foreach ($moduleConfig as $type => $modulesOfType) {
+
+            foreach ($modulesOfType as $moduleID => $title) {
+            
+                $selected = $this->configModule == $moduleID;
+                $primary = $type == 'primary';
+      
+                $classes = array();
+                if ($selected) { $classes[] = 'selected'; }
+                if (!$primary) { $classes[] = 'utility'; }
+        
+                $imgSuffix = ($this->pagetype == 'tablet' && $selected) ? '-selected' : '';
+    
+                $moduleNavData = array(
+                    'type'        => $type,
+                    'selected'    => $selected,
+                    'title'       => $title,
+                    'shortTitle'  => $title,
+                    'url'         => "/$moduleID/",
+                    'disableable' => true,
+                    'disabled'    => $includeDisabled && in_array($moduleID, $disabledIDs),
+                    'img'         => "/modules/home/images/{$moduleID}{$imgSuffix}".$this->imageExt,
+                    'class'       => implode(' ', $classes),
+                );
+
+                if (Kurogo::getOptionalSiteVar('DYNAMIC_MODULE_NAV_DATA', false)) {
+                    $module = WebModule::factory($moduleID, false, array(), false); // do not initialize
+                    
+                    if ($moduleNavData = $module->getModuleNavigationData($moduleNavData)) {
+                        $modules[$moduleNavData['type']][$moduleID] = $moduleNavData;
+                    }
+                } else {
+                    $modules[$type][$moduleID] = $moduleNavData;
+                }
+                
+          }
+        }
+        
+        $modules = $this->getUserSortedModules($modules);
+        //error_log('$modules(): '.print_r(array_keys($modules), true));
+        return $modules;
+    }
+  
+  protected function getUserSortedModules($modules) {
     // sort primary modules if sort cookie is set
     if (isset($_COOKIE[MODULE_ORDER_COOKIE])) {
       $sortedIDs = array_merge(array('home'), explode(",", $_COOKIE[MODULE_ORDER_COOKIE]));
@@ -595,7 +713,7 @@ abstract class WebModule extends Module {
     $this->onLoadBlocks[] = $onLoad;
   }
   protected function addInternalJavascript($path) {
-    $path = '/min/g='.MIN_FILE_PREFIX.$path.$this->getMinifyArgString();
+    $path = '/min/?g='.MIN_FILE_PREFIX.$path.$this->getMinifyArgString();
     if (!in_array($path, $this->javascriptURLs)) {
         $this->javascriptURLs[] = $path;
     }
@@ -700,7 +818,10 @@ abstract class WebModule extends Module {
         $bookmarkCookie = $this->getBookmarkCookie();
 
         // compliant branch
-        $this->addOnLoad("setBookmarkStates('{$bookmarkCookie}', '{$cookieID}')");
+        $this->addOnLoad("setBookmarkStates('{$bookmarkCookie}', '".
+          strtr($cookieID, array(
+            '\\' => '\\\\', "'" => "\\'", '"' => '\\"', "\r" => '\\r', "\n" => '\\n', '</' => '<\/'
+          ))."')");
         $this->assign('cookieName', $bookmarkCookie);
         $this->assign('expireDate', $this->getBookmarkLifespan());
         $this->assign('bookmarkItem', $cookieID);
@@ -743,6 +864,7 @@ abstract class WebModule extends Module {
     
     protected function generateBookmarkLink() {
         $hasBookmarks = count($this->getBookmarks()) > 0;
+        $bookmarkLink = array();
         if ($hasBookmarks) {
             $bookmarkLink = array(array(
                 'title' => $this->bookmarkLinkTitle,
@@ -751,6 +873,7 @@ abstract class WebModule extends Module {
             $this->assign('bookmarkLink', $bookmarkLink);
         }
         $this->assign('hasBookmarks', $hasBookmarks);
+        return $bookmarkLink;
     }    
   
   //
@@ -762,7 +885,11 @@ abstract class WebModule extends Module {
   }
   
   private function decodeBreadcrumbParam($breadcrumbs) {
-    return json_decode(gzinflate(urldecode($breadcrumbs)), true);
+    if ($json = @gzinflate(urldecode($breadcrumbs))) {
+        return json_decode($json, true);
+    }
+
+    return null;
   }
   
   private function loadBreadcrumbs() {
@@ -1010,6 +1137,10 @@ abstract class WebModule extends Module {
     return $themeVars;
   }
   
+  protected function showLogin() {
+    return $this->getOptionalModuleVar('SHOW_LOGIN', false);
+  }
+  
   //
   // Convenience functions
   //
@@ -1069,12 +1200,23 @@ abstract class WebModule extends Module {
         $this->assign('GOOGLE_ANALYTICS_ID', $gaID);
         $this->assign('gaImageURL', $this->googleAnalyticsGetImageUrl($gaID));
     }
+
+    // Percent Mobile Analytics
+    if ($pmID = Kurogo::getOptionalSiteVar('PERCENT_MOBILE_ID')){
+        $this->assign('PERCENT_MOBILE_ID', $pmID);
+        
+        $pmBASEURL = "http://assets.percentmobile.com/percent_mobile.js";
+        $this->assign('PERCENT_MOBILE_URL', $pmBASEURL);
+        
+        //$this->assign('pmImageURLJS', $this->percentMobileAnalyticsGetImageUrlJS($pmID));
+        $this->assign('pmImageURL', $this->percentMobileAnalyticsGetImageUrl($pmID));
+    }
     
     // Breadcrumbs
     $this->loadBreadcrumbs();
     
     // Tablet module nav list
-    if ($this->pagetype == 'tablet') {
+    if ($this->pagetype == 'tablet' && $this->page != 'pane') {
       $this->addInternalJavascript('/common/javascript/lib/iscroll-4.0.js');
       $this->assign('moduleNavList', $this->getModuleNavlist());
     }
@@ -1132,11 +1274,12 @@ abstract class WebModule extends Module {
     $this->assign('accessKeyStart', $accessKeyStart);
 
     if (Kurogo::getSiteVar('AUTHENTICATION_ENABLED')) {
-        includePackage('Authentication');
+        Kurogo::includePackage('Authentication');
         $this->setCacheMaxAge(0);
         $session = $this->getSession();
         $this->assign('session', $session);
         $this->assign('session_isLoggedIn', $this->isLoggedIn());
+        $this->assign('showLogin', Kurogo::getSiteVar('AUTHENTICATION_ENABLED') && $this->showLogin());
         if ($this->isLoggedIn()) {
             $user = $session->getUser();
             $authority = $user->getAuthenticationAuthority();
@@ -1195,18 +1338,36 @@ abstract class WebModule extends Module {
   // Subclass this function to set up variables for each template page
   //
   abstract protected function initializeForPage();
+
+    //
+    // Subclass this function and return an array of items for a given search term and feed
+    //
+    public function searchItems($searchTerms, $limit=null, $options=null) {  
+        return array();
+    }
   
-  //
-  // Subclass these functions for federated search support
-  // Return 2 items and a link to get more
-  //
-  public function federatedSearch($searchTerms, $maxCount, &$results) {
-    return 0;
-  }
+    //
+    // Subclass these functions for federated search support
+    // Return 2 items and a link to get more
+    //
   
-  protected function urlForFederatedSearch($searchTerms) {
-    return $this->buildBreadcrumbURL('search', array(
-      'filter' => $searchTerms,
-    ), false);
-  }
+    public function federatedSearch($searchTerms, $maxCount, &$results) {
+        $total = 0;
+        $results = array();
+      
+        $items = $this->searchItems($searchTerms, $maxCount, array('federatedSearch'=>true));
+        $limit = is_array($items) ? min($maxCount, count($items)) : 0;
+
+        for ($i = 0; $i < $limit; $i++) {
+            $results[] = $this->linkforItem($items[$i], array('federatedSearch'=>true, 'filter'=>$searchTerms));
+        }
+        
+        return count($items);
+    }
+  
+    protected function urlForFederatedSearch($searchTerms) {
+        return $this->buildBreadcrumbURL('search', array(
+          'filter' => $searchTerms,
+        ), false);
+    }
 }

@@ -1,7 +1,7 @@
 <?php
 
 define('ROOT_DIR', dirname(__FILE__).'/..'); 
-define('KUROGO_VERSION', '1.0');
+define('KUROGO_VERSION', '1.2');
 
 /* this is a singleton class */
 class Kurogo
@@ -12,6 +12,35 @@ class Kurogo
     protected $libDirs = array();
     protected $config;
     protected $deviceClassifier;
+    protected $session;
+
+    public static function getSession() {    
+        $Kurogo = self::sharedInstance();
+        return $Kurogo->session();  
+    }
+        
+    public function session() {
+        $this->addPackage('Session');
+        if (!$this->session) {
+            $args = Kurogo::getSiteSection('authentication');
+        
+            //default session class
+            $controllerClass = 'SessionFiles';
+            
+            //maintain previous config compatibility
+            if (isset($args['AUTHENTICATION_USE_SESSION_DB']) && $args['AUTHENTICATION_USE_SESSION_DB']) {
+                $controllerClass = 'SessionDB';
+            }
+            
+            if (isset($args['AUTHENTICATION_SESSION_CLASS'])) {
+                $controllerClass = $args['AUTHENTICATION_SESSION_CLASS'];
+            }
+            
+            $this->session = Session::factory($controllerClass, $args);
+        }
+        
+        return $this->session;
+    }    
     
     public static function sharedInstance() {
         if (!isset(self::$_instance)) {
@@ -21,8 +50,32 @@ class Kurogo
 
         return self::$_instance;
     }
+    
+    public static function tempDirectory() {
+        return Kurogo::getOptionalSiteVar('TMP_DIR', sys_get_temp_dir());
+    }
+    
+    public static function moduleLinkForItem($moduleID, $object, $options=null) {
+        $module = WebModule::factory($moduleID);
+        return $module->linkForItem($object, $options);
+    }
 
-    public function includePackage($packageName) {
+    public static function moduleLinkForValue($moduleID, $value, Module $callingModule, KurogoObject $otherValue=null) {
+        $module = WebModule::factory($moduleID);
+        return $module->linkForValue($value, $callingModule, $otherValue);
+    }
+
+    public static function searchItems($moduleID, $searchTerms, $limit=null, $options=null) {
+        $module = WebModule::factory($moduleID);
+        return $module->searchItems($searchTerms, $limit, $options);
+    }
+
+    public static function includePackage($packageName) {
+        $Kurogo = self::sharedInstance();
+        return $Kurogo->addPackage($packageName);
+    }
+    
+    public function addPackage($packageName) {
 
         if (!preg_match("/^[a-zA-Z0-9]+$/", $packageName)) {
             throw new Exception("Invalid Package name $packageName");
@@ -38,6 +91,7 @@ class Kurogo
         foreach ($dirs as $dir) {
             if (in_array($dir, $this->libDirs)) {
                 $found = true;
+                continue;
             }
     
             if (is_dir($dir)) {
@@ -91,6 +145,14 @@ class Kurogo
         return;
     }
     
+    public static function siteTimezone() {
+        return Kurogo::sharedInstance()->getTimezone();        
+    }
+
+    public function getTimezone() {
+        return $this->timezone;
+    }
+    
     public function getConfig() {
         return $this->config;
     }
@@ -138,33 +200,26 @@ class Kurogo
          ini_set('error_log', LOG_DIR . '/php_error.log');
       }
     
-      date_default_timezone_set($this->config->getVar('LOCAL_TIMEZONE'));
-    
-      //
-      // Install exception handlers
-      //
-      require(LIB_DIR.'/exceptions.php');
+      $timezone = $this->config->getVar('LOCAL_TIMEZONE');
+      date_default_timezone_set($timezone);
+      $this->timezone = new DateTimeZone($timezone);
       
-      if ($this->config->getVar('PRODUCTION_ERROR_HANDLER_ENABLED')) {
-        set_exception_handler("exceptionHandlerForProduction");
-      } else {
-        set_exception_handler("exceptionHandlerForDevelopment");
-      }
-
       //
       // And a double quote define for ini files (php 5.1 can't escape them)
       //
       define('_QQ_', '"');
-      
+
+      //
       // everything after this point only applies to network requests 
+      //
       if (PHP_SAPI == 'cli') {
           return;
       }
-
+    
       //
       // Set up host define for server name and port
       //
-     
+      
       $host = $_SERVER['SERVER_NAME'];
       if (isset($_SERVER['HTTP_HOST']) && strlen($_SERVER['HTTP_HOST'])) {
         $host = $_SERVER['HTTP_HOST'];
@@ -173,30 +228,34 @@ class Kurogo
         $host .= ":{$_SERVER['SERVER_PORT']}";
       }
       define('SERVER_HOST', $host);
-      
+    
       //
       // Get URL base
       //
-      
-      $pathParts = array_values(array_filter(explode(DIRECTORY_SEPARATOR, $_SERVER['REQUEST_URI'])));
-      
-      $testPath = $_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR;
-      $urlBase = '/';
-      $foundPath = false;
-      if (realpath($testPath) != WEBROOT_DIR) {
-        foreach ($pathParts as $dir) {
-          $test = $testPath.$dir.DIRECTORY_SEPARATOR;
-          
-          if (realpath_exists($test)) {
-            $testPath = $test;
-            $urlBase .= $dir.'/';
-            if (realpath($test) == WEBROOT_DIR) {
-              $foundPath = true;
-              break;
-            }
-          }
-        }
-      }
+      if ($urlBase = self::getOptionalSiteVar('URL_BASE','','urls')) {
+      	$foundPath = true;
+      	$urlBase = rtrim($urlBase,'/').'/';
+      } else {
+		  $pathParts = array_values(array_filter(explode(DIRECTORY_SEPARATOR, $_SERVER['REQUEST_URI'])));
+		  
+		  $testPath = $_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR;
+		  $urlBase = '/';
+		  $foundPath = false;
+		  if (realpath($testPath) != WEBROOT_DIR) {
+			foreach ($pathParts as $dir) {
+			  $test = $testPath.$dir.DIRECTORY_SEPARATOR;
+			  
+			  if (realpath_exists($test)) {
+				$testPath = $test;
+				$urlBase .= $dir.'/';
+				if (realpath($test) == WEBROOT_DIR) {
+				  $foundPath = true;
+				  break;
+				}
+			  }
+			}
+		  }
+		}
       define('URL_BASE', $foundPath ? $urlBase : '/');
       define('IS_SECURE', isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on');
       define('FULL_URL_BASE', 'http'.(IS_SECURE ? 's' : '').'://'.$_SERVER['HTTP_HOST'].URL_BASE);
@@ -207,6 +266,18 @@ class Kurogo
         $url = 'http'.(IS_SECURE ? 's' : '').'://' . strtolower($host) . $path;
         header("Location: $url");
         exit();
+      }
+    
+    
+      //
+      // Install exception handlers
+      //
+      require(LIB_DIR.'/exceptions.php');
+      
+      if ($this->config->getVar('PRODUCTION_ERROR_HANDLER_ENABLED')) {
+        set_exception_handler("exceptionHandlerForProduction");
+      } else {
+        set_exception_handler("exceptionHandlerForDevelopment");
       }
       
       // Strips out the leading part of the url for sites where 
@@ -241,7 +312,7 @@ class Kurogo
       define('URL_PREFIX', $urlPrefix);
       define('FULL_URL_PREFIX', 'http'.(IS_SECURE ? 's' : '').'://'.$_SERVER['HTTP_HOST'].URL_PREFIX);
       define('KUROGO_IS_API', preg_match("#^" .API_URL_PREFIX . "/#", $path));
-      
+          
       //error_log(__FUNCTION__."(): prefix: $urlPrefix");
       //error_log(__FUNCTION__."(): path: $path");
       $this->deviceClassifier = new DeviceClassifier($device);
@@ -397,7 +468,11 @@ class Kurogo
     }
 }
 
+interface KurogoObject 
+{
+}
+
 /* retained for compatibility */
 function includePackage($packageName) {
-    Kurogo::sharedInstance()->includePackage($packageName);
+    Kurogo::includePackage($packageName);
 }

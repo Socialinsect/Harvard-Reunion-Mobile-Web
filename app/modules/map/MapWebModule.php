@@ -1,6 +1,6 @@
 <?php
 
-includePackage('Maps');
+Kurogo::includePackage('Maps');
 
 define('MAP_GROUP_COOKIE', 'mapgroup');
 
@@ -12,6 +12,7 @@ class MapWebModule extends WebModule {
     protected $feedGroups = null;
     protected $numGroups = 1;
     protected $feeds;
+    protected $featureIndex;
     
     private function getDataForGroup($group) {
         if (!$this->feedGroups) {
@@ -26,10 +27,18 @@ class MapWebModule extends WebModule {
     
     private function getCategoriesAsArray() {
         $category = $this->getArg('category', null);
+        // this is not robust, but we need to figure out what happens
+        // for each instance of MAP_CATEGORY_DELIMITER that we change
+        // to BOOKMARK_COOKIE_DELIMITER
+        $result = array();
         if ($category !== null) {
-            return explode(MAP_CATEGORY_DELIMITER, $category);
+            if (strpos($category, BOOKMARK_COOKIE_DELIMITER) !== false) {
+                $result = explode(BOOKMARK_COOKIE_DELIMITER, $category);
+            } else {
+                $result = explode(MAP_CATEGORY_DELIMITER, $category);
+            }
         }
-        return array();
+        return $result;
     }
     
     // overrides function in Module.php
@@ -85,6 +94,7 @@ class MapWebModule extends WebModule {
             $feedData = $configData['feed'];
             $feedData['title'] = $data['title'];
             $feedData['config'] = 'feeds-' . $feedgroup;
+            $feedData['configMode'] = ConfigFile::OPTION_CREATE_EMPTY;
             $configData['feeds-'.$feedgroup] = $feedData;
         }
         unset($configData['feed']);
@@ -92,14 +102,23 @@ class MapWebModule extends WebModule {
         return $configData;
     }
 
+    public function linkForValue($value, Module $callingModule, KurogoObject $otherValue=null) {
+        return array_merge(
+            parent::linkForValue($value, $callingModule, $otherValue),
+            array('class'=>'map')
+        );
+    }
+
     protected function initialize() {
         // this is in the wrong place
         $this->feedGroup = $this->getArg('group', NULL);
+        /* don't save feed group anymore because it has some flaws
         if ($this->feedGroup === NULL) {
             if (isset($_COOKIE[MAP_GROUP_COOKIE])) {
                 $this->feedGroup = $_COOKIE[MAP_GROUP_COOKIE];
             }
         }
+        */
 
         $this->feedGroups = $this->getFeedGroups();
         $this->numGroups = count($this->feedGroups);
@@ -141,7 +160,10 @@ class MapWebModule extends WebModule {
             $this->assign('zoomInUrl', $this->detailUrlForZoom('in', $imgController));
             $this->assign('zoomOutUrl', $this->detailUrlForZoom('out', $imgController));
 
-            if ($this->pagetype == 'compliant' || $this->pagetype == 'tablet') {
+            $this->assign('imageWidth',  $imageWidth);
+            $this->assign('imageHeight', $imageHeight);
+
+            if (($this->pagetype == 'compliant' && $this->platform != 'bbplus') || $this->pagetype == 'tablet') {
                 $apiURL = FULL_URL_BASE.API_URL_PREFIX."/{$this->configModule}/staticImageURL";
                 $js = <<<JS
                     mapWidth = {$imageWidth};
@@ -191,7 +213,7 @@ JS;
         } else {
             $dataProjection = $dataController->getProjection();
             $outputProjection = $imgController->getMapProjection();
-            if ($dataProjection != $outputProjection) {
+            if (MapProjector::needsConversion($dataProjection, $outputProjection)) {
                 $projector = new MapProjector();
                 $projector->setSrcProj($dataProjection);
                 $projector->setDstProj($outputProjection);
@@ -356,8 +378,10 @@ JS;
             }
             $feedData = $this->feeds[$feedIndex];
             $controller = MapDataController::factory($feedData['CONTROLLER_CLASS'], $feedData);
+            if (isset($feedData['TITLE'])) {
+                $controller->setTitle($feedData['TITLE']);
+            }
             $controller->setCategory($feedIndex);
-            $controller->setDebugMode(Kurogo::getSiteVar('DATA_DEBUG'));
             return $controller;
         }
     }
@@ -445,8 +469,8 @@ JS;
             {
                 $geometry = $feature->getGeometry();
                 $center = $geometry->getCenterCoordinate();
-                
-                $mapSearch = $this->getSearchClass();
+
+                $mapSearch = $this->getSearchClass();              
                 $searchResults = $mapSearch->searchByProximity($center, 1000, 10);
                 $places = array();
                 if ($searchResults) {
@@ -458,7 +482,9 @@ JS;
                             'subtitle' => $result->getSubtitle(),
                             'url' => $this->detailURLForResult($urlArgs, false),
                             );
-                        $places[] = $place;
+
+                        if ($feature->getTitle() != $result->getTitle())
+                            $places[] = $place;
                     }
                     $this->assign('nearbyResults', $places);
                 }
@@ -510,7 +536,7 @@ JS;
             $lat = $categoryItem['loc'][0];
             $lon = $categoryItem['loc'][1];
 
-            $distance = $this->getDistanceFromLatLon($currentLon, $currentLat, $lon, $lat);
+            $distance = greatCircleDistance($currentLat, $currentLon, $lat, $lon);
 
             $distanceArray[] = $distance;
         }
@@ -521,50 +547,8 @@ JS;
         return $categoriesArray;
     }
 
-    function convertToRadians($coord) {
-        return $coord * Math.PI / 180;
-    }
-    
-    protected function getDistanceFromLatLon($currentLon, $currentLat, $otherLon, $otherLat){
-
-        $earthRadius = 6371; // km
-        $milesPerKM = 0.621371192;
-
-
-      // law of haversines
-      $dLat = deg2rad($otherLat - $currentLat);
-      $dLon = deg2rad($otherLon - $currentLon);
-      $a = sin($dLat/2) * sin($dLat/2) +
-              cos(deg2rad($currentLat)) * cos(deg2rad($otherLat)) *
-              sin($dLon/2) * sin($dLon/2);
-
-      $c = 2 * atan2(sqrt($a), sqrt(1-$a));
-      $distInKm = $earthRadius * $c;
-
-      return $distInKm;
-    }
-
-    // TODO: move this to the common.js file
-    protected function getJavascriptStringForLocationRedirection() {
-        return 'if (typeof navigator.geolocation == \'undefined\') {'.
-                            'document.location.replace(\'index?redirected=yes\') }' .
-                            'else {' .
-                            'navigator.geolocation.getCurrentPosition(foundLocation, noLocation);
-                             }' .
-
-
-                    'function foundLocation(location) {' .
-                             'var curLat = location.coords.latitude;' .
-                             'var curLon = location.coords.longitude;' .
-                              'document.location.replace(\'index?redirected=yes&' .
-                                  'lon=\' + escape(curLon) + \'&lat=\' + escape(curLat))};' .
-
-                    'function noLocation() {' .
-                        'document.location.replace(\'index?redirected=yes\');
-                    }';
-    }
-
     protected function initializeForPage() {
+        $this->featureIndex = $this->getArg('featureindex', null);
 
         switch ($this->page) {
             case 'help':
@@ -595,17 +579,24 @@ JS;
                             'loc' => explode("," ,$groupData['center'])
                             );
                     }
+                    
+                    //don't do device detection on older devices
+                    if (!in_array($this->pagetype, array('compliant','tablet'))) {
+                        $_COOKIE['map_lat']='na';
+                        $_COOKIE['map_long']='na';
+                    }
 
                     // only display categories in a list if the current location attempt has been made
                     // and a redirection has occured.
-                    if ($redirectedWithLocation) {
+                    if (isset($_COOKIE['map_lat'], $_COOKIE['map_long'])) {
                         $groupAlias = $this->getOptionalModuleVar('GROUP_ALIAS', 'Campus');
                         $this->assign('browseHint', "Select a $groupAlias");
                         $this->assign('categories', $categories);
                         $this->assign('searchTip', NULL);
-                            
-                        $latitude = $this->getArg('lat');
-                        $longitude = $this->getArg('lon');
+                        
+                        
+                        $latitude = $_COOKIE['map_lat'];
+                        $longitude = $_COOKIE['map_long'];
     
                         // if current lat/lon were found and valid, sort the categories based on that.
                         if (is_numeric($latitude) && is_numeric($longitude)) {
@@ -613,11 +604,11 @@ JS;
                             $this->assign('categories', $sorted_categories);
                             $this->assign('browseHint', "Select a $groupAlias (Closest first)");
                         }
-                        $this->generateBookmarkLink();
-                    } else{
-
-                       $js = $this->getJavascriptStringForLocationRedirection();
-                       $this->addInlineJavascript($js);
+                        if ($this->getOptionalModuleVar('BOOKMARKS_ENABLED', 1)) {
+                            $this->generateBookmarkLink();
+                        }
+                    } else {
+                        $this->assign('gettingLocation', true);
                     }
                     
                 } else {
@@ -643,12 +634,17 @@ JS;
                     }
                     $this->assign('browseHint', "Browse {$browseBy} by:");
                     $this->assign('searchTip', "You can search by any category shown in the 'Browse by' list below.");
-                    $this->generateBookmarkLink();
+                    if ($this->getOptionalModuleVar('BOOKMARKS_ENABLED', 1)) {
+                        $this->generateBookmarkLink();
+                    }
                 }
 
                 break;
             
             case 'bookmarks':
+                if (!$this->getOptionalModuleVar('BOOKMARKS_ENABLED', 1)) {
+                    $this->redirectTo('index', array());
+                }
                 $feedGroups = array();
                 $places = array();
 
@@ -680,6 +676,7 @@ JS;
             case 'search':
           
                 if (isset($this->args['filter'])) {
+                    $this->feedGroup = null;
                     $searchTerms = $this->args['filter'];
                     $mapSearch = $this->getSearchClass();
                     $searchResults = $mapSearch->searchCampusMap($searchTerms);
@@ -718,9 +715,9 @@ JS;
                     // build the drill-down list
                     $dataController = $this->getDataController($categoryPath, $listItemPath);
                     $listItems = $dataController->getListItems($listItemPath);
-                    if (count($listItems) == 1 && $listItems[0] instanceof MapFeature) {
+                    if (count($listItems) == 1 && current($listItems) instanceof MapFeature) {
                         $args = $this->args;
-                        $args['featureindex'] = $listItems[0]->getIndex();
+                        $args['featureindex'] = current($listItems)->getIndex();
                         $this->redirectTo('detail', $args, true);
                     }
 
@@ -741,6 +738,19 @@ JS;
                     }
                     $this->assign('title',  $dataController->getTitle());
                     $this->assign('places', $places);          
+                    
+                    if ($this->numGroups > 1) {
+                        $categories = $this->assignCategories();
+                        if (count($categories)==1) {
+                            $groupAlias = $this->getOptionalModuleVar('GROUP_ALIAS_PLURAL', 'Campuses');
+                            $clearLink = array(array(
+                                'title' => "All $groupAlias",
+                                'url' => $this->groupURL(''),
+                                ));
+                            $this->assign('clearLink', $clearLink);
+                        }
+                    }
+                    
                   
                 } else {
                       $this->redirectTo('index');
@@ -755,17 +765,19 @@ JS;
                 $dataController = $this->getDataControllerForMap($listItemPath);
                 $feature = $this->getFeatureForMap($dataController, $listItemPath);
     
-                if (isset($this->args['featureindex'])) { // this is a regular place
-                    $cookieParams = array(
-                        'category' => $this->args['category'],
-                        'featureindex' => $this->args['featureindex'],
-                        );
-                    $cookieID = http_build_query($cookieParams);
-                    $this->generateBookmarkOptions($cookieID);
-
-                } elseif (isset($this->args['group'])) {
-                    $cookieID = http_build_query(array('group' => $this->args['group']));
-                    $this->generateBookmarkOptions($cookieID);
+                if ($this->getOptionalModuleVar('BOOKMARKS_ENABLED', 1)) {
+                    if (isset($this->args['featureindex'])) { // this is a regular place
+                        $cookieParams = array(
+                            'category' => $this->args['category'],
+                            'featureindex' => $this->featureIndex,
+                            );
+                        $cookieID = http_build_query($cookieParams);
+                        $this->generateBookmarkOptions($cookieID);
+    
+                    } elseif (isset($this->args['group'])) {
+                        $cookieID = http_build_query(array('group' => $this->args['group']));
+                        $this->generateBookmarkOptions($cookieID);
+                    }
                 }
                 
                 $this->assign('name', $this->getArg('title', $feature->getTitle()));
@@ -786,22 +798,22 @@ JS;
                 break;
                 
             case 'fullscreen':
-                $dataController = $this->getDataControllerForMap();
-                $feature = $this->getFeatureForMap($dataController);
+                $dataController = $this->getDataControllerForMap($listItemPath);
+                $feature = $this->getFeatureForMap($dataController, $listItemPath);
                 $this->initializeMap($dataController, $feature, true);
                 break;
         }
     }
     
     private function getDataControllerForMap(&$listItemPath=array()) {
-        if (isset($this->args['featureindex'])) { // this is a regular place
+        if (isset($this->featureIndex)) { // this is a regular place
             $topCategory = NULL;
             $categoryPath = $this->getCategoriesAsArray();
             if (count($categoryPath)) {
                 $topCategory = $categoryPath[0];
             }
             $dataController = $this->getDataController($categoryPath, $listItemPath);
-                    
+
         } else {
             $dataController = $this->getDataController(NULL, $listItemPath);
         }
@@ -809,8 +821,8 @@ JS;
     }
         
     private function getFeatureForMap($dataController, $categoryPath=array()) {
-        if (isset($this->args['featureindex'])) { // this is a regular place
-            $index = $this->args['featureindex'];
+        if (isset($this->featureIndex)) { // this is a regular place
+            $index = $this->featureIndex;
             $feature = $dataController->getFeature($index, $categoryPath);
                     
         } elseif (isset($this->args['group'])) { // this is a campus

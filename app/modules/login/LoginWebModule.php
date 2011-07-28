@@ -163,6 +163,13 @@ class LoginWebModule extends WebModule {
                 break;
             } elseif ($authority = AuthenticationAuthority::getAuthenticationAuthority($authorityIndex)) {
                 $authority->setDebugMode(Kurogo::getSiteVar('DATA_DEBUG'));
+                if ($authorityData['USER_LOGIN']=='LINK') {
+                    $options['return_url'] = FULL_URL_BASE . $this->configModule . '/login?' . http_build_query(array_merge($options, array(
+                            'authority'=>$authorityIndex
+                    )));
+                }
+                $options['startOver'] = $this->getArg('startOver', 0);
+
                 $result = $authority->login($login, $password, $session, $options);
             } else {
                 $this->redirectTo('index', $options);
@@ -182,12 +189,12 @@ class LoginWebModule extends WebModule {
                 case AUTH_OAUTH_VERIFY:
                     $this->assign('verifierKey',$authority->getVerifierKey());
                     $this->setTemplatePage('oauth_verify.tpl');
-                    break;
+                    break 2;
                     
                 default:
                     if ($authorityData['USER_LOGIN']=='FORM') {
                         $this->assign('message', "We're sorry, but there was a problem with your sign-in. Please check your username and password and try again.");
-                        $this->setTemplatePage('index');
+                        break 2;
                     } else {
                         $this->redirectTo('index', array_merge(
                             array('message'=>"We're sorry, but there was a problem with your sign-in."),
@@ -238,7 +245,7 @@ class LoginWebModule extends WebModule {
                 $this->setTemplatePage('loggedin');
             } else {
                 if (!$multipleAuthorities && count($authenticationAuthorities['direct'])) {
-                    $this->redirectTo('login', array('authority'=>AuthenticationAuthority::getDefaultAuthenticationAuthorityIndex()));
+                    $this->redirectTo('login', array('authority'=>key($authenticationAuthorities['direct'])));
                 }
                 $this->assign('multipleAuthorities', $multipleAuthorities);
             }

@@ -215,6 +215,12 @@ function loadMap() {
     });
 }
 
+function resizeMapOnContainerResize() {
+    if (map) {
+        google.maps.event.trigger(map, 'resize');
+    }
+}
+
 JS;
 
         return $script;
@@ -239,7 +245,7 @@ JS;
         foreach ($this->markers as $index => $marker) {
             $title = 'marker';
             if (isset($marker['title'])) {
-                $title = $marker['title'];
+                $title = json_encode($marker['title']);
             }
 
             $script .= <<<JS
@@ -247,7 +253,7 @@ JS;
 var marker{$index} = new google.maps.Marker({
     position: new google.maps.LatLng({$marker['lat']},{$marker['lon']}),
     map: map,
-    title: "{$title}"
+    title: {$title}
 });
 
 JS;

@@ -1,6 +1,6 @@
 <?php
 
-includePackage('People');
+Kurogo::includePackage('People');
 
 class PeopleAPIModule extends APIModule
 {
@@ -72,7 +72,6 @@ class PeopleAPIModule extends APIModule
             }
             $controller = PeopleController::factory($feedData['CONTROLLER_CLASS'], $feedData);
             //$controller->setAttributes($this->detailAttributes);
-            $controller->setDebugMode(Kurogo::getSiteVar('DATA_DEBUG'));
             return $controller;
         } else {
             throw new Exception("Error getting people feed for index $index");
@@ -87,9 +86,8 @@ class PeopleAPIModule extends APIModule
         switch ($this->command) {
             case 'search':
                 if ($filter = $this->getArg('q')) {
-    
-                    $searchTerms = trim($filter);
-                    $people = $peopleController->search($searchTerms);
+                    
+                    $people = $peopleController->search($filter);
                     
                     $errorCode = $peopleController->getErrorNo();
                     if ($errorCode) {

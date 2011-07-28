@@ -15,7 +15,13 @@
   {/if}
 {/block}
 
+{block name="footerNavLinks"}
+{/block}
+
 {block name="deviceDetection"}
+{/block}
+
+{block name="loginHTML"}
 {/block}
 
 {block name="belowContent"}

@@ -15,8 +15,13 @@
         <option value="{$category['id']}">{$category['title']}</option>
       {/foreach}
     </select>
+    {block name="categorysubmit"}{/block}
   </form>
 </div>
+{/if}
+
+{if $clearLink}
+{include file="findInclude:common/templates/navlist.tpl" navlistItems=$clearLink secondary=true}
 {/if}
 
 {include file="findInclude:common/templates/footer.tpl"}

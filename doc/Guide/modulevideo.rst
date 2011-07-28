@@ -3,11 +3,11 @@ Video Module
 #################
 
 The video module enables sites to provide mobile access to their video content on 3rd party websites
-such as Brightcove and YouTube. 
+such as YouTube, Vimeo and Brightcove
 
-=================================
+=======================
 Configuring the Sources
-=================================
+=======================
 
 The module allows you to organize your videos by section using a distinct feed for each section. Each
 section contains information on the service provider and can either filter by tag or author, in addition
@@ -17,8 +17,12 @@ The name of each section is generally not important, but must be unique.
 
 Within each feed you use the following options:
 
-* *CONTROLLER_CLASS* - The DataController to use. Currently supported controllers include the *YouTubeVideoControler*
-  and *BrightcoveVideoController*. 
+* *CONTROLLER_CLASS* - The DataController to use. Currently supported controllers include:
+  
+  * *YouTubeVideoControler*
+  * *VimeoVideoController*
+  * *BrightcoveVideoController*
+  
 * *TITLE* - The textual label used when showing the section list
 * *AUTHOR* - optional, used to limit the results by author
 * *TAG* - optional, used to limit the results by tag
