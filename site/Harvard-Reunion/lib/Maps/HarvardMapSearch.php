@@ -10,7 +10,7 @@ class HarvardMapSearch extends MapSearch {
     
     public function setFeedData($feeds) {
         foreach ($feeds as $id => $feed) {
-            if ($feed['TITLE'] == 'Search Results') {
+            if ($feed['SEARCHABLE']) {
                 $this->searchFeedData = $feed;
                 $this->controllerLayerID = $id;
                 break;
@@ -26,9 +26,9 @@ class HarvardMapSearch extends MapSearch {
     }
 
     public function searchCampusMap($query) {
-
         $results = array();
         $bldgIds = array();
+        $minusBldgIds = array(); // keep track of dupes
 
         $params = array(
             'str' => $query,
@@ -38,30 +38,28 @@ class HarvardMapSearch extends MapSearch {
         $url = Kurogo::getSiteVar('MAP_SEARCH_URL').'?'.http_build_query($params, null, '&');
         $rawContent = file_get_contents($url);
         $content = json_decode($rawContent, true);
-    
         foreach ($content['items'] as $result) {
-            if (strlen($result['bld_num']) && !in_array($result['bld_num'], $bldgIds))
-                $bldgIds[] = $result['bld_num'];
+            if (trim($result['bld_num'])) {
+                if (!in_array($result['bld_num'], $bldgIds))
+                    $bldgIds[] = $result['bld_num'];
+            } else {
+                // search result doesn't have a building number
+                $searchText = strtoupper(trim($result['match_string']));
+                $features = $this->getLayerForSearchResult()->search($searchText);
+                foreach ($features as $feature) {
+                    $minusBldgIds[] = $feature->getIndex();
+                    $results[] = $feature;
+                }
+            }
         }
 
         if ($bldgIds) {
             foreach ($bldgIds as $bldgId) {
-                $featureInfo = HarvardMapDataController::getBldgDataByNumber($bldgId);
-                
-                if ($featureInfo && $featureInfo['attributes']) {
-                    // we've set up HarvardMapDataController to expect building ID's
-                    // if the data source is the search layer, which isn't consistent
-                    // with the other layers but...
-                    $feature = new ArcGISFeature(
-                        $featureInfo['attributes'],
-                        $featureInfo['geometry'],
-                        $bldgId,
-                        $this->controllerLayerID);
-                    $feature->setTitleField('Building Name');
-                    // TODO find a better place to set this attribute
-                    if (isset($featureInfo['geometryType'])) {
-                        $feature->setGeometryType($featureInfo['geometryType']);
-                    }
+                if (in_array($bldgId, $minusBldgIds)) {
+                    continue;
+                }
+                $feature = HarvardMapDataController::getBldgDataByNumber($bldgId);
+                if ($feature) {
                     $results[] = $feature;
                 }
             }
@@ -75,11 +73,13 @@ class HarvardMapSearch extends MapSearch {
             $this->searchController = MapDataController::factory(
                 $this->searchFeedData['CONTROLLER_CLASS'],
                 $this->searchFeedData);
+            $this->searchController->setCategory(array($this->controllerLayerID));
             $this->searchController->setDebugMode(Kurogo::getSiteVar('DATA_DEBUG'));
         }
     	return $this->searchController;
     }
 
+    /*
     // search for courses
     public function searchCampusMapForCourseLoc($query) {
 
@@ -115,5 +115,5 @@ class HarvardMapSearch extends MapSearch {
 
         return $results;
     }
-
+    */
 }

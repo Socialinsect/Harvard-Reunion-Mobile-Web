@@ -1,6 +1,6 @@
 <?php
 
-includePackage('Push');
+Kurogo::includePackage('Push');
 
 class SitePushWebModule extends PushWebModule
 {

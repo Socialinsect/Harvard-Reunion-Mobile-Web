@@ -2,7 +2,7 @@
 
 /**
   */
-includePackage('Calendar');
+Kurogo::includePackage('Calendar');
 
 class Schedule {
   private $user = null;

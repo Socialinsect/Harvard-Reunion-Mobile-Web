@@ -2,8 +2,13 @@
 
 class HarvardMapDataController extends ArcGISDataController
 {
+    protected $DEFAULT_PARSER_CLASS = 'HarvardArcGISParser';
     protected $returnsGeometry = true;
     protected $isSearchLayer = false;
+
+    // set the cache lifetime to a month since we are
+    // pulling in multiple feeds for searches
+    protected $cacheLifetime = 2592000;
 
     protected function init($args)
     {
@@ -22,38 +27,23 @@ class HarvardMapDataController extends ArcGISDataController
     public function getFeature($name, $categoryPath=array())
     {
         $theItem = null;
-        if ($this->searchable) {
-            $this->initializeParser();
-            $this->initializeLayers();
-            $featureInfo = self::getBldgDataByNumber($name);
-            if ($featureInfo) {
-                $theItem = $this->parser->featureFromJSON($featureInfo);
-                // cheating here as i'm not sure when fields get
-                // returned as column ids or aliases
-                $theItem->setTitleField("Building Name");
-            }
-        } else {
-            $items = $this->getListItems($categoryPath);
-            if (isset($items[$name])) {
-                $theItem = $items[$name];
-                if (!$this->returnsGeometry || $theItem->getGeometry() == null) {
-                    $featureInfo = $this->queryFeatureServer($theItem);
-                    $theItem->setGeometryType($featureInfo['geometryType']);
-                    $theItem->readGeometry($featureInfo['geometry']);
-                }
-                
-                if ($theItem->getField('Photo') === null) {
-                    if (!isset($featureInfo))
-                        $featureInfo = $this->queryFeatureServer($theItem);
 
-                    $photoURL = self::getPhotoFromFeatureInfo($featureInfo);
-                    if (!$photoURL) {
-                        $featureInfo = self::getBldgDataByNumber($theItem->getField('Building Number'));
-                        $photoURL = self::getPhotoFromFeatureInfo($featureInfo);
-                    }
-                    if ($photoURL) {
-                        $theItem->setField('Photo', $photoURL);
-                    }
+        $items = $this->getListItems($categoryPath);
+        if (isset($items[$name])) {
+            $theItem = $items[$name];
+            if (!$this->returnsGeometry || $theItem->getGeometry() == null) {
+                $featureInfo = $this->queryFeatureServer($theItem);
+                $theItem->setGeometryType($featureInfo['geometryType']);
+                $theItem->readGeometry($featureInfo['geometry']);
+            }
+
+            if ($theItem->getField('Photo') === null) {
+                if (!isset($featureInfo))
+                    $featureInfo = $this->queryFeatureServer($theItem);
+
+                $photoURL = self::getPhotoFromFeatureInfo($featureInfo);
+                if ($photoURL) {
+                    $theItem->setField('Photo', $photoURL);
                 }
             }
         }
@@ -122,8 +112,9 @@ class HarvardMapDataController extends ArcGISDataController
         } else {
             $queryBase = $this->baseURL;
         }
-        
-        $searchFieldCandidates = array('Building Number', 'Building Name', 'Building');
+
+        $searchFieldCandidates = array(
+            'Building Number', 'Building Name', 'Building', 'Building_HU.BL_ID');
         foreach ($searchFieldCandidates as $field) {
             $searchField = $field;
             $bldgId = $feature->getField($field);
@@ -135,8 +126,24 @@ class HarvardMapDataController extends ArcGISDataController
     }
     
     public static function getBldgDataByNumber($bldgId) {
-        $queryBase = Kurogo::getSiteVar('ARCGIS_FEATURE_SERVER');
-        return self::getSupplementaryFeatureData($bldgId, 'Building Number', $queryBase);
+        $feedConfig = ModuleConfigFile::factory('map', 'feeds');
+        $feature = null;
+        foreach ($feedConfig->getSectionVars() as $id => $feedData) {
+            $controller = MapDataController::factory($feedData['CONTROLLER_CLASS'], $feedData);
+            $controller->setCategory($id);
+            $feature = $controller->getFeature($bldgId);
+            if ($feature) {
+                if ($feature->getField('Photo') === null) {
+                    $featureInfo = $controller->queryFeatureServer($feature);
+                    $photoURL = self::getPhotoFromFeatureInfo($featureInfo);
+                    if ($photoURL) {
+                        $feature->setField('Photo', $photoURL);
+                    }
+                }
+                break;
+            }
+        }
+        return $feature;
     }
     
     public function setIsSearchLayer($isSearchLayer) {

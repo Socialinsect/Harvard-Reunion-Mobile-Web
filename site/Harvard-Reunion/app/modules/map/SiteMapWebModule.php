@@ -4,7 +4,7 @@
   * @subpackage Map
   */
 
-includePackage('Maps');
+Kurogo::includePackage('Maps');
 require_once realpath(LIB_DIR.'/Maps/ArcGISParser.php');
 
 class SiteMapWebModule extends MapWebModule {

@@ -5,7 +5,7 @@
   */
 /**
   */
-includePackage('Authentication');
+Kurogo::includePackage('Authentication');
   
 class SitePhotosWebModule extends WebModule {
   protected $id = 'photos';

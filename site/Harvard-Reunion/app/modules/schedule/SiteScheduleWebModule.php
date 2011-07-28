@@ -4,7 +4,7 @@
   * @subpackage Schedule
   */
 
-includePackage('Maps');
+Kurogo::includePackage('Maps');
 
 class SiteScheduleWebModule extends WebModule {
   protected $id = 'schedule';

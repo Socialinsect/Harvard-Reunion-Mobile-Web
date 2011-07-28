@@ -121,12 +121,13 @@ class GazetteRSSController extends RSSDataController
             // translate enclosures to image tags for API compatibility
             $content = $item->getElementsByTagName('encoded')->item(0);
             $contentValue = $content->nodeValue;
-            $contentHTML = new DOMDocument();
-            $contentHTML->loadHTML('<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/></head>'.$contentValue);
+            $contentHTML = $contentHTML = self::getDOMDocumentForHTML($contentValue);
             
+            // note: can't remove items in DOM list from their parent when iterating
+            $itemsToRemove = array();
             foreach ($contentHTML->getElementsByTagName('img') as $img) {
               if ($img->getAttribute('width') == '1') {
-                $img->parentNode->removeChild($img);
+                $itemsToRemove[] = $img;
                 continue;
               }
               
@@ -137,8 +138,14 @@ class GazetteRSSController extends RSSDataController
                 $img->setAttribute('height', 'auto');
     
               } else {
-                $img->parentNode->removeChild($img);
+                $itemsToRemove[] = $img;
               }
+            }
+            foreach ($contentHTML->getElementsByTagName('iframe') as $iframe) {
+                $itemsToRemove[] = $iframe;
+            }
+            foreach ($itemsToRemove as $itemToRemove) {
+                $itemToRemove->parentNode->removeChild($itemToRemove); 
             }
             $newContent = $dom->createCDATASection($contentHTML->saveHTML());
             $content->replaceChild($newContent, $content->firstChild);
@@ -249,19 +256,10 @@ class GazetteRSSController extends RSSDataController
                 break;
             }
             
-            if ($page > 1) {
-                $this->addFilter('paged', $page);
-            } else {
-                $this->removeFilter('paged');
-            }
-            
-            $rssXML = $this->getRSSItems();
-            $dom = new DomDocument();
-            $dom->loadXML($rssXML);
-            $items = $dom->getElementsByTagName('item');
-            
-            for ($i = 0; $i < $items->length; $i++) {
-                $item = $items->item($i);
+            $items = $this->getRSSPageItems($page);
+           
+            for ($i = 0; $i < count($items); $i++) {
+                $item = $items[$i];
                 
                 $wpid = $item->getElementsByTagName('WPID');
                 $wpid = $wpid->length ? $wpid->item(0)->nodeValue : '';
@@ -277,6 +275,30 @@ class GazetteRSSController extends RSSDataController
         }
         
         return null;
+    }
+    
+    public function getData() {
+        $data = parent::getData();
+        $data = str_replace('&nbsp;', ' ', $data);
+        
+        return $data;
+    }
+    
+    public static function getDOMDocumentForHTML($content) {
+        $contentHTML = new DOMDocument();
+        
+        libxml_use_internal_errors(true);
+        libxml_clear_errors(); // clean up any errors belonging to other operations
+        
+        $contentHTML->loadHTML('<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/></head>'.$content);
+        
+        foreach (libxml_get_errors() as $error) {
+          error_log("GazetteRSSController got loadHTML warning (line {$error->line}; column {$error->column}) {$error->message}");
+        }
+        libxml_clear_errors(); // free up memory associated with the errors
+        libxml_use_internal_errors(false);
+        
+        return $contentHTML;
     }
 }
 
@@ -314,11 +336,35 @@ class GazetteRSSItem extends RSSItem
                     }
                 }
                 break;
+            case 'CONTENT:ENCODED':
+                $this->content = $this->cleanEncodedContent($value);
+                break;
+                
             default:
                 parent::addElement($element);
                 break;
         }
         
+    }
+    
+    private function cleanEncodedContent($content)
+    {
+        $contentHTML = GazetteRSSController::getDOMDocumentForHTML($content);
+        
+        // note: can't remove items in DOM list from their parent when iterating
+        $itemsToRemove = array();
+        foreach ($contentHTML->getElementsByTagName('iframe') as $iframe) {
+            $itemsToRemove[] = $iframe;
+        }
+        foreach ($itemsToRemove as $item) {
+            $item->parentNode->removeChild($item);
+        }
+        return $contentHTML->saveHTML();
+    }
+    
+    public function getAuthor()
+    {
+        return $this->getProperty('harvard:author');
     }
 }
 
