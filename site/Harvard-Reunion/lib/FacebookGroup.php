@@ -750,28 +750,40 @@ class FacebookGroup {
     } else if (preg_match(';^http://www.youtube.com/v/([^&?]+).*$;', $source, $matches)) {
       $videoID = $matches[1];
 
-      if ($needsLink) {
-        $videoInfo = $this->getYouTubeData($videoID);
-        //error_log(print_r($videoInfo, true));
-
-        $src = 'http://m.youtube.com/watch?v='.$videoID;
-        $img = $post['picture'];
-        if (isset($videoInfo['data'])) {
-          if (isset($videoInfo['data']['thumbnail'])) {
-            if (isset($videoInfo['data']['thumbnail']['hqDefault'])) {
-              $img = $videoInfo['data']['thumbnail']['hqDefault'];
+      $pagetype = $GLOBALS['deviceClassifier']->getPagetype();
+      $platform = $GLOBALS['deviceClassifier']->getPlatform();
+      if ($pagetype == 'compliant') {
+        $forceHTML5 = false;
+        switch ($platform) {
+          case 'iphone':
+          case 'ipad':
+          case 'android':
+            $forceHTML5 = true;
+          case 'computer':
+            // Supports YouTube iframe:
+            $html = '<iframe id="videoFrame" class="youtube-player" src="http://www.youtube.com/embed/'.$videoID.
+              ($forceHTML5 ? '?html5=1&controls=0&' : '?').'rel=0&hd=0&modestbranding=1&title=" '.
+              'width="240" height="195" frameborder="0"></iframe>';
+            break;
+          
+          default:
+            $data = $this->getYouTubeData($videoID);
+            if (isset($data['data'],
+                      $data['data']['content'],
+                      $data['data']['content'][6],
+                      $data['data']['thumbnail'],
+                      $data['data']['thumbnail']['hqDefault'])) {
               
-            } else if (isset($videoInfo['data']['thumbnail']['sqDefault'])) {
-              $img = $videoInfo['data']['thumbnail']['sqDefault'];
+              $url = $data['data']['content'][6]; // Blackberries do rtsp only
+              if ($platform == 'winphone7') {
+                // Intent url to launch YouTube native player (also works for Androids with player installed)
+                $url = 'vnd.youtube:'.$this->youTubeId.'?vndapp=youtube_mobile&vndclient=mv-google&vndel=watch';
+              }
+
+              $html = $this->buildLink($url, $data['data']['thumbnail']['hqDefault']);
             }
-          }
+            break;
         }
-        
-        $html = $this->buildLink($src, $img);
-        
-      } else {
-        $html = '<iframe id="videoFrame" class="youtube-player" src="http://www.youtube.com/embed/'.$videoID.
-          '" width="240" height="195" frameborder="0"></iframe>';
       }
     
     } else if (preg_match(';clip_id=([^&]+);', $source, $matches)) {
