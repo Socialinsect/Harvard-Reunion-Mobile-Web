@@ -6,10 +6,7 @@ purchased as a single line item in Harris and therefore come across as a single
 Note that all EventIDs and Classes are strings, because we can have things like
 1961R (Radcliffe) or events that are actually not really existant in Harris, but
 tracked anyway (like hr50-01).
-"""
-from itertools import chain
 
-CLASSES_TO_PACKAGE_EVENT_MAPPINGS = {
     'H1956' : {
         # Full Reunion Package
         '393929' : ['393934', 'h56-2', 'h56-3', 'h56-4', 'h56-5', 'h56-6', 
@@ -155,6 +152,58 @@ CLASSES_TO_PACKAGE_EVENT_MAPPINGS = {
     '2006' : {
         # Full Package
         '391136' : ['391142', '391137', '391138', '391139', '391144', '391140'],
+    },
+"""
+
+from itertools import chain
+
+CLASSES_TO_PACKAGE_EVENT_MAPPINGS = {
+    '1981' : {
+        # Full Reunion Package
+        '404711' : ['404717', 'hr66-0', 'hr66-1', 'hr66-2', 'hr66-3', 'hr66-4', 
+                    'hr66-5', 'hr66-6', 'hr66-7', 'hr66-8', 'hr66-9', 'hr66-11', 
+                    'hr66-12', 'hr66-13', 'hr66-14', 'hr66-15', 'hr66-16', 
+                    'hr66-17'],
+        # Thursday Reception
+        '404716' : ['hr66-0', 'hr66-1'],
+        #	Friday Tailgate Dinner
+        '404715' : ['hr66-6', 'hr66-7', 'hr66-8', 'hr66-9'],
+        # Saturday Lunch
+        '404731' : ['hr66-13', 'hr66-14'],
+        # Saturday Cocktails and Dinner
+        '404732' : ['hr66-16', 'hr66-17'],
+    },
+    
+    '1971' : {
+        # Full Reunion Package
+        '404711' : ['404717', 'hr66-0', 'hr66-1', 'hr66-2', 'hr66-3', 'hr66-4', 
+                    'hr66-5', 'hr66-6', 'hr66-7', 'hr66-8', 'hr66-9', 'hr66-11', 
+                    'hr66-12', 'hr66-13', 'hr66-14', 'hr66-15', 'hr66-16', 
+                    'hr66-17'],
+        # Thursday Reception
+        '404716' : ['hr66-0', 'hr66-1'],
+        #	Friday Tailgate Dinner
+        '404715' : ['hr66-6', 'hr66-7', 'hr66-8', 'hr66-9'],
+        # Saturday Lunch
+        '404731' : ['hr66-13', 'hr66-14'],
+        # Saturday Cocktails and Dinner
+        '404732' : ['hr66-16', 'hr66-17'],
+    },
+    
+    '1966' : {
+        # Full Reunion Package
+        '404711' : ['404717', 'hr66-0', 'hr66-1', 'hr66-2', 'hr66-3', 'hr66-4', 
+                    'hr66-5', 'hr66-6', 'hr66-7', 'hr66-8', 'hr66-9', 'hr66-11', 
+                    'hr66-12', 'hr66-13', 'hr66-14', 'hr66-15', 'hr66-16', 
+                    'hr66-17'],
+        # Thursday Reception
+        '404716' : ['hr66-0', 'hr66-1'],
+        #	Friday Tailgate Dinner
+        '404715' : ['hr66-6', 'hr66-7', 'hr66-8', 'hr66-9'],
+        # Saturday Lunch
+        '404731' : ['hr66-13', 'hr66-14'],
+        # Saturday Cocktails and Dinner
+        '404732' : ['hr66-16', 'hr66-17'],
     },
 }
 
