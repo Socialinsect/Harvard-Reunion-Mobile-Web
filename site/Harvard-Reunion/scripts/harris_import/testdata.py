@@ -20,20 +20,23 @@ LAST_NAMES = ["Huang", "Patt", "Tepfenhart", "Akins", "Ellwood", "Swamy",
               "Cabot", "North", "Currier", "Pforzheimer", "Lowell"]
 
 TEST_USERS = {
-    '1981' : [ User("Alex", "Smith", "modo.asmith@gmail.com") ],
-    # This guy should never be called, but he's here for completeness...
-    '1982' : [ User("Chris", "Doe", "modo.cdoe@gmail.com"),
+    '1981' : [ User("Alex", "Smith", "modo.asmith@gmail.com"),
                User("Dana", "Park", "modo.dpark@gmail.com"),
                User("Dan", "Smith", "modo.dsmith@gmail.com"),
-               User("Pat", "Leary", "modo.pleary@gmail.com") ],
+               User("Pat", "Leary", "modo.pleary@gmail.com"),
+               User("Janet", "Leary", "modo.jleary@gmail.com") ],
+    # This guy should never be called, but he's here for completeness...
+    '1983' : [ User("Chris", "Doe", "modo.cdoe@gmail.com") ],
     '1971' : [ User("John", "Smith", "modo.jpark@gmail.com"),
+               User("Sam", "Fisher", "modo.sfisher@gmail.com"),
                User("Jason", "Park", "modo.jsmith@gmail.com"),
                User("Jane", "Doe", "modo.jdoe@gmail.com"),
                User("Janice", "Fisher", "modo.jfisher@gmail.com") ],
     '1966' : [ User("Cynthia", "Fisher", "modo.cfisher@gmail.com"),
                User("Darin", "Fisher", "modo.dfisher@gmail.com"),
                User("Mary", "Park", "modo.mpark@gmail.com"),
-               User("Shanon", "Doe", "modo.sdoe@gmail.com") ],
+               User("Shanon", "Doe", "modo.sdoe@gmail.com"),
+               User("Joe", "Leary", "modo.jleary@gmail.com") ],
     #'2006' : [ User("Alex", "Smith", "modo.asmith@gmail.com") ],
     #'2001' : [ User("John", "Smith", "modo.jpark@gmail.com"),
     #           User("Jason", "Park", "modo.jsmith@gmail.com"),
