@@ -160,34 +160,21 @@ from itertools import chain
 CLASSES_TO_PACKAGE_EVENT_MAPPINGS = {
     '1981' : {
         # Full Reunion Package
-        '404711' : ['404717', 'hr66-0', 'hr66-1', 'hr66-2', 'hr66-3', 'hr66-4', 
-                    'hr66-5', 'hr66-6', 'hr66-7', 'hr66-8', 'hr66-9', 'hr66-11', 
-                    'hr66-12', 'hr66-13', 'hr66-14', 'hr66-15', 'hr66-16', 
-                    'hr66-17'],
-        # Thursday Reception
-        '404716' : ['hr66-0', 'hr66-1'],
-        #	Friday Tailgate Dinner
-        '404715' : ['hr66-6', 'hr66-7', 'hr66-8', 'hr66-9'],
-        # Saturday Lunch
-        '404731' : ['hr66-13', 'hr66-14'],
-        # Saturday Cocktails and Dinner
-        '404732' : ['hr66-16', 'hr66-17'],
+        '403093' : ['hr81-3', 'hr81-5', 'hr81-6', 'hr81-7', 'hr81-8', 'hr81-9', 
+                    'hr81-10', 'hr81-11', 'hr81-13', 'hr81-14', 'hr81-17', 
+                    'hr81-18', '403096', 'hr81-19', 'hr81-20', '403098'],
+        # Friday Football Game and Dinner
+        '403095' : ['hr81-9', 'hr81-10', 'hr81-11', 'hr81-13', 'hr81-14'],
     },
     
     '1971' : {
         # Full Reunion Package
-        '404711' : ['404717', 'hr66-0', 'hr66-1', 'hr66-2', 'hr66-3', 'hr66-4', 
-                    'hr66-5', 'hr66-6', 'hr66-7', 'hr66-8', 'hr66-9', 'hr66-11', 
-                    'hr66-12', 'hr66-13', 'hr66-14', 'hr66-15', 'hr66-16', 
-                    'hr66-17'],
-        # Thursday Reception
-        '404716' : ['hr66-0', 'hr66-1'],
-        #	Friday Tailgate Dinner
-        '404715' : ['hr66-6', 'hr66-7', 'hr66-8', 'hr66-9'],
-        # Saturday Lunch
-        '404731' : ['hr66-13', 'hr66-14'],
-        # Saturday Cocktails and Dinner
-        '404732' : ['hr66-16', 'hr66-17'],
+        '404711' : ['403447', 'hr71-2', 'hr71-3', 'hr71-4', 'hr71-5', 'hr71-6', 
+                    '403437', 'hr71-7', 'hr71-8', 'hr71-9', '403434', 'hr71-11', 
+                    'hr71-12', '403440', 'hr71-13', 'hr71-14', 'hr71-15', 
+                    'hr71-16', 'hr71-17', '403433'],
+        # Saturday Dinner Dance at Northwest Labs, 52 Oxford St.
+        '404716' : ['hr71-16', 'hr71-17'],
     },
     
     '1966' : {
