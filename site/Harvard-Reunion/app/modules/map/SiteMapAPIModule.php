@@ -112,7 +112,9 @@ class SiteMapAPIModule extends MapAPIModule
           if (isset($info['location']['building'])) {
               $feature = $this->dataController->getFeature(
                   $info['location']['building'], $this->getCategoriesAsArray());
-              $result = $this->arrayFromMapFeature($feature);
+              if ($feature) {
+                  $result = $this->arrayFromMapFeature($feature);
+              }
               
           } else if (isset($info['location']['latlon'])) {
               $result = array(
