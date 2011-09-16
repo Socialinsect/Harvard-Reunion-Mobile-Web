@@ -1,5 +1,12 @@
 <?php
 
+/****************************************************************
+ *
+ *  Copyright 2010 The President and Fellows of Harvard College
+ *  Copyright 2010 Modo Labs Inc.
+ *
+ *****************************************************************/
+
 require_once realpath(LIB_DIR.'/Maps/ArcGISParser.php');
 
 class HarvardMapSearch extends MapSearch {
