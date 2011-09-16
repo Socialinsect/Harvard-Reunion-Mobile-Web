@@ -164,7 +164,7 @@ class SiteLoginWebModule extends LoginWebModule
                         $result = $session->logout($authority, true);
                         $this->redirectTo('index', array_merge($defaultArgs, array(
                             'noreunion' => 'true',
-                        ));
+                        )));
                     }
                     $this->redirectTo('logout', $noReunionOptions);
                 } else {
@@ -201,7 +201,7 @@ class SiteLoginWebModule extends LoginWebModule
                                 $result = $session->logout($authority, true);
                                 $this->redirectTo('index', array_merge($defaultArgs, array(
                                     'noreunion' => 'true',
-                                ));
+                                )));
                             }
                             $this->redirectTo('logout', $noReunionOptions);
                         } else {
