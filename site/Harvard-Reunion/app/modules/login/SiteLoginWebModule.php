@@ -160,6 +160,10 @@ class SiteLoginWebModule extends LoginWebModule
                 if ($user->needsCollegeIndex()) {
                     $this->setTemplatePage('college');
                 } else if (!Schedule::userHasReunion($user)) {
+                    if ($nativeApp && $authority = AuthenticationAuthority::getAuthenticationAuthority($authorityIndex)) {
+                        $result = $session->logout($authority, true);
+                        $this->redirectTo('index', array('noreunion' => 'true'));
+                    }
                     $this->redirectTo('logout', $noReunionOptions);
                 } else {
                     if (isset($_POST['collegeIndex'])) {
@@ -191,6 +195,10 @@ class SiteLoginWebModule extends LoginWebModule
                         if ($user->needsCollegeIndex()) {
                             $this->setTemplatePage('college');
                         } else if (!Schedule::userHasReunion($user)) {
+                            if ($nativeApp && $authority = AuthenticationAuthority::getAuthenticationAuthority($authorityIndex)) {
+                                $result = $session->logout($authority, true);
+                                $this->redirectTo('index', array('noreunion' => 'true'));
+                            }
                             $this->redirectTo('logout', $noReunionOptions);
                         } else {
                             $this->logLogin($user, $nativeApp, $tabletDisplay);
