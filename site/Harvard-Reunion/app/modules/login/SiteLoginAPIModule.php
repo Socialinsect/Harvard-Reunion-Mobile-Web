@@ -31,7 +31,7 @@ class SiteLoginAPIModule extends LoginAPIModule
                     )
                 );
                 
-                if ($user instanceOf HarvardReunionUser && $user->needsCollegeIndex()) {
+                if ($user instanceOf HarvardReunionUser && ($user->needsCollegeIndex() || !Schedule::userHasReunion($user))) {
                   // fake the user not being logged in yet so that the user is
                   // prompted to set a class (harvard or radcliffe)
                   $response['user']['authority'] = null;
