@@ -162,7 +162,9 @@ class SiteLoginWebModule extends LoginWebModule
                 } else if (!Schedule::userHasReunion($user)) {
                     if ($nativeApp && $authority = AuthenticationAuthority::getAuthenticationAuthority($authorityIndex)) {
                         $result = $session->logout($authority, true);
-                        $this->redirectTo('index', array('noreunion' => 'true'));
+                        $this->redirectTo('index', array_merge($defaultArgs, array(
+                            'noreunion' => 'true',
+                        ));
                     }
                     $this->redirectTo('logout', $noReunionOptions);
                 } else {
@@ -197,7 +199,9 @@ class SiteLoginWebModule extends LoginWebModule
                         } else if (!Schedule::userHasReunion($user)) {
                             if ($nativeApp && $authority = AuthenticationAuthority::getAuthenticationAuthority($authorityIndex)) {
                                 $result = $session->logout($authority, true);
-                                $this->redirectTo('index', array('noreunion' => 'true'));
+                                $this->redirectTo('index', array_merge($defaultArgs, array(
+                                    'noreunion' => 'true',
+                                ));
                             }
                             $this->redirectTo('logout', $noReunionOptions);
                         } else {
