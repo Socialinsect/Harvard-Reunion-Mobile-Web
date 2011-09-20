@@ -171,7 +171,7 @@ CLASSES_TO_PACKAGE_EVENT_MAPPINGS = {
         # Full Reunion Package
         '403446' : ['403447', 'hr71-2', 'hr71-3', 'hr71-4', 'hr71-5', 'hr71-6', 
                     '403437', 'hr71-7', 'hr71-8', 'hr71-9', '403434', 'hr71-11', 
-                    'hr71-12', '403440', 'hr71-13', 'hr71-14', 'hr71-15', 
+                    'hr71-12', '403440', 'hr71-14', 'hr71-15',
                     'hr71-16', 'hr71-17', '403433'],
         # Saturday Dinner Dance at Northwest Labs, 52 Oxford St.
         '403445' : ['hr71-16', 'hr71-17'],
