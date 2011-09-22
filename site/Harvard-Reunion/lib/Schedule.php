@@ -24,6 +24,7 @@ class Schedule {
   private $twitter = null;
   private $foursquare = null;
   private $eventCategoryConfig = null;
+  private $geocodeCache = null;
   
   const ID_SEPARATOR = ':';
 
@@ -786,7 +787,7 @@ class Schedule {
     $placeTitle = '';
     $locationTitle = $event->get_attribute('Location Name');
     $locationBuildingID = $event->get_attribute('Building ID');
-    $trumbaLocation = $event->get_attribute('Location');
+    $trumbaLocation = $event->get_attribute('location');
     $foursquareId = $event->get_attribute('Foursquare Place');
     if ($locationTitle || $locationBuilding || $trumbaLocation) {
       $location = array(
@@ -845,9 +846,7 @@ class Schedule {
         }
         
         if ($trumbaLocation) {
-          if (preg_match(';<Latitude>([^<]+)</Latitude>.*<Longitude>([^<]+)</Longitude>;', $trumbaLocation, $matches)) {
-            $location['latlon'] = array($matches[1], $matches[2]);
-          }
+          $location['latlon'] = $this->googleGeocode($trumbaLocation);
         }
       }
       
@@ -887,5 +886,53 @@ class Schedule {
     }
     
     return $this->foursquare;
+  }
+  
+  protected function googleGeocode($location) {
+    $data = null;
+  
+    if (!$this->geocodeCache) {
+      $this->geocodeCache = new DiskCache(CACHE_DIR."/Geocode", PHP_INT_MAX, TRUE);
+    }
+    
+    $cacheName = urlencode($location);
+    
+    if ($this->geocodeCache->isFresh($cacheName)) {
+      $data = $this->geocodeCache->read($cacheName);
+      
+    } else {
+      $url = 'https://maps.googleapis.com/maps/api/geocode/json?'.http_build_query(array(
+        'address' => $location,
+        'sensor'  => 'false',
+      ));
+      $contents = file_get_contents($url);
+      
+      if ($data = json_decode($contents, true)) {
+        if ($this->geocodeResultsGetLatLon($data)) {
+          $this->geocodeCache->write($data, $cacheName);
+        } else {
+          error_log("Bad result from '{$url}':\n{$contents}");
+          $data = null;
+        }
+      }
+    }
+    
+    return $this->geocodeResultsGetLatLon($data);
+  }
+  
+  protected function geocodeResultsGetLatLon($data) {
+    if (isset($data,
+              $data['results'],
+              $data['results'][0],
+              $data['results'][0]['geometry'],
+              $data['results'][0]['geometry']['location'],
+              $data['results'][0]['geometry']['location']['lat'],
+              $data['results'][0]['geometry']['location']['lng'])) {
+      return array(
+        $data['results'][0]['geometry']['location']['lat'],
+        $data['results'][0]['geometry']['location']['lng'],
+      );
+    }
+    return null;
   }
 }
