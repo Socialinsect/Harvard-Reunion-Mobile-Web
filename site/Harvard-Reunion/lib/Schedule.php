@@ -581,12 +581,14 @@ class Schedule {
   
   private function formatAttendeeName($attendee) {
     $parts = array();
-    if (isset($attendee['first_name'])) {
-      $parts[] = $attendee['first_name'];
-    }
     if (isset($attendee['last_name'])) {
       $parts[] = $attendee['last_name'];
     }
+    if (isset($attendee['first_name'])) {
+      $parts[] = $attendee['first_name'];
+    }
+    
+    $parts = array(implode(', ', $parts));
     if (isset($attendee['suffix'])) {
       $parts[] = $attendee['suffix'];
     }
