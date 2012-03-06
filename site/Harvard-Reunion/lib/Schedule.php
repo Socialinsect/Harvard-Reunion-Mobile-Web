@@ -543,7 +543,7 @@ class Schedule {
     
     $sql = "SELECT u.prefix, u.first_name, u.last_name, u.suffix, u.class_year ".
            "FROM users u, users_events ue WHERE u.user_id=ue.user_id AND " .
-           "ue.event_id=? order by u.first_name, u.last_name";
+           "ue.event_id=? order by u.last_name, u.first_name";
     $harrisEventID = $event->get_attribute("Event ID");
     $result = $this->attendanceDb->query($sql, array($harrisEventID));
     
@@ -567,7 +567,7 @@ class Schedule {
     }
     
     $sql = "SELECT u.prefix, u.first_name, u.last_name, u.suffix, u.class_year ".
-           "FROM users u order by u.first_name, u.last_name";
+           "FROM users u order by u.last_name, u.first_name";
     $result = $this->attendanceDb->query($sql);
     
     $attendees = $result->fetchAll();
@@ -809,7 +809,7 @@ class Schedule {
       }
       
       if ($foursquareId) {
-        $location['foursquareId'] = $foursquareId;
+        //$location['foursquareId'] = $foursquareId;
       }
       
       $multipleLocations = $event->get_attribute('Multiple Locations');
