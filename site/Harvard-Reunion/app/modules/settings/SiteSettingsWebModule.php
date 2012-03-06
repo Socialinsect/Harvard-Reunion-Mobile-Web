@@ -51,12 +51,12 @@ class SiteSettingsWebModule extends WebModule {
             'toggleURL' => $facebook->needsLogin() ? $facebook->getLoginURL() : $facebook->getLogoutURL(),
             'showHome'  => $user->getShowHomeFacebookPosts(),
           ),
-          'foursquare' => array(
+          /*'foursquare' => array(
             'username'  => $foursquare->needsLogin() ? null : $foursquare->getUserFullName(),
             'fullname'  => $foursquare->needsLogin() ? null : $foursquare->getUserFullName(),
             'toggleURL' => $foursquare->needsLogin() ? 
               $foursquare->getLoginURL(true) : $this->buildBreadcrumbURL('foursquare', array()),
-          ),
+          ),*/
           'twitter' => array(
             'hashtag'   => $schedule->getTwitterHashTag(),
             'showHome'  => $user->getShowHomeTwitterStream(),

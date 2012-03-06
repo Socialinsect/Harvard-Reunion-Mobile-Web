@@ -94,28 +94,30 @@
 {$item['url'] = $info['facebook']['toggleURL']}
 {$list[] = $item}
 
-{$item = array()}
-{block name="foursquareLogin"}
-  {$item['title'] = 'foursquare'}
-  {capture name="subtitle" assign="subtitle"}
-    {if $info['foursquare']['username']}
-      <span class="loggedin">Signed in as {$info['foursquare']['username']}</span>
-    {else}
-      <span class="loggedout">Not signed in</span>
-    {/if}
-    <br/>
-    Used for checkins
-    <br/>
-    {if $info['foursquare']['username']|escape}
-      Tap to sign out
-    {else}
-      Tap to sign in
-    {/if}
-  {/capture}
-  {$item['subtitle'] = $subtitle}
-{/block}
-{$item['url'] = $info['foursquare']['toggleURL']}
-{$list[] = $item}
+{if $foursquareEnabled}
+  {$item = array()}
+  {block name="foursquareLogin"}
+    {$item['title'] = 'foursquare'}
+    {capture name="subtitle" assign="subtitle"}
+      {if $info['foursquare']['username']}
+        <span class="loggedin">Signed in as {$info['foursquare']['username']}</span>
+      {else}
+        <span class="loggedout">Not signed in</span>
+      {/if}
+      <br/>
+      Used for checkins
+      <br/>
+      {if $info['foursquare']['username']|escape}
+        Tap to sign out
+      {else}
+        Tap to sign in
+      {/if}
+    {/capture}
+    {$item['subtitle'] = $subtitle}
+  {/block}
+  {$item['url'] = $info['foursquare']['toggleURL']}
+  {$list[] = $item}
+{/if}
 
 {include file="findInclude:common/templates/navlist.tpl" navlistItems=$list accessKey=false subTitleNewline=true labelColon=false}
 
