@@ -38,7 +38,7 @@ class Schedule {
     return $configFile;
   }
 
-  static private function getScheduleConfigs() {
+  static public function getScheduleConfigs() {
     $configFile = self::getScheduleConfigFile();
     
     return $configFile ? $configFile->getSectionVars() : array();

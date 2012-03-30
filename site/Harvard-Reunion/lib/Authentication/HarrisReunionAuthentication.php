@@ -12,8 +12,14 @@ define('AUTH_HARRIS_ERROR', -101);
 class HarrisReunionAuthentication extends AuthenticationAuthority
 {
     protected $returnHeaders=array();
+    const HAA_PUSH_USER = 'haa.push';
     
     protected function auth($login, $password, &$user) {
+        // special push notification user
+        if ($login == self::HAA_PUSH_USER) {
+            $user = $this->getUser($login);
+            return $password == Kurogo::getSiteVar('HAA_PUSH_USER_PASS') ? AUTH_OK : AUTH_FAILED;
+        }
     
         if (Kurogo::getSiteVar('HARRIS_TEST_USERS')) {
             $user = $this->getUser($login);
@@ -107,6 +113,32 @@ class HarrisReunionAuthentication extends AuthenticationAuthority
     }
 
     public function getUser($login) {
+        if ($login == self::HAA_PUSH_USER) {
+            $year = '';
+            $scheduleIds = array_keys(Schedule::getScheduleConfigs());
+            foreach ($scheduleIds as $scheduleId) {
+                if ($scheduleId != 'default') {
+                    $parts = explode(':', $scheduleId);
+                    if ($parts) {
+                        $year = reset($parts);
+                        break;
+                    }
+                }
+            }
+            if (!$year) {
+                throw new KurogoException('No reunion year for haa.push');
+            }
+            $user = new HarrisReunionUser($this);
+            $user->setUserID($login);
+            $user->setAttribute('first', 'HAA');
+            $user->setAttribute('last', 'Push User');
+            $user->setAttribute('lname_as_student', 'Push User');
+            $user->setAttribute('class_year', $year);
+            $user->setAttribute('email', 'haa.push@modolabs.com');
+            $user->setAttribute('display', '0');
+            return $user;
+        }
+        
         $file = CACHE_DIR . "/Harris/" . md5($login);
         if (is_file($file)) {
             if (($fh = fopen($file, 'r')) !== FALSE) {
