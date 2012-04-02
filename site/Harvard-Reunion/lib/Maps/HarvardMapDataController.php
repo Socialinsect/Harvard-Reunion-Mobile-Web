@@ -90,7 +90,7 @@ class HarvardMapDataController extends ArcGISDataController
 
     private static function getPhotoFromFeatureInfo($featureInfo) {
         $result = null;
-        $photoFields = array('PHOTO_FILE', 'Photo', 'Photo File');
+        $photoFields = array('PHOTO_FILE', 'Photo', 'Photo File', 'Photo_file');
         foreach ($photoFields as $field) {
             if (isset($featureInfo['attributes'][$field])) {
                 $result = $featureInfo['attributes'][$field];
