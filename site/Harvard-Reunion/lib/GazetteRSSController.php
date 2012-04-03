@@ -361,7 +361,7 @@ class GazetteRSSEnclosure extends RSSEnclosure
     }
 
     public static function getImageLoaderURL($url, &$width, &$height) {
-        if ($url && strpos($url, '/photo-placeholder.gif') !== FALSE) {
+        if ($url && strpos($url, '/photo-placeholder.') !== FALSE) {
             $url = ''; // skip empty placeholder image 
         }
         
