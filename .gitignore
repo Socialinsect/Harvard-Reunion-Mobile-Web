@@ -4,6 +4,7 @@
 Thumbs.db
 *.pyc
 
+site/*/data/db.sqlite
 site/*/cache/*
 site/*/logs/*
 *-local.ini

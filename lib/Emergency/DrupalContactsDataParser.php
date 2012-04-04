@@ -1,7 +1,5 @@
 <?php
 
-require_once(LIB_DIR . '/ContactsList.php');
-
 class DrupalContactsDataParser extends DrupalCCKDataParser
 {
 
@@ -11,14 +9,17 @@ class DrupalContactsDataParser extends DrupalCCKDataParser
             $fields[$divNode->getAttribute('class')] = $divNode->nodeValue;
         }
 
-        return new ContactsListItem($fields['title'], $fields['subtitle'], $fields['phone']);
+        return new EmergencyContactsListItem($fields['title'], $fields['subtitle'], $fields['phone']);
     }
 
     public function parseData($data) {
         if ($items = parent::parseData($data)) {
+            $item = $items[0];
+            $primaryContacts = $item->getCCKField('primary-contacts');
+            $secondaryContacts = $item->getCCKField('secondary-contacts');
             return array(
-                'primary' => $items[0]->getCCKField('primary-contacts'),
-                'secondary' => $items[0]->getCCKField('secondary-contacts'),
+                'primary' => $primaryContacts ? $primaryContacts : array(),
+                'secondary' => $secondaryContacts ? $secondaryContacts : array()
             );
         }
     }

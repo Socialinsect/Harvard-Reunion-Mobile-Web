@@ -1,21 +1,17 @@
 {include file="findInclude:common/templates/header.tpl"}
 
-{include file="findInclude:common/templates/search.tpl" placeholder="Search Map" tip=$searchTip}
-
-{if $groups}
-<div class="nonfocal">
-  <a name="groups"> </a>
-  <h3>{$groupAlias}</h3>
-</div>
-{include file="findInclude:common/templates/navlist.tpl" navlistItems=$groups}
-{/if}
-
-{if $places}
 <div class="nonfocal">
   <a name="places"> </a>
-  <h3>Places</h3>
+  <h3>{"MAP_BOOKMARKED_PLACES_TITLE"|getLocalizedString}</h3>
 </div>
-{include file="findInclude:common/templates/navlist.tpl" navlistItems=$places}
+{if $navItems}
+  {include file="findInclude:common/templates/navlist.tpl" navlistItems=$navItems}
+{else}
+  {block name="noResults"}
+    <ul class="nav">
+      <li>{"NO_RESULTS"|getLocalizedString}</li>
+    </ul>
+  {/block}
 {/if}
 
 {include file="findInclude:common/templates/footer.tpl"}

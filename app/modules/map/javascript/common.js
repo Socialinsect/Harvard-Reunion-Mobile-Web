@@ -1,221 +1,162 @@
-var loadedImages = {};
-var centerZoomBased;
-var staticMapOptions;
-var mapWidth;
-var mapHeight;
-var apiURL;
+var map;
+var mapLoader;
+var browseGroups = {};
 
-function hideMapTabChildren() {
-    var mapTab = document.getElementById("mapTab");
-    for (var i = 0; i < mapTab.childNodes.length; i++) {
-        var node = mapTab.childNodes[i];
-        if (node.className == "image") {
-            mapTab.removeChild(node);
-            break;
-        }
-    }
-    for (var i = 0; i < mapTab.childNodes.length; i++) {
-        var node = mapTab.childNodes[i];
-        if (node.className == "scrollers") {
-            mapTab.removeChild(node);
-            break;
-        }
+function sortGroupsByDistance() {
+    if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(function(location) {
+            var navCategories = document.getElementById("categories").children;
+            for (var i = 0; i < navCategories.length; i++) {
+                var category = navCategories[i];
+                var categoryId = category.getAttribute("class");
+                browseGroups[categoryId] = category;
+            }
+
+            makeAPICall(
+                'GET', CONFIG_MODULE, 'sortGroupsByDistance',
+                {"lat": location.coords.latitude, "lon": location.coords.longitude},
+                function(response) {
+                    var sortedGroups = [];
+                    for (var i = 0; i < response.length; i++) {
+                        var id = response[i]["id"];
+                        if (id in browseGroups) {
+                            if ("distance" in response[i]) {
+                                var a = browseGroups[id].firstChild;
+                                a.innerHTML = a.innerHTML + "<div class=\"smallprint\">" + response[i]["distance"] + "</div>";
+                            }
+                            sortedGroups.push(browseGroups[id]);
+                        }
+                    }
+                    var navList = document.getElementById("categories");
+                    if (navList.children.length == sortedGroups.length) {
+                        while (navList.children.length > 0) {
+                            navList.removeChild(navList.children[0]);
+                        }
+                        for (var i = 0; i < sortedGroups.length; i++) {
+                            navList.appendChild(sortedGroups[i]);
+                        }
+                    }
+                }
+            );
+        },
+        function() {},
+        {maximumAge:3600000, timeout:5000});
     }
 }
 
-function loadImage(imageURL,imageID) {
-    if (!loadedImages[imageID]) {
-        // Loads an image from the given URL into the image with the specified ID
-        var img = document.getElementById(imageID);
-        if (img) {
-            if (imageURL != "") {
-                img.src = imageURL;
+////// expanding search bar
+
+function submitMapSearch(form) {
+    if (form.filter.value.length > 0) {
+        form.filter.blur();
+        mapLoader.clearMarkers();
+        hideSearchFormButtons();
+        params = {'q': form.filter.value};
+        if (form.group.value) {
+            params['group'] = form.group.value;
+        }
+        if ('projection' in mapLoader) {
+            params['projection'] = mapLoader.projection;
+        }
+        makeAPICall('GET', CONFIG_MODULE, 'search', params, function(response) {
+            if (typeof response.results == 'object') {
+                if (response.results.length > 0) {
+                    // TODO: make the "browse" button bring up results in a list
+                    var minLat = 10000000;
+                    var maxLat = -10000000;
+                    var minLon = 10000000;
+                    var maxLon = -10000000;
+                    for (var i = 0; i < response.results.length; i++) {
+                        var markerData = response.results[i];
+                        // TODO: mark markerData contain style info
+                        mapLoader.createMarker(i, markerData.lat, markerData.lon, markerData);
+                        minLat = Math.min(minLat, markerData.lat);
+                        minLon = Math.min(minLon, markerData.lon);
+                        maxLat = Math.max(maxLat, markerData.lat);
+                        maxLon = Math.max(maxLon, markerData.lon);
+                    }
+                    if (maxLon - minLon < MIN_LON_SPAN) {
+                        maxLon += MIN_LON_SPAN / 2;
+                        minLon -= MIN_LON_SPAN / 2;
+                    }
+                    if (maxLat - minLat < MIN_LAT_SPAN) {
+                        maxLat += MIN_LAT_SPAN / 2;
+                        minLat -= MIN_LAT_SPAN / 2;
+                    }
+                    mapLoader.setMapBounds(minLat, minLon, maxLat, maxLon);
+                } else {
+                    alert(NO_RESULTS_FOUND);
+                }
+            }
+        });
+        var addFilterToHref = function(link) {
+            var reg = new RegExp('&?filter=.+(&|$)');
+            if (link.href.match(reg)) {
+                link.href = link.href.replace(reg, '&filter='+form.filter.value);
             } else {
-                img.src = "/common/images/blank.png";
+                link.href = link.href + '&filter='+form.filter.value;
             }
         }
-        loadedImages[imageID] = true;
-    }
-}
-
-function loadMapImage(newSrc) {
-    var mapImage = document.getElementById("staticmapimage");
-    var oldSrc = mapImage.src;
-    mapImage.src = newSrc;
-    if (oldSrc != mapImage.src) {
-        show("loadingimage");
-    }
-    mapImage.src = newSrc; // guarentee onload handler gets called at least 
-                           // once after showing the loading image (even for cached images)
-}
-
-function pixelsFromString(aString) {
-    if (aString.substring(aString.length - 2, aString.length) == "px") {
-        return aString.substring(0, aString.length - 2);
-    } else if (aString.substring(aString.length - 1, aString.length) == "%") {
-        return aString.substring(0, aString.length - 1);
-    }
-    return aString;
-}
-
-function zoomInFromCenter() {
-    staticMapOptions['zoom'] = parseInt(staticMapOptions['zoom']) + 1;
-    updateMapImage();
-}
-
-function zoomOutFromCenter() {
-    staticMapOptions['zoom'] = parseInt(staticMapOptions['zoom']) - 1;
-    updateMapImage();
-}
-
-function zoomInFromBBox() {
-    var bbox = staticMapOptions['bbox'];
-    var dLat = (bbox['ymax'] - bbox['ymin']) / 4;
-    var dLon = (bbox['xmax'] - bbox['xmin']) / 4;
-    bbox['ymax'] = bbox['ymax'] - dLat;
-    bbox['xmax'] = bbox['xmax'] - dLon;
-    bbox['ymin'] = bbox['ymin'] + dLat;
-    bbox['xmin'] = bbox['xmin'] + dLon;
-    staticMapOptions['bbox'] = bbox;
-    updateMapImage();
-}
-
-function zoomOutFromBBox() {
-    var bbox = staticMapOptions['bbox'];
-    var dLat = (bbox['ymax'] - bbox['ymin']) / 2;
-    var dLon = (bbox['xmax'] - bbox['xmin']) / 2;
-    bbox['ymax'] = bbox['ymax'] + dLat;
-    bbox['xmax'] = bbox['xmax'] + dLon;
-    bbox['ymin'] = bbox['ymin'] - dLat;
-    bbox['xmin'] = bbox['xmin'] - dLon;
-    staticMapOptions['bbox'] = bbox;
-    updateMapImage();
-}
-
-function addStaticMapControls() {
-    if (!staticMapOptions) {
-        return;
-    }
-
-    var objMap = document.getElementById("staticmapimage");
-    mapWidth = objMap.clientWidth;
-    mapHeight = objMap.clientHeight;
-
-    var zoomIn = document.getElementById("zoomin");
-    var zoomOut = document.getElementById("zoomout");
-    var recenter = document.getElementById("recenter");
-
-    centerZoomBased = ("center" in staticMapOptions);
-
-    if (centerZoomBased) {
-        zoomIn.onclick = zoomInFromCenter;
-        zoomOut.onclick = zoomOutFromCenter;
-        
-        var initCenterLat = staticMapOptions['center']['lat'];
-        var initCenterLon = staticMapOptions['center']['lon'];
-        var initZoom = staticMapOptions['zoom'];
-        recenter.onclick = function() {
-            staticMapOptions['center'] = {'lat': initCenterLat, 'lon': initCenterLon};
-            staticMapOptions['zoom'] = initZoom;
-            updateMapImage();
+        var mapButton = document.getElementById("mapLink");
+        if (mapButton) {
+            addFilterToHref(mapButton);
         }
+        var browseButton = document.getElementById("browseLink");
+        if (browseButton) {
+            addFilterToHref(browseButton);
+        }
+    }
+}
 
+function clearSearch(e, form) {
+    e.preventDefault();
+    form.filter.value = '';
+}
+
+function showSearchFormButtons() {
+    var toolbar = document.getElementById("toolbar");
+    addClass(toolbar, "expanded");
+    if (document.getElementById("campus-select")) {
+        addClass(toolbar, "multi-campus");
     } else {
-        zoomIn.onclick = zoomInFromBBox;
-        zoomOut.onclick = zoomOutFromBBox;
-        
-        var initBBox = staticMapOptions['bbox'];
-        recenter.onclick = function() {
-            staticMapOptions['bbox'] = initBBox;
-            updateMapImage();
-        }
+        addClass(toolbar, "single-campus");
     }
 }
 
-// north and east are sign arguments, e.g.:
-// northeast is (1, 1)
-// northwest is (1, -1)
-// south is (-1, 0)
-function scrollMap(north, east) {
-
-    if (centerZoomBased) {
-        var zoom = staticMapOptions['zoom'];
-        var lat = staticMapOptions['center']['lat'];
-        var lon = staticMapOptions['center']['lon'];
-        var degreesCovered = 360 / Math.pow(2, parseInt(zoom) + 1);
-
-        lat = parseFloat(lat) + degreesCovered * north;
-        lon = parseFloat(lon) + degreesCovered * east;
-
-        // round to 4 decimal places (roughly 10 meters)
-        staticMapOptions['center']['lat'] = Math.round(lat * 10000) / 10000;
-        staticMapOptions['center']['lon'] = Math.round(lon * 10000) / 10000;
-
+function hideSearchFormButtons() {
+    var toolbar = document.getElementById("toolbar");
+    removeClass(toolbar, "expanded");
+    if (document.getElementById("campus-select")) {
+        removeClass(toolbar, "multi-campus");
     } else {
-        var bbox = staticMapOptions['bbox'];
-        var dLat = (bbox['ymax'] - bbox['ymin']) / 2;
-        var dLon = (bbox['xmax'] - bbox['xmin']) / 2;
-        bbox['ymax'] = bbox['ymax'] + dLat * north;
-        bbox['ymin'] = bbox['ymin'] + dLat * north;
-        bbox['xmax'] = bbox['xmax'] + dLon * east;
-        bbox['xmin'] = bbox['xmin'] + dLon * east;
-        staticMapOptions['bbox'] = bbox;
+        removeClass(toolbar, "single-campus");
     }
-    updateMapImage();
+    scrollTo(0, 1);
 }
 
-function updateMapImage() {
-    var httpRequest = new XMLHttpRequest();
-    var baseURL = staticMapOptions['baseURL'];
-    var mapClass = staticMapOptions['mapClass'];
-    var objMap = document.getElementById("staticmapimage");
-    var url = apiURL + "?baseURL=" + baseURL + "&mapClass=" + mapClass + "&width=" + mapWidth + "&height=" + mapHeight;
-    if (centerZoomBased) {
-        var lat = staticMapOptions['center']['lat'];
-        var lon = staticMapOptions['center']['lon'];
-        var zoom = staticMapOptions['zoom'];
-        url = url + "&lat=" + lat + "&lon=" + lon + "&zoom=" + zoom;
-    } else {
-        var bbox = staticMapOptions['bbox'];
-        var bboxStr = bbox['xmin'] + "," + bbox['ymin'] + "," + bbox['xmax'] + "," + bbox['ymax'];
-        url = url + "&bbox=" + bboxStr;
-    }
+///// window size
 
-    if ("projection" in staticMapOptions) {
-        url = url + "&projection=" + staticMapOptions['projection'];
+// ie7 doesn't understand window.innerWidth and window.innerHeight
+function getWindowHeight() {
+    if (window.innerHeight !== undefined) {
+        return window.innerHeight;
+    } else {
+        return document.documentElement.clientHeight;
     }
-    if ('markers' in staticMapOptions && staticMapOptions['markers']) {
-        url += '&markers=' + staticMapOptions['markers'];
+}
+
+function getWindowWidth() {
+    if (window.innerWidth !== undefined) {
+        return window.innerWidth;
+    } else {
+        return document.documentElement.clientWidth;
     }
-    if ('polygons' in staticMapOptions) {
-        for (arg in staticMapOptions['polygons']) {
-            url += '&'+arg+'='+staticMapOptions['polygons'][arg];
-        }
-    }
-    if ('paths' in staticMapOptions) {
-        for (arg in staticMapOptions['paths']) {
-            url += '&'+arg+'='+staticMapOptions['paths'][arg];
-        }
-    }
-    // code snippet from http://en.wikipedia.org/wiki/JSON#Use_in_Ajax
-    httpRequest.open("GET", url, true);
-    httpRequest.onreadystatechange = function() {
-        if (httpRequest.readyState == 4 && httpRequest.status == 200) {
-            var obj;
-            if(window.JSON) {
-                obj = JSON.parse(httpRequest.responseText);
-            } else {
-                obj = eval('(' + httpRequest.responseText + ')');
-            }
-            var newSrc = obj['response'];
-            loadMapImage(newSrc);
-        }
-    }
-    httpRequest.send(null);
 }
 
 // assuming only one of updateMapDimensions or updateContainerDimensions
 // gets used so they can reference the same ids
+// updateMapDimensions is called for static maps
+// updateContainerDimensions is called for dynamic maps
 var updateMapDimensionsTimeoutIds = [];
 function clearUpdateMapDimensionsTimeouts() {
     for(var i = 0; i < updateMapDimensionsTimeoutIds.length; i++) {
@@ -224,151 +165,85 @@ function clearUpdateMapDimensionsTimeouts() {
     updateMapDimensionsTimeoutIds = [];
 }
 
-// Prevent firebombing the browser with Ajax calls on browsers which fire lots
-// of resize events
-function updateMapDimensions() {
-    clearUpdateMapDimensionsTimeouts();
-    var timeoutId = window.setTimeout(doUpdateMapDimensions, 200);
-    updateMapDimensionsTimeoutIds.push(timeoutId);
-    timeoutId = window.setTimeout(doUpdateMapDimensions, 500);
-    updateMapDimensionsTimeoutIds.push(timeoutId);
-}
-
-function doUpdateMapDimensions() {
-    if (!centerZoomBased) {
-        // if width and height proprotions changed, we need to update the bbox
-        var oldHeight = mapHeight;
-        var oldWidth = mapWidth;
-    }
-    
-    if (window.innerHeight !== undefined) {
-        mapHeight = window.innerHeight;
-    } else {
-        mapHeight = document.documentElement.clientHeight; // ie7
-    }
-
-    if (window.innerWidth !== undefined) {
-        mapWidth = window.innerWidth;
-    } else {
-        mapWidth = document.documentElement.clientWidth; // ie7
-    }
-
-    if (!centerZoomBased) {
-        // if width and height changed, we need to update the bbox
-        if ((oldWidth && oldWidth != mapWidth) || (oldHeight && oldHeight != mapHeight)) {
-            var bbox = staticMapOptions['bbox'];
-            var bboxWidth = bbox['xmax'] - bbox['xmin'];
-            var bboxHeight = bbox['ymax'] - bbox['ymin'];
-            var newBBoxWidth = bboxWidth * mapWidth / oldWidth;
-            var newBBoxHeight = bboxHeight * mapHeight / oldHeight;
-            
-            var dWidth = (newBBoxWidth - bboxWidth) / 2;
-            var dHeight = (newBBoxHeight - bboxHeight) / 2;
-            
-            bbox['xmax'] += dWidth;
-            bbox['xmin'] -= dWidth;
-            bbox['ymax'] += dHeight;
-            bbox['ymin'] -= dHeight;
-            
-            staticMapOptions['bbox'] = bbox;
-        }
-    }
-
-    var objMap = document.getElementById("mapimage");
-	var objContainer = document.getElementById("container");
-	var objScrollers = document.getElementById("mapscrollers");
-    if (objContainer && objMap.className == "fullmap") {
-        objContainer.style.width = mapWidth+"px";
-        objContainer.style.height = mapHeight+"px";
-        objMap.style.width = mapWidth+"px";
-        objMap.style.height = mapHeight+"px";
-    }
-    if (objScrollers) {
-        switch (getOrientation()) {
-            case 'portrait':
-              objScrollers.style.height = (mapHeight-42)+"px";
-              objScrollers.style.width = mapWidth+"px";
-            break;
-        
-            case 'landscape':
-              objScrollers.style.height = mapHeight+"px";
-              objScrollers.style.width = (mapWidth-42)+"px";
-            break;
-        }
-    }
-    
-    updateMapImage();
-}
-
 // resizing counterpart for dynamic maps
 function updateContainerDimensions() {
-    clearUpdateMapDimensionsTimeouts();
-    var timeoutId = window.setTimeout(doUpdateContainerDimensions, 200);
-    updateMapDimensionsTimeoutIds.push(timeoutId);
-    timeoutId = window.setTimeout(doUpdateContainerDimensions, 500);
-    updateMapDimensionsTimeoutIds.push(timeoutId);
-}
-
-function doUpdateContainerDimensions() {
-    var container = document.getElementById("container");
-    if (container) {
-        var newWidth;
-        if (window.innerWidth !== undefined) {
-            newWidth = window.innerWidth + "px";
-        } else {
-            newWidth = document.documentElement.clientWidth + "px"; // ie7
-        }
-        var newHeight;
-        if (window.innerHeight !== undefined) {
-            newHeight = window.innerHeight + "px";
-        } else {
-            newHeight = document.documentElement.clientHeight + "px"; // ie7
-        }
-
-        // check to see if the container height and width actually changed
-        if (container.style && container.style.width && container.style.width == newWidth
-                            && container.style.height && container.style.height == newHeight) {
-
-           // nothing changed so exit early
-           return;
-        }
-
-        container.style.width = newWidth;
-        container.style.height = newHeight;
-
-        if (typeof resizeMapOnContainerResize == 'function') {
-            resizeMapOnContainerResize();
-        }
+    if (typeof doUpdateContainerDimensions == 'function') {
+        clearUpdateMapDimensionsTimeouts();
+        //var timeoutId = window.setTimeout(doUpdateContainerDimensions, 200);
+        //updateMapDimensionsTimeoutIds.push(timeoutId);
+        //var timeoutId = window.setTimeout(doUpdateContainerDimensions, 500);
+        //updateMapDimensionsTimeoutIds.push(timeoutId);
+        var timeoutId = window.setTimeout(doUpdateContainerDimensions, 1000);
+        updateMapDimensionsTimeoutIds.push(timeoutId);
     }
 }
 
-
-
+function findPosY(obj) {
+// Function for finding the y coordinate of the object passed as an argument.
+// Returns the y coordinate as an integer, relative to the top left origin of the document.
+    var intCurlTop = 0;
+    if (obj.offsetParent) {
+        while (obj.offsetParent) {
+            intCurlTop += obj.offsetTop;
+            obj = obj.offsetParent;
+        }
+    }
+    return intCurlTop;
+}
 
 /*
-function disable(strID) {
-// Visually dims and disables the anchor whose id is strID
-	var objA = document.getElementById(strID);
-	if(objA) {
-		if(objA.className.indexOf("disabled") == -1) { // only disable if it's not already disabled!
-			objA.className = objA.className + " disabled";
-		}
-	}
-}
+if (typeof KGOMapLoader != 'undefined') {
+    KGOMapLoader.prototype.generateInfoWindowContent = function(title, subtitle, url) {
+        var content = '';
+        if (title !== null) {
+            content += '<div class="map_name">' + title + '</div>';
+        }
+        if (subtitle !== null) {
+            content += '<div class="smallprint map_address">' + subtitle + '</div>';
+        }
+        if (typeof url != 'undefined' && url !== null && typeof COOKIE_PATH != 'undefined' && typeof BOOKMARK_LIFESPAN != 'undefined') {
+            // we need to match the parameter order produced by php
+            if (typeof this.regexes == 'undefined') {
+                this.regexes = [
+                    /[?&](category=[\w\.\,\+\-:%]+)/,
+                    /[?&](featureindex=[\w\.\,\+\-:%]+)/,
+                    /[?&](lat=[\w\.\,\+\-:%]+)/,
+                    /[?&](lon=[\w\.\,\+\-:%]+)/,
+                    /[?&](feed=[\w\.\,\+\-:%]+)/,
+                    /[?&](title=[\w\.\,\+\-:%]+)/
+                ];
+            }
 
-function enable(strID) {
-// Visually undims and re-enables the anchor whose id is strID
-	var objA = document.getElementById(strID);
-	if(objA) {
-		objA.className = objA.className.replace("disabled","");
-	}
-}
+            var parts = [];
+            for (var i = 0; i < this.regexes.length; i++) {
+                var match = url.match(this.regexes[i]);
+                if (match) {
+                    parts.push(match[1]);
+                }
+            }
+            query = parts.join('&').replace(/\+/g, ' ').replace(/%3A/g, ':');
+            var items = getCookieArrayValue("mapbookmarks");
+            var bookmarkState = "";
+            for (var i = 0; i < items.length; i++) {
+                if (items[i] == query) {
+                    bookmarkState = "on";
+                    break;
+                }
+            }
 
-function cancelOptions(strFormID) {
-// Should cancel map-option changes and hide the form; this is just a stub for future real function
-	var objForm = document.getElementById(strFormID);
-	if(objForm) { objForm.reset() }
-	hide("options"); 
+            content = '<div id="calloutWrapper"><div id="bookmarkWrapper" style="float:left;">' +
+                        '<a onclick="toggleBookmark(\'mapbookmarks\', \'' + query + '\', BOOKMARK_LIFESPAN, COOKIE_PATH)">' +
+                          '<div id="bookmark"' +
+                              ' ontouchend="toggleClass(this, \'on\');"' +
+                              ' class="' + bookmarkState + '"></div>' +
+                        '</a>' + 
+                      '</div>' +
+                      '<div class="calloutMain" style="float:left;">' + content + '</div>' +
+                      '<div class="calloutDisclosure" style="flost:left;">' +
+                        '<a href="' + url + '"><img src="' + URL_BASE.replace(/\/$/,'') + '/modules/map/images/info.png" /></a>' +
+                      '</div></div>';
+        }
+        return content;
+    }
 }
 */
-
