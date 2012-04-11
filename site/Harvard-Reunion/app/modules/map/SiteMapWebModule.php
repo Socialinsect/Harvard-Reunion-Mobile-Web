@@ -127,12 +127,12 @@ class SiteMapWebModule extends MapWebModule {
     return parent::getTitleForBookmark($aBookmark);
   }
  
-  protected function generateTabForKey($tabKey, $feature, $dataController, &$tabJavascripts) {
+  protected function generateTabForKey($tabKey, $feature, &$tabJavascripts) {
     if ($tabKey == 'event') {
       // event information already set if this is an event page
       return isset($this->args['eventId']);
     } else {
-      return parent::generateTabForKey($tabKey, $feature, $dataController, $tabJavascripts);
+      return parent::generateTabForKey($tabKey, $feature, $tabJavascripts);
     }
   }
   

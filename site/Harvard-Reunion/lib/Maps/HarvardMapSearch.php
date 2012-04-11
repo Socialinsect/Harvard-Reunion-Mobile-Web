@@ -2,8 +2,8 @@
 
 /****************************************************************
  *
- *  Copyright 2011 The President and Fellows of Harvard College
- *  Copyright 2011 Modo Labs Inc.
+ *  Copyright 2010-2012 The President and Fellows of Harvard College
+ *  Copyright 2010-2012 Modo Labs Inc.
  *
  *****************************************************************/
 
@@ -36,6 +36,7 @@ class HarvardMapSearch extends MapSearch {
         $results = array();
         $bldgIds = array();
         $minusBldgIds = array(); // keep track of dupes
+        $searchController = $this->getLayerForSearchResult();
 
         $params = array(
             'str' => $query,
@@ -45,6 +46,7 @@ class HarvardMapSearch extends MapSearch {
         $url = Kurogo::getSiteVar('MAP_SEARCH_URL').'?'.http_build_query($params, null, '&');
         $rawContent = file_get_contents($url);
         $content = json_decode($rawContent, true);
+
         foreach ($content['items'] as $result) {
             if (trim($result['bld_num'])) {
                 if (!in_array($result['bld_num'], $bldgIds))
@@ -52,9 +54,10 @@ class HarvardMapSearch extends MapSearch {
             } else {
                 // search result doesn't have a building number
                 $searchText = strtoupper(trim($result['match_string']));
-                $features = $this->getLayerForSearchResult()->search($searchText);
+                $features = $searchController->search($searchText);
                 foreach ($features as $feature) {
-                    $minusBldgIds[] = $feature->getIndex();
+                    $feature->addCategoryId($searchController->getCategoryId());
+                    $minusBldgIds[] = $feature->getId();
                     $results[] = $feature;
                 }
             }
@@ -65,8 +68,9 @@ class HarvardMapSearch extends MapSearch {
                 if (in_array($bldgId, $minusBldgIds)) {
                     continue;
                 }
-                $feature = HarvardMapDataController::getBldgDataByNumber($bldgId);
+                $feature = $searchController->getBldgDataByNumber($bldgId);
                 if ($feature) {
+                    $feature->addCategoryId($searchController->getCategoryId());
                     $results[] = $feature;
                 }
             }
@@ -80,7 +84,7 @@ class HarvardMapSearch extends MapSearch {
             $this->searchController = MapDataController::factory(
                 $this->searchFeedData['CONTROLLER_CLASS'],
                 $this->searchFeedData);
-            $this->searchController->setCategory(array($this->controllerLayerID));
+            //$this->searchController->setCategory(array($this->controllerLayerID));
             $this->searchController->setDebugMode(Kurogo::getSiteVar('DATA_DEBUG'));
         }
     	return $this->searchController;

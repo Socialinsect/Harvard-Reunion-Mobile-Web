@@ -2,15 +2,14 @@
 
 /****************************************************************
  *
- *  Copyright 2011 The President and Fellows of Harvard College
- *  Copyright 2011 Modo Labs Inc.
+ *  Copyright 2010-2012 The President and Fellows of Harvard College
+ *  Copyright 2010-2012 Modo Labs Inc.
  *
  *****************************************************************/
 
 class HarvardMapDataController extends ArcGISDataController
 {
-    protected $DEFAULT_PARSER_CLASS = 'HarvardArcGISParser';
-    protected $returnsGeometry = true;
+    protected $returnsGeometry = false;
     protected $isSearchLayer = false;
 
     // set the cache lifetime to a month since we are
@@ -20,41 +19,37 @@ class HarvardMapDataController extends ArcGISDataController
     protected function init($args)
     {
         parent::init($args);
-
-        if (isset($args['DYNAMIC_ZOOM_LEVEL']))
-            $this->dynamicZoomLevel = $args['DYNAMIC_ZOOM_LEVEL'];
+        //if (isset($args['DYNAMIC_ZOOM_LEVEL']))
+        //    $this->dynamicZoomLevel = $args['DYNAMIC_ZOOM_LEVEL'];
         
-        if (isset($args['ARCGIS_LAYER_ID']))
-            $this->parser->setDefaultLayer($args['ARCGIS_LAYER_ID']);
+        //if (isset($args['ARCGIS_LAYER_ID']))
+        //    $this->parser->setDefaultLayer($args['ARCGIS_LAYER_ID']);
 
         if (isset($args['RETURNS_GEOMETRY']))
             $this->returnsGeometry = $args['RETURNS_GEOMETRY'];
     }
-    
-    public function getFeature($name, $categoryPath=array())
+
+    protected function getProjectedFeature(Placemark $placemark)
     {
-        $theItem = null;
+        if (!$this->returnsGeometry || $placemark->getGeometry() == null) {
+            $featureInfo = $this->queryFeatureServer($placemark);
+            $placemark->setGeometryType($featureInfo['geometryType']);
+            $placemark->readGeometry($featureInfo['geometry']);
+        }
 
-        $items = $this->getListItems($categoryPath);
-        if (isset($items[$name])) {
-            $theItem = $items[$name];
-            if (!$this->returnsGeometry || $theItem->getGeometry() == null) {
-                $featureInfo = $this->queryFeatureServer($theItem);
-                $theItem->setGeometryType($featureInfo['geometryType']);
-                $theItem->readGeometry($featureInfo['geometry']);
-            }
+        $placemark = parent::getProjectedFeature($placemark);
 
-            if ($theItem->getField('Photo') === null) {
-                if (!isset($featureInfo))
-                    $featureInfo = $this->queryFeatureServer($theItem);
+        if ($placemark->getField('PhotoURL') === null) {
+            if (!isset($featureInfo))
+                $featureInfo = $this->queryFeatureServer($placemark);
 
-                $photoURL = self::getPhotoFromFeatureInfo($featureInfo);
-                if ($photoURL) {
-                    $theItem->setField('Photo', $photoURL);
-                }
+            $photoURL = self::getPhotoFromFeatureInfo($featureInfo);
+            if ($photoURL) {
+                $placemark->setField('PhotoURL', $photoURL);
             }
         }
-        return $theItem;
+
+        return $placemark;
     }
     
     private static function getSupplementaryFeatureData($bldgId, $searchField, $queryBase, $layerId=0) {
@@ -83,17 +78,18 @@ class HarvardMapDataController extends ArcGISDataController
         $result = $featureCache->read($bldgId);
         $photoURL = self::getPhotoFromFeatureInfo($result);
         if ($photoURL) {
-            $result['attributes']['Photo'] = $photoURL;
+            $result['attributes']['PhotoURL'] = $photoURL;
         }
         return $result;
     }
 
     private static function getPhotoFromFeatureInfo($featureInfo) {
         $result = null;
-        $photoFields = array('PHOTO_FILE', 'Photo', 'Photo File', 'Photo_file');
+        $photoFields = array('PHOTO_FILE', 'Photo', 'Photo File');
         foreach ($photoFields as $field) {
-            if (isset($featureInfo['attributes'][$field])) {
-                $result = $featureInfo['attributes'][$field];
+            if (isset($featureInfo['attributes'][$field]) && 
+                    preg_match('/\.(png|png8|jpg|jpeg|gif)$/', $featureInfo['attributes'][$field])) {
+                $result = Kurogo::getSiteVar('MAP_PHOTO_SERVER').rawurlencode($featureInfo['attributes'][$field]);
                 break;
             }
         }
@@ -132,22 +128,17 @@ class HarvardMapDataController extends ArcGISDataController
         return self::getSupplementaryFeatureData($bldgId, $searchField, $queryBase, $this->parser->getSelectedLayerId());
     }
     
-    public static function getBldgDataByNumber($bldgId) {
-        $feedConfig = ModuleConfigFile::factory('map', 'feeds');
-        $feature = null;
-        foreach ($feedConfig->getSectionVars() as $id => $feedData) {
-            $controller = MapDataController::factory($feedData['CONTROLLER_CLASS'], $feedData);
-            $controller->setCategory($id);
-            $feature = $controller->getFeature($bldgId);
-            if ($feature) {
-                if ($feature->getField('Photo') === null) {
-                    $featureInfo = $controller->queryFeatureServer($feature);
-                    $photoURL = self::getPhotoFromFeatureInfo($featureInfo);
-                    if ($photoURL) {
-                        $feature->setField('Photo', $photoURL);
-                    }
+    public function getBldgDataByNumber($bldgId) {
+        $this->selectPlacemark($bldgId);
+        $feature = $this->getSelectedPlacemark();
+        if ($feature) {
+            if ($feature->getField('PhotoURL') === null) {
+                //$featureInfo = $controller->queryFeatureServer($feature);
+                $featureInfo = $this->queryFeatureServer($feature);
+                $photoURL = self::getPhotoFromFeatureInfo($featureInfo);
+                if ($photoURL) {
+                    $feature->setField('PhotoURL', $photoURL);
                 }
-                break;
             }
         }
         return $feature;
