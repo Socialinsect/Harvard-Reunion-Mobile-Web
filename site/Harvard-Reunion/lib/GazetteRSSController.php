@@ -45,7 +45,7 @@ class GazetteRSSController extends RSSDataController
         return null;
     }
     
-    public function items(&$start=0, $limit=null) 
+    public function items($start=0, $limit=null) 
     {
         if ($limit && $start % $limit != 0) {
             $start = floor($start/$limit)*$limit;
