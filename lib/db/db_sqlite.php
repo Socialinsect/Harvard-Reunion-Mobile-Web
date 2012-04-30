@@ -16,9 +16,6 @@ class db_sqlite extends db
         if (!isset($dsn_data['DB_FILE']) || empty($dsn_data['DB_FILE'])) {
             throw new Exception("SQLite file not specified");
         }
-        if (!file_exists($dsn_data['DB_FILE'])) {
-            throw new Exception("DB file does not exist.");
-        }
         
         if (!file_exists($dsn_data['DB_FILE'])) {
             $create = isset($dsn_data['DB_CREATE']) && $dsn_data['DB_CREATE'];
