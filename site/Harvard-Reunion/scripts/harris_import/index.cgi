@@ -9,7 +9,7 @@ cgitb.enable()
 import processevents
 
 
-YEARS = ['1981', '1971', '1966']
+YEARS = ['2007', '2002', '1997', '1992', '1987', '1977', '1962', 'H1957', 'R1957', 'H1952', 'R1952', 'H1947', 'R1947']
 
 def display_form():
     print "Content-Type: text/html"
