@@ -2,7 +2,7 @@
   <div class="nonfocal">
     <h3>{$eventName}</h3>
     {if $groups}
-      <span class="smallprint">Sorted by first name</span>
+      <span class="smallprint">Sorted by last name</span>
     {/if}
   </div>
   {if $groups}
