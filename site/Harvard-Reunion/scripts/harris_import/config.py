@@ -159,39 +159,129 @@ from itertools import chain
 
 CLASSES_TO_PACKAGE_EVENT_MAPPINGS = {
     '2007' : {
+        # Full Package
+        '421914' : ['HR07-2', '421915', '421916', '421917', '421918'],
     },
     
     '2002' : {
+        # Full Package
+        '421957' : ['HR02-2', '421958', '421959', '421960', '421993', '421979'],
     },
     
     '1997' : {
+        # Full Package
+        '422013' : ['HR97-2', '422014', '422015', '422016', '422017', '422035', '422039'],
+        # Tours of Harvard led by Crimson Key
+        '422050' : ['HR97-6', 'HR97-7', 'HR97-8', 'HR97-9', 'HR97-10'],
     },
     
     '1992' : {
+        # Full Package
+        '422063' : ['HR92-2', '422069', '422064', '422065', '422066', '42206', '422086', '422056'],
     },
     
     '1987' : {
+        # Full Package
+        '420938' : ['HR87-2', 'HR87-3', 'HR87-5', 'HR87-6', 'HR87-7', 'HR87-8', 'HR87-9', 'HR87-10', 'HR87-11', 'HR87-12', 'HR87-13', 'HR87-14', 'HR87-15', 'HR87-16', 'HR87-17', 'HR87-18', 'HR87-19', 'HR87-20', 'HR87-21', 'HR87-22', 'HR87-23', 'HR87-24', 'HR87-26', 'HR87-28', 'HR87-29', 'HR87-30', 'HR87-31', 'HR87-32', 'HR87-33', 'HR87-34', 'HR87-35', 'HR87-36', 'HR87-37', 'HR87-38', 'HR87-39', '420952', '421052'],
+        # Weekend Package
+        '420952' : ['HR87-26', 'HR87-28', 'HR87-29', 'HR87-30', 'HR87-31', 'HR87-32', 'HR87-33', 'HR87-34', 'HR87-35', 'HR87-36', 'HR87-37', 'HR87-38', 'HR87-39', '421052'],
+        # Thursday Day Program
+        '420941' : ['HR87-9', 'HR87-10', 'HR87-11', 'HR87-12', 'HR87-13', 'HR87-14'],
+        # Thursday Evening Program
+        '420942' : ['HR87-15', 'HR87-16', 'HR87-17'],
+        # Friday Day Program
+        '420930' : [' HR87-18', 'HR87-19', 'HR87-20', 'HR87-21', 'HR87-22', 'HR87-23', 'HR87-24'],
+        # Friday Evening Program
+        '420926' : ['HR87-26', '421052'],
+        # Saturday Day Program
+        '420932' : ['HR87-28', 'HR87-30', 'HR87-31', 'HR87-32', 'HR87-33'],
+        # Saturday Evening Program
+        '420975' : ['HR87-35', 'HR87-36', 'HR87-37'],
+        # Saturday Talent Show and "Club '87" Dance Party
+        '420929' : ['HR87-36', 'HR87-37'],
+        # Sunday Day Program
+        '420974' : ['HR87-38', 'HR87-39'],
     },
     
     '1977' : {
+        # Full Package
+        '420824' : ['HR77-2', 'HR77-3', '420856', 'HR77-4', 'HR77-5', '420828', 'HR77-6', '420865', 'HR77-7', '420866', 'HR77-8', '420867', 'HR77-9', 'HR77-10', '420868', 'HR77-11', 'HR77-12', 'HR77-13', 'HR77-14', '420849', 'HR77-15', '420870', 'HR77-16', 'HR77-17', '420816', '420848'],
+        # Thursday All Day
+        '420827' : ['420828', 'HR77-6', '420865', 'HR77-7', '420866', 'HR77-8'],
+        # Friday All Day
+        '420817' : ['420867', 'HR77-9', 'HR77-10', '420868', 'HR77-11', 'HR77-12', 'HR77-13', 'HR77-14'],
+        # Friday Class of '77 Dinner and Performance Event
+        '420813' : ['HR77-12', 'HR77-13'],
+        # Saturday All Day
+        '420818' : ['420849', 'HR77-15', '420870', 'HR77-16', 'HR77-17', '420816'],
     },
     
     '1962' : {
+        # Full Package
+        '418183' : ['HR62-3', 'HR62-4', 'HR62-5', 'HR62-7', 'HR62-10', 'HR62-13', 'HR62-15', 'HR62-17', 'HR62-20', 'HR62-21', 'HR62-24', 'HR62-25', 'HR62-27', 'HR62-30', 'HR62-31', 'HR62-47'],
+        # Monday
+        '418201' : ['HR62-3', 'HR62-4', 'HR62-5'],
+        # Tuesday
+        '418189' : ['HR62-7', 'HR62-10', 'HR62-13', 'HR62-15'],
+        # Tuesday Daytime and Dinner
+        '418187' : ['HR62-7', 'HR62-10', 'HR62-13'],
+        # Tuesday Daytime and Wednesday Daytime
+        '420202' : ['HR62-7', 'HR62-10', 'HR62-13', 'HR62-17', 'HR62-20', 'HR62-21'],
+        # All Tuesday and Wednesday Daytime
+        '418186' : ['HR62-7', 'HR62-10', 'HR62-13', 'HR62-15', 'HR62-17', 'HR62-20', 'HR62-21'],
+        # Wednesday
+        '418202' : ['HR62-17', 'HR62-20', 'HR62-21', 'HR62-24', 'HR62-47', 'HR62-25'],
+        # Wednesday Daytime Only
+        '418203' : ['HR62-17', 'HR62-20', 'HR62-21'],
+        # Wednesday Dinner Only
+        '418204' : ['HR62-24', 'HR62-47', 'HR62-25'],
+        # Thursday
+        '418205' : ['HR62-27', 'HR62-30', 'HR62-31'],
     },
     
     'H1957' : {
+        # Full Package
+        '422179' : ['HR57-2', 'HR57-8', 'HR57-14', 'HR57-23', 'HR72-27', 'HR57-33'],
+        # Monday
+        '422182' : ['HR57-2', 'HR57-3'],
+        # Tuesday
+        '422183' : ['HR57-5', 'HR57-6', 'HR57-7', 'HR57-8', 'HR57-10', 'HR57-11', 'HR57-13', 'HR57-14', 'HR57-15'],
+        # Wednesday
+        '422181' : ['HR57-20', 'HR57-21', 'HR57-22', 'HR57-23', 'HR57-27', 'HR57-28,'],
     },
     
     'R1957' : {
+        # Full Package
+        '422844' : ['422848', '422846', '422856', '422857', 'RR57-11'],
+        # Gardner Museum Event
+        '422847' : ['RR57-11', 'RR57-12'],
     },
     
     'H1952' : {
+        # Full Package
+        '419681' : ['419682', 'HR52-5', 'HR52-6', 'HR52-39', 'HR52-10', 'HR52-14', 'HR52-15', 'HR52-16', 'HR52-40', '419677', '419676', 'HR52-24', 'HR52-25', 'HR52-30', 'HR52-31', 'HR52-33'],
+        # Tuesday. Includes symposia, memorial service, lunch, and clambake on campus
+        '419683' : ['HR52-5', 'HR52-39', 'HR52-6', 'HR52-10'],
+        # Wednesday. Includes symposia, lunch, cocktail reception, dinner and cabaret entertainment at the Fairmont Copley Hotel
+        '419680' : ['HR52-14', 'HR52-15', 'HR52-16', 'HR52-40', '419677', '419676', 'HR52-24', 'HR52-25'],
     },
     
     'R1952' : {
+        # Full Package
+        '422861' : ['422863', '422862', '422876', '422860', 'RR52-10', 'RR52-11', 'RR52-14', 'RR52-15'],
     },
     
     'H1947' : {
+        # Full Package
+        '422681' : ['422667', 'HR47-4', 'HR47-7', 'HR47-13', 'HR47-14', 'HR47-17', 'HR47-18', 'HR47-20', 'HR47-27', 'HR47-28', 'HR47-32', 'HR47-33', 'HR47-37'],
+        # Tuesday symposia, memorial service, lunch at the Harvard Faculty Club
+        '422678' : ['HR47-4', 'HR47-5', 'HR47-7'],
+        # Tuesday night dinner and Boston Pops concert at Symphony Hall
+        '422686' : ['HR47-13', 'HR47-14'],
+        # Wednesday symposia and lunch
+        '422684' : ['HR47-17', 'HR47-18', 'HR47-20'],
+        # Wednesday night cocktail reception and dinner at the Harvard Faculty Club and the Harvard Band and Glee Club concert
+        '422683' : ['HR47-27', 'HR47-28'],
     },
     
     'R1947' : {
