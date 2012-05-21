@@ -190,7 +190,7 @@ CLASSES_TO_PACKAGE_EVENT_MAPPINGS = {
         # Thursday Evening Program
         '420942' : ['HR87-15', 'HR87-16', 'HR87-17'],
         # Friday Day Program
-        '420930' : [' HR87-18', 'HR87-19', 'HR87-20', 'HR87-21', 'HR87-22', 'HR87-23', 'HR87-24'],
+        '420930' : ['HR87-18', 'HR87-19', 'HR87-20', 'HR87-21', 'HR87-22', 'HR87-23', 'HR87-24'],
         # Friday Evening Program
         '420926' : ['HR87-26', '421052'],
         # Saturday Day Program
