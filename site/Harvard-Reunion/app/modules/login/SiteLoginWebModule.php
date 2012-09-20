@@ -32,6 +32,11 @@ class SiteLoginWebModule extends LoginWebModule
     $tabletDisplay = stripos($_SERVER['HTTP_USER_AGENT'], '(ipad;') !== FALSE;
     $nativeApp = $this->getArg('nativeApp', false);
     
+    if (!$nativeApp) {
+       header("Location: http://alumni.harvard.edu/college/reunions-events");
+       die(0);
+    }
+
     $this->assign('tabletDisplay', $tabletDisplay);
     
     // Default args to pass through forms and urls
